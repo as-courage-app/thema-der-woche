@@ -95,7 +95,7 @@ export default function Home() {
 
         <div style={{ fontSize: "1.25rem", fontWeight: 500 }}>{topLine}</div>
         <div style={{ fontSize: "1.4rem", fontWeight: 500, marginTop: "0.8rem" }}>
-          {formattedDate}
+          {formattedDate} 
         </div>
 
         <h1 style={{ fontSize: "2.6rem", marginTop: "1.2rem" }}>
