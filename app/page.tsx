@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Entry = {
   thema: string;
@@ -24,29 +24,35 @@ export default function Home() {
   const weekday = today.getDay();
   const isWeekend = weekday === 0 || weekday === 6;
 
-  const formattedDate = useMemo(() => {
-    return today.toLocaleDateString("de-DE", {
-      weekday: "long",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  }, [today]);
+  const formattedDate = today.toLocaleDateString("de-DE", {
+    weekday: "long",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 
   const startDate = new Date("2026-02-02");
   const diffWeeks = Math.floor(
     (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7)
   );
-  const entry = data[diffWeeks >= 0 ? diffWeeks : 0];
+
+  const entry =
+    diffWeeks >= 0 && diffWeeks < data.length ? data[diffWeeks] : null;
 
   const dayMap = ["", "Mo", "Di", "Mi", "Do", "Fr"];
   const todayQuestion =
-    !isWeekend && entry ? entry.tage[dayMap[weekday]] : null;
+    !isWeekend && entry ? entry.tage[dayMap[weekday]] : " ";
 
   const topLine =
-    "Zeitlose Fragen und Impulse für Führung und wertschätzende Kommunikation – 1. Edition";
+    "Zeitlose Fragen und Impulse fuer Fuehrung und wertschaetzende Kommunikation - 1. Edition";
 
-  const MenuButton = ({ label, target }: { label: string; target: View }) => (
+  const MenuButton = ({
+    label,
+    target,
+  }: {
+    label: string;
+    target: View;
+  }) => (
     <button
       onClick={() => setView(target)}
       style={{
@@ -93,7 +99,7 @@ export default function Home() {
         </div>
 
         <h1 style={{ fontSize: "2.6rem", marginTop: "1.2rem" }}>
-          {entry?.thema ?? "Thema wird geladen …"}
+          {entry ? entry.thema : "Thema wird geladen"}
         </h1>
 
         <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.5rem" }}>
@@ -105,19 +111,19 @@ export default function Home() {
         <section style={{ marginTop: "2.2rem" }}>
           {view === "day" && (
             <div style={{ fontSize: "2rem", fontWeight: 700 }}>
-              {isWeekend ? "Schönes Wochenende ☀️" : todayQuestion}
+              {isWeekend ? "Schoenes Wochenende" : todayQuestion}
             </div>
           )}
 
           {view === "quote" && entry && (
             <blockquote style={{ fontSize: "1.6rem", fontStyle: "italic" }}>
-              „{entry.zitat}“
+              "{entry.zitat}"
             </blockquote>
           )}
 
           {view === "week" && entry && (
             <div style={{ marginTop: "1rem" }}>
-              {(["Mo", "Di", "Mi", "Do", "Fr"] as const).map((d) => (
+              {["Mo", "Di", "Mi", "Do", "Fr"].map((d) => (
                 <div
                   key={d}
                   style={{ display: "flex", gap: "0.8rem", fontWeight: 700 }}
