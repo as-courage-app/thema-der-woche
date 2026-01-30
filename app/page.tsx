@@ -88,15 +88,6 @@ export default function Home() {
     position: "relative",
   }}
 >
-{/* Lesbarkeits-Overlay */}
-<div
-  style={{
-    position: "absolute",
-    inset: 0,
-    background: "rgba(255,255,255,0.65)",
-    zIndex: 0,
-  }}
-/>
 
 {/* Inhalt-Layer */}
 <div style={{ position: "relative", zIndex: 1 }}>
