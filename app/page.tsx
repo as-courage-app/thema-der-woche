@@ -75,7 +75,7 @@ export default function Home() {
                   cursor: "pointer",
                 }}
               >
-                Zum Wochenthema
+                Zitat der Woche
               </button>
             </>
           )}
