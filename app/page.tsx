@@ -115,13 +115,18 @@ export default function Home() {
   {topLine}
 </div>
 
-   {/* Datum immer sichtbar */}
+{/* Datum immer sichtbar */}
 <div
   style={{
     marginTop: "0.8rem",
     fontSize: "1.4rem",
     fontWeight: 500,
     color: "#000",
+  }}
+>
+  {formattedDate}
+</div>
+
   }}
 >
   {formattedDate}
