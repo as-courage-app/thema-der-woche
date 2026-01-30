@@ -126,11 +126,7 @@ export default function Home() {
 >
   {formattedDate}
 </div>
-
-  }}
 >
-  {formattedDate}
-</div>
  
       {/* 1) Thema der Woche dominant und immer sichtbar */}
       <h1 style={{ marginTop: "1.2rem", fontSize: "2.6rem", color: "#000" }}>
