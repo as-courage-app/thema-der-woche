@@ -119,7 +119,8 @@ export default function Home() {
       </div>
 
       {/* 1) Thema der Woche dominant und immer sichtbar */}
-      <h1 style={{ marginTop: "1.2rem", fontSize: "2.2rem" }}>
+      <h1 style={{ marginTop: "1.2rem", fontSize: "2.6rem", color: "#000" }}>
+
         {entry ? entry.thema : "Thema wird geladen …"}
       </h1>
 
@@ -155,7 +156,7 @@ export default function Home() {
 
         {/* Tagesfrage */}
         {view === "day" && !isWeekend && entry && (
-          <div style={{ fontSize: "1.7rem", lineHeight: 1.4 }}>
+          <div style={{ fontSize: "2.0rem", lineHeight: 1.4, color: "#000" }}>
             <strong>{todayQuestion || "Heute keine Frage verfügbar."}</strong>
           </div>
         )}
