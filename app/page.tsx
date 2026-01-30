@@ -177,7 +177,7 @@ export default function Home() {
               <div key={d} style={{ display: "flex", gap: "0.8rem" }}>
                <div style={{ width: "2.4rem" }}><strong>{d}:</strong></div>
                <div style={{ fontWeight: 700 }}>{entry.tage[d]}</div>
-              
+          </div>    
                 ))}
           </div>
         )}
