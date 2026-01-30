@@ -81,7 +81,7 @@ export default function Home() {
     minHeight: "100vh",
     padding: "2rem",
     fontFamily: "Arial, sans-serif",
-    backgroundImage: "url(/images/bg1.jpg)",
+    backgroundImage: "url(/images/bg.jpg)",
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
