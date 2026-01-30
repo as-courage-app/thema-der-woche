@@ -76,7 +76,8 @@ export default function Home() {
   };
 
   return (
-    <main
+    
+  <main
   style={{
     minHeight: "100vh",
     padding: "2rem",
@@ -86,9 +87,14 @@ export default function Home() {
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
     position: "relative",
+
+    /* NEU: globale Typografie */
+    color: "#000",
+    fontSize: "1.1rem",
+    lineHeight: 1.5,
   }}
 >
-
+ 
 {/* Inhalt-Layer */}
 <div style={{ position: "relative", zIndex: 1 }}>
   {/* Logo oben rechts */}
