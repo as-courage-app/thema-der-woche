@@ -76,7 +76,43 @@ export default function Home() {
   };
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
+    <main
+  style={{
+    minHeight: "100vh",
+    padding: "2rem",
+    fontFamily: "Arial, sans-serif",
+    backgroundImage: "url(/images/bg.jpg)",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    position: "relative",
+  }}
+>
+{/* Lesbarkeits-Overlay */}
+<div
+  style={{
+    position: "absolute",
+    inset: 0,
+    background: "rgba(255,255,255,0.65)",
+    zIndex: 0,
+  }}
+/>
+
+{/* Inhalt-Layer */}
+<div style={{ position: "relative", zIndex: 1 }}>
+  {/* Logo oben rechts */}
+  <img
+    src="/images/logo.jpg"
+    alt="as-courage"
+    style={{
+      position: "absolute",
+      top: "1.5rem",
+      right: "1.5rem",
+      width: "260px",
+      height: "auto",
+    }}
+  />
+
       {/* 3) Editionssatz ganz nach oben */}
       <div style={{ fontSize: "0.95rem", color: "#333" }}>{topLine}</div>
 
@@ -139,6 +175,7 @@ export default function Home() {
           </div>
         )}
       </section>
-    </main>
+</div> 
+</main>
   );
 }
