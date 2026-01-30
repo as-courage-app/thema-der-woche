@@ -93,14 +93,15 @@ export default function Home() {
           }}
         />
 
-        <div style={{ fontSize: "1.25rem", fontWeight: 500 }}>{topLine}</div>
         <div style={{ fontSize: "1.4rem", fontWeight: 500, marginTop: "0.8rem" }}>
-          {formattedDate} 
-        </div>
+          {formattedDate}
+</div>
 
-        <h1 style={{ fontSize: "2.6rem", marginTop: "1.2rem" }}>
-          {entry ? entry.thema : "Thema wird geladen"}
-        </h1>
+<h1 style={{ fontSize: "2.6rem", marginTop: "1.2rem" }}>
+  {entry ? entry.thema : "Thema wird geladen"}
+</h1>
+
+       
 
         <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.5rem" }}>
           <MenuButton label="Zitat der Woche" target="quote" />
