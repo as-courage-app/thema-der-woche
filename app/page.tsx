@@ -115,16 +115,18 @@ export default function Home() {
   {topLine}
 </div>
 
-      {/* Datum immer sichtbar */}
-      <div
+   {/* Datum immer sichtbar */}
+<div
   style={{
     marginTop: "0.8rem",
     fontSize: "1.4rem",
     fontWeight: 500,
     color: "#000",
+  }}
+>
+  {formattedDate}
+</div>
  
-
-
       {/* 1) Thema der Woche dominant und immer sichtbar */}
       <h1 style={{ marginTop: "1.2rem", fontSize: "2.6rem", color: "#000" }}>
 
@@ -174,7 +176,7 @@ export default function Home() {
             {(["Mo", "Di", "Mi", "Do", "Fr"] as const).map((d) => (
               <div key={d} style={{ display: "flex", gap: "0.8rem" }}>
                <div style={{ width: "2.4rem" }}><strong>{d}:</strong></div>
-                <div>{entry.tage[d]}</div>
+               <div style={{ fontWeight: 700 }}>{entry.tage[d]}</div>
               </div>
             ))}
           </div>
