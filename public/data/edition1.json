@@ -1,0 +1,1244 @@
+{
+  "meta": {
+    "produkt": "Das Thema der Woche",
+    "edition": "1. Edition",
+    "variante": "A",
+    "untertitel": "Zeitlose Fragen und Impulse für Führung und wertschätzende Kommunikation",
+    "start_montag": "2026-02-02",
+    "wochenende_hinweis": "Schönes Wochenende ☀️",
+    "quelle_excel": "Thema der Woche Tagesimpulse 1. Edition.xlsx",
+    "erstellt_am": "2026-01-29T18:45:50.067006+00:00"
+  },
+  "eintraege": [
+    {
+      "thema": "Wertschätzung 1",
+      "seiten": {
+        "vorne": 1,
+        "hinten": 2
+      },
+      "zitat": "„Manchmal reicht es, \ngesehen zu werden, \num einen guten Tag zu haben.“",
+      "tage": {
+        "Mo": "Woran erkennst du wertschätzenden Umgang?",
+        "Di": "Wann fühlst du dich nicht wertgeschätzt?",
+        "Mi": "Wie zeigst du anderen gegenüber Wertschätzung?",
+        "Do": "Was bedeutet Wertschätzung  für dich konkret?",
+        "Fr": "Wie könnten wir mehr Wertschätzung zeigen?"
+      }
+    },
+    {
+      "thema": "Fairness",
+      "seiten": {
+        "vorne": 3,
+        "hinten": 4
+      },
+      "zitat": "„Wo Fairness gelebt wird, wächst  Vertrauen,\" \nwenn niemand erklären muss, \nwarum es weh tut.“",
+      "tage": {
+        "Mo": "Wann fühlt sich Arbeit fair an?",
+        "Di": "Wo wirken Entscheidungen unfair?",
+        "Mi": "Wie fair gehen wir miteinander um?",
+        "Do": "Wo braucht du mehr Fairness?",
+        "Fr": "Was würde unsere Fairness stärken?"
+      }
+    },
+    {
+      "thema": "Gerechtigkeit",
+      "seiten": {
+        "vorne": 5,
+        "hinten": 6
+      },
+      "zitat": "„Gerechtigkeit heißt nicht: \nalle gleich – \nsondern alle passend.“",
+      "tage": {
+        "Mo": "Was bedeutet Gerechtigkeit für dich?",
+        "Di": "Wann fühlt sich etwas gerecht an?",
+        "Mi": "Wo erlebst du Ungerechtigkeit?",
+        "Do": "Wie gehen wir mit Ungerechtigkeit um?",
+        "Fr": "Was sollte gerechter werden?"
+      }
+    },
+    {
+      "thema": "Diskriminierung",
+      "seiten": {
+        "vorne": 7,
+        "hinten": 8
+      },
+      "zitat": "„Wo Menschen sich erklären müssen, \nstatt einfach da zu sein, \ngeht etwas verloren.“",
+      "tage": {
+        "Mo": "Wo beginnt Diskriminierung im Alltag?",
+        "Di": "Welche Aktionen können ausgrenzen?",
+        "Mi": "Wie reagieren wir auf diskriminierende Aussagen?",
+        "Do": "Was hilft, sensibler zu werden?",
+        "Fr": "Was braucht mehr Schutz im Team?"
+      }
+    },
+    {
+      "thema": "Diversity",
+      "seiten": {
+        "vorne": 9,
+        "hinten": 10
+      },
+      "zitat": "„Unterschiede \nmachen es manchmal komplizierter – \nund fast immer besser.“",
+      "tage": {
+        "Mo": "Was bedeutet Vielfalt für dich?",
+        "Di": "Wo ist Vielfalt eine Stärke?",
+        "Mi": "Wo wird Unterschiedlichkeit schwierig?",
+        "Do": "Was lernen wir voneinander?",
+        "Fr": "Welche Perspektiven fehlen noch?"
+      }
+    },
+    {
+      "thema": "Inklusion",
+      "seiten": {
+        "vorne": 11,
+        "hinten": 12
+      },
+      "zitat": "„Dazugehören \nist kein Extra. \nEs ist die Grundlage.“",
+      "tage": {
+        "Mo": "Wann fühlst du dich zugehörig?",
+        "Di": "Wer wird manchmal übersehen?",
+        "Mi": "Was erschwert Teilhabe?",
+        "Do": "Wie schaffen wir barrierefreie Zugänge?",
+        "Fr": "Was könnten wir inklusiver machen?"
+      }
+    },
+    {
+      "thema": "Sprache & Wortwahl",
+      "seiten": {
+        "vorne": 13,
+        "hinten": 14
+      },
+      "zitat": "„Worte wirken länger, \nals wir oft denken – \nim Guten wie im Schlechten.“",
+      "tage": {
+        "Mo": "Welche Worte motivieren dich?",
+        "Di": "Welche Worte stressen dich?",
+        "Mi": "Wie sprechen wir über Fehler?",
+        "Do": "Wie direkt darf Sprache sein?",
+        "Fr": "Welche Worte fehlen dir im Alltag?"
+      }
+    },
+    {
+      "thema": "Klarheit",
+      "seiten": {
+        "vorne": 15,
+        "hinten": 16
+      },
+      "zitat": "„Klarheit schafft Ruhe. \nAuch dann, \nwenn sie nicht bequem ist.“",
+      "tage": {
+        "Mo": "Weißt du, was von dir erwartet wird?",
+        "Di": "Wo fehlt dir Orientierung?",
+        "Mi": "Was macht Entscheidungen klar?",
+        "Do": "Wie gehen wir mit Unklarheit um?",
+        "Fr": "Was brauchst du für mehr Klarheit?"
+      }
+    },
+    {
+      "thema": "Ehrlichkeit",
+      "seiten": {
+        "vorne": 17,
+        "hinten": 18
+      },
+      "zitat": "„Ehrlichkeit braucht Mut – \nund macht Zusammenarbeit \nleichter.“",
+      "tage": {
+        "Mo": "Wann ist Ehrlichkeit hilfreich?",
+        "Di": "Wo fällt Ehrlichkeit schwer?",
+        "Mi": "Wie ehrlich dürfen wir sein?",
+        "Do": "Was schützt ehrliche Gespräche?",
+        "Fr": "Wo wünschst du dir mehr Offenheit?"
+      }
+    },
+    {
+      "thema": "Vertrauen",
+      "seiten": {
+        "vorne": 19,
+        "hinten": 20
+      },
+      "zitat": "„Vertrauen \nwächst nicht durch Kontrolle, \nsondern durch Zutrauen.“",
+      "tage": {
+        "Mo": "Woran erkennst du Vertrauen?",
+        "Di": "Was stärkt Vertrauen?",
+        "Mi": "Was schwächt Vertrauen?",
+        "Do": "Wie gehen wir mit Fehlern um?",
+        "Fr": "Was würde Vertrauen fördern?"
+      }
+    },
+    {
+      "thema": "Humor",
+      "seiten": {
+        "vorne": 21,
+        "hinten": 22
+      },
+      "zitat": "„Ein Lächeln \nlöst nicht jedes Problem – \naber oft die Anspannung.“",
+      "tage": {
+        "Mo": "Wann tut Humor gut?",
+        "Di": "Wo ist Humor heikel?",
+        "Mi": "Was bringt Leichtigkeit?",
+        "Do": "Wie löst Humor Spannung?",
+        "Fr": "Wann haben wir zuletzt gelacht?"
+      }
+    },
+    {
+      "thema": "Zusammenarbeit",
+      "seiten": {
+        "vorne": 23,
+        "hinten": 24
+      },
+      "zitat": "„Gemeinsam \nheißt nicht gleich – \nsondern miteinander.“",
+      "tage": {
+        "Mo": "Wann funktioniert Zusammenarbeit gut?",
+        "Di": "Wo hakt es im Miteinander?",
+        "Mi": "Was brauchst du von anderen?",
+        "Do": "Wie unterstützen wir uns?",
+        "Fr": "Was würde Zusammenarbeit verbessern?"
+      }
+    },
+    {
+      "thema": "Feedback",
+      "seiten": {
+        "vorne": 25,
+        "hinten": 26
+      },
+      "zitat": "„Gutes Feedback \nmacht Entwicklung möglich, \nund nicht die Menschen kleiner.“",
+      "tage": {
+        "Mo": "Wie erlebst du Feedback?",
+        "Di": "Wann hilft Feedback wirklich?",
+        "Mi": "Was macht Feedback schwer?",
+        "Do": "Wie oft findet Feedback statt?",
+        "Fr": "Was sollte öfter rückgemeldet werden?"
+      }
+    },
+    {
+      "thema": "Fehlerkultur",
+      "seiten": {
+        "vorne": 27,
+        "hinten": 28
+      },
+      "zitat": "„Fehler \nsind selten das Problem. \nSchweigen darüber schon eher.“",
+      "tage": {
+        "Mo": "Wie wird mit Fehlern umgegangen?",
+        "Di": "Wann dürfen Fehler Lernchancen sein?",
+        "Mi": "Wie sicher ist Ansprechen?",
+        "Do": "Was hilft Offenheit?",
+        "Fr": "Was verbessert unsere Fehlerkultur?"
+      }
+    },
+    {
+      "thema": "Teamevents",
+      "seiten": {
+        "vorne": 29,
+        "hinten": 30
+      },
+      "zitat": "„Verbindung \nentsteht nicht durch Pflicht – \nsondern durch echte Begegnung.“",
+      "tage": {
+        "Mo": "Wann verbinden Teamevents wirklich?",
+        "Di": "Was macht Teamevents angenehm?",
+        "Mi": "Wie inklusiv sind sie?",
+        "Do": "Was bleibt nachhaltig?",
+        "Fr": "Was wünschst du dir?"
+      }
+    },
+    {
+      "thema": "Sinn",
+      "seiten": {
+        "vorne": 31,
+        "hinten": 32
+      },
+      "zitat": "„Sinn \nzeigt sich oft nicht im Großen, \nsondern im täglichen Tun.“",
+      "tage": {
+        "Mo": "Wann fühlt sich Arbeit sinnvoll an?",
+        "Di": "Für wen machen wir das?",
+        "Mi": "Wo entsteht Sinn im Kleinen?",
+        "Do": "Was gibt deinem Tun Bedeutung?",
+        "Fr": "Was würde fehlen ohne unsere Arbeit?"
+      }
+    },
+    {
+      "thema": "Vision",
+      "seiten": {
+        "vorne": 33,
+        "hinten": 34
+      },
+      "zitat": "„Eine gute Vision \ngibt Richtung – \nkeine Geschwindigkeit vor.“",
+      "tage": {
+        "Mo": "Wofür arbeiten wir hier?",
+        "Di": "Was soll bleiben?",
+        "Mi": "Was darf sich verändern?",
+        "Do": "Was gibt Richtung?",
+        "Fr": "Woran merken wir Fortschritt?"
+      }
+    },
+    {
+      "thema": "Motivation",
+      "seiten": {
+        "vorne": 35,
+        "hinten": 36
+      },
+      "zitat": "„Motivation \nwächst dort, \nwo Menschen gerne sind.“",
+      "tage": {
+        "Mo": "Was motiviert dich aktuell?",
+        "Di": "Was kostet Energie?",
+        "Mi": "Was hält dich dran?",
+        "Do": "Was motiviert im Team?",
+        "Fr": "Was würde Motivation steigern?"
+      }
+    },
+    {
+      "thema": "Regeln 1",
+      "seiten": {
+        "vorne": 37,
+        "hinten": 38
+      },
+      "zitat": "„Regeln \nsollen Orientierung geben – \nnicht das Denken ersetzen.“",
+      "tage": {
+        "Mo": "Welche Regeln helfen dir?",
+        "Di": "Wo engen Regeln ein?",
+        "Mi": "Wie klar sind Regeln?",
+        "Do": "Wer gestaltet Regeln?",
+        "Fr": "Was sollte angepasst werden?"
+      }
+    },
+    {
+      "thema": "Perspektivwechsel – Wenn du Chef*in wärst …",
+      "seiten": {
+        "vorne": 39,
+        "hinten": 40
+      },
+      "zitat": "„Manches versteht man besser, \nwenn man einmal \ndie Seite wechselt.“",
+      "tage": {
+        "Mo": "… was würdest du beibehalten?",
+        "Di": "… was würdest du ändern?",
+        "Mi": "… worauf würdest du besonders achten?",
+        "Do": "… was würde dich zufrieden machen?",
+        "Fr": "… woran würdest du dich messen lassen?"
+      }
+    },
+    {
+      "thema": "Verantwortung 1",
+      "seiten": {
+        "vorne": 41,
+        "hinten": 42
+      },
+      "zitat": "„Verantwortung \nbeginnt dort, \nwo Ausreden enden.“",
+      "tage": {
+        "Mo": "Wofür trägst du Verantwortung?",
+        "Di": "Wo ist Verantwortung unklar?",
+        "Mi": "Wo hättest du gerne mehr Verantwortung?",
+        "Do": "Wann wird Verantwortung geteilt?",
+        "Fr": "Was braucht verantwortliches Handeln?"
+      }
+    },
+    {
+      "thema": "Verantwortung 2",
+      "seiten": {
+        "vorne": 43,
+        "hinten": 44
+      },
+      "zitat": "„Verantwortung \nwächst dort, \nwo Vertrauen spürbar ist.“",
+      "tage": {
+        "Mo": "Wofür übernimmst du gern Verantwortung?",
+        "Di": "Wo brauchst du mehr Spielraum?",
+        "Mi": "Was erschwert Verantwortung?",
+        "Do": "Wann wird Verantwortung anerkannt?",
+        "Fr": "Was hilft dir dabei?"
+      }
+    },
+    {
+      "thema": "Führung 1",
+      "seiten": {
+        "vorne": 45,
+        "hinten": 46
+      },
+      "zitat": "„Führung \nzeigt sich besonders dann, \nwenn es schwierig wird.“",
+      "tage": {
+        "Mo": "Wofür trägt Führung Verantwortung?",
+        "Di": "Wie klar sind Zuständigkeiten geregelt?",
+        "Mi": "Wie unterstützt  Führung Mitarbeitende?",
+        "Do": "Wie verhält sich Führung bei Fehlern?",
+        "Fr": "Was stärkt Vertrauen in Führung?"
+      }
+    },
+    {
+      "thema": "Führung 2",
+      "seiten": {
+        "vorne": 47,
+        "hinten": 48
+      },
+      "zitat": "„Gute Führung \nschafft Raum – \nfür Menschen und für Ergebnisse.“",
+      "tage": {
+        "Mo": "Was ist gute Führung für dich?",
+        "Di": "Wobei unterstützt Führung?",
+        "Mi": "Wie geht Führung mit Fehlern um?",
+        "Do": "Wie sichtbar ist Führung?",
+        "Fr": "Was macht Führung glaubwürdig?"
+      }
+    },
+    {
+      "thema": "Nachhaltigkeit",
+      "seiten": {
+        "vorne": 49,
+        "hinten": 50
+      },
+      "zitat": "„Was heute gut ist, \nsollte morgen \nnoch tragen.“",
+      "tage": {
+        "Mo": "Was bedeutet Nachhaltigkeit im Arbeitsalltag?",
+        "Di": "Wo handeln wir bereits nachhaltig?",
+        "Mi": "Wo könnten wir nachhaltiger werden?",
+        "Do": "Wie gehen wir mit Ressourcen um?",
+        "Fr": "Woran merken wir langfristige Wirkung?"
+      }
+    },
+    {
+      "thema": "Lernen 1",
+      "seiten": {
+        "vorne": 51,
+        "hinten": 52
+      },
+      "zitat": "„Lernen \nbeginnt oft mit einem ehrlichen: \nIch weiß es noch nicht.“",
+      "tage": {
+        "Mo": "Wann lernst du am besten?",
+        "Di": "Wie gehen wir mit Nichtwissen um?",
+        "Mi": "Wo gibt es Lernräume?",
+        "Do": "Wie teilen wir Wissen?",
+        "Fr": "Was würdest du gern lernen?"
+      }
+    },
+    {
+      "thema": "Entwicklung",
+      "seiten": {
+        "vorne": 53,
+        "hinten": 54
+      },
+      "zitat": "„Entwicklung \nist kein Ziel – \nsondern ein Weg mit Pausen.“",
+      "tage": {
+        "Mo": "Woran merkst du Entwicklung?",
+        "Di": "Was möchtest du weiterentwickeln?",
+        "Mi": "Dürfen Fehler Entwicklung sein?",
+        "Do": "Wer unterstützt dich dabei?",
+        "Fr": "Was ist dein nächster Schritt?"
+      }
+    },
+    {
+      "thema": "Zielorientierung",
+      "seiten": {
+        "vorne": 55,
+        "hinten": 56
+      },
+      "zitat": "„Ziele helfen, \nwenn sie Richtung geben, \nund nicht Druck.“",
+      "tage": {
+        "Mo": "Wie klar sind Ziele für dich?",
+        "Di": "Wann motivieren Ziele?",
+        "Mi": "Wann setzen Ziele unter Druck?",
+        "Do": "Wie flexibel dürfen Ziele sein?",
+        "Fr": "Was erleichtert Zielarbeit?"
+      }
+    },
+    {
+      "thema": "Erfolg",
+      "seiten": {
+        "vorne": 57,
+        "hinten": 58
+      },
+      "zitat": "„Erfolg fühlt sich dann gut an, \nwenn er nicht auf \nKosten anderer geht.“",
+      "tage": {
+        "Mo": "Was bedeutet Erfolg für dich?",
+        "Di": "Woran messen wir Erfolg?",
+        "Mi": "Wird Erfolg sichtbar gemacht?",
+        "Do": "Wie gehen wir mit Misserfolg um?",
+        "Fr": "Was war dein letzter Erfolg?"
+      }
+    },
+    {
+      "thema": "Stress 1",
+      "seiten": {
+        "vorne": 59,
+        "hinten": 60
+      },
+      "zitat": "„Stress entsteht oft dort, \nwo zu wenig Luft \nzum Atmen bleibt.“",
+      "tage": {
+        "Mo": "Woran merkst du Stress?",
+        "Di": "Was stresst dich besonders?",
+        "Mi": "Was hilft dir runterzufahren?",
+        "Do": "Wie sprechen wir über Stress?",
+        "Fr": "Was würde Stress reduzieren?"
+      }
+    },
+    {
+      "thema": "Gesundheit",
+      "seiten": {
+        "vorne": 61,
+        "hinten": 62
+      },
+      "zitat": "„Gesund arbeiten heißt: \nLeistung ermöglichen, \nnicht verschleißen.“",
+      "tage": {
+        "Mo": "Was heißt gesund arbeiten für dich?",
+        "Di": "Was tut dir bei der Arbeit gut?",
+        "Mi": "Wo wird Gesundheit belastet?",
+        "Do": "Wie gehen wir mit Erschöpfung um?",
+        "Fr": "Was unterstützt Wohlbefinden?"
+      }
+    },
+    {
+      "thema": "Selbstführung",
+      "seiten": {
+        "vorne": 63,
+        "hinten": 64
+      },
+      "zitat": "„Wer gut für sich sorgt, \nkann auch gut \nfür andere da sein.“",
+      "tage": {
+        "Mo": "Wie gut kannst du dich selbst strukturieren?",
+        "Di": "Was hilft dir, fokussiert zu bleiben?",
+        "Mi": "Woran merkst du, dass du dich selbst überforderst?",
+        "Do": "Wie gehst du mit eigenen Erwartungen um?",
+        "Fr": "Was stärkt deine Selbstwirksamkeit?"
+      }
+    },
+    {
+      "thema": "Prioritäten",
+      "seiten": {
+        "vorne": 65,
+        "hinten": 66
+      },
+      "zitat": "„Nicht alles Wichtige ist dringend – \nund nicht alles Dringende \nist wichtig.“",
+      "tage": {
+        "Mo": "Woran erkennst du gerade deine Prioritäten?",
+        "Di": "Was wird oft dringend, aber nicht wichtig?",
+        "Mi": "Wie triffst du Prioritätsentscheidungen?",
+        "Do": "Wo verzettelst du dich manchmal?",
+        "Fr": "Was darf aktuell warten?"
+      }
+    },
+    {
+      "thema": "Zeit",
+      "seiten": {
+        "vorne": 67,
+        "hinten": 68
+      },
+      "zitat": "„Zeit \nlässt sich nicht sparen, \nnur bewusst nutzen.“",
+      "tage": {
+        "Mo": "Wofür nimmst du dir bewusst Zeit?",
+        "Di": "Wo geht Zeit verloren?",
+        "Mi": "Was gibt dir das Gefühl von Zeitdruck?",
+        "Do": "Wie realistisch planst du Zeit ein?",
+        "Fr": "Was würdest du mit mehr Zeit tun?"
+      }
+    },
+    {
+      "thema": "Pausen",
+      "seiten": {
+        "vorne": 69,
+        "hinten": 70
+      },
+      "zitat": "„Pausen \nsind kein Stillstand – \nsie sind Voraussetzung.“",
+      "tage": {
+        "Mo": "Wie regelmäßig machst du Pausen?",
+        "Di": "Woran merkst du, dass eine Pause nötig ist?",
+        "Mi": "Wie erholsam sind deine Pausen?",
+        "Do": "Was verhindert Pausen im Alltag?",
+        "Fr": "Was würde dir heute guttun?"
+      }
+    },
+    {
+      "thema": "Energie",
+      "seiten": {
+        "vorne": 71,
+        "hinten": 72
+      },
+      "zitat": "„Energie \nfolgt der Aufmerksamkeit \nund oft dem, was Sinn ergibt.“",
+      "tage": {
+        "Mo": "Was gibt dir Energie bei der Arbeit?",
+        "Di": "Was raubt dir Energie?",
+        "Mi": "Wann fühlst du dich besonders leistungsfähig?",
+        "Do": "Wie gehst du mit Energietiefs um?",
+        "Fr": "Was stärkt dich nachhaltig?"
+      }
+    },
+    {
+      "thema": "Belastung",
+      "seiten": {
+        "vorne": 73,
+        "hinten": 74
+      },
+      "zitat": "„Belastung \nwird leichter, \nwenn man sie nicht allein trägt.“",
+      "tage": {
+        "Mo": "Wann wird Arbeit für dich belastend?",
+        "Di": "Woran erkennst du Überlastung?",
+        "Mi": "Wie sprichst du Belastung an?",
+        "Do": "Was hilft bei hoher Belastung?",
+        "Fr": "Was könnte entlasten?"
+      }
+    },
+    {
+      "thema": "Grenzen",
+      "seiten": {
+        "vorne": 75,
+        "hinten": 76
+      },
+      "zitat": "„Ein klares Nein \nkann ein großes Ja \nzu sich selbst sein.“",
+      "tage": {
+        "Mo": "Wo setzt du klare Grenzen?",
+        "Di": "Wann fällt Abgrenzen schwer?",
+        "Mi": "Wie reagierst du auf Grenzüberschreitungen?",
+        "Do": "Was schützt deine Grenzen?",
+        "Fr": "Wo wäre ein Nein hilfreich?"
+      }
+    },
+    {
+      "thema": "Selbstverantwortung",
+      "seiten": {
+        "vorne": 77,
+        "hinten": 78
+      },
+      "zitat": "„Selbstverantwortung \nbeginnt mit dem \nErkennen eigener Bedürfnisse.“",
+      "tage": {
+        "Mo": "Wofür trägst du Verantwortung dir selbst gegenüber?",
+        "Di": "Wie achtest du auf dich im Arbeitsalltag?",
+        "Mi": "Wo übergehst du eigene Bedürfnisse?",
+        "Do": "Was hilft dir, gut für dich zu sorgen?",
+        "Fr": "Was nimmst du dir bewusst vor?"
+      }
+    },
+    {
+      "thema": "Entscheidungsfindung",
+      "seiten": {
+        "vorne": 79,
+        "hinten": 80
+      },
+      "zitat": "„Manche Entscheidungen \nzeigen erst im Gehen, \nob sie richtig sind.“",
+      "tage": {
+        "Mo": "Wie triffst du Entscheidungen?",
+        "Di": "Was macht Entscheidungen schwierig?",
+        "Mi": "Wann schiebst du Entscheidungen auf?",
+        "Do": "Was gibt dir Sicherheit beim Entscheiden?",
+        "Fr": "Welche Entscheidung steht gerade an?"
+      }
+    },
+    {
+      "thema": "Kommunikation 1",
+      "seiten": {
+        "vorne": 81,
+        "hinten": 82
+      },
+      "zitat": "„Kommunikation \nbeginnt nicht mit Worten,  \nsondern mit Zuhören.“",
+      "tage": {
+        "Mo": "Wann fühlst du dich in Gesprächen wirklich gehört?",
+        "Di": "Was macht für dich ein gutes Gespräch aus?",
+        "Mi": "Wo entstehen bei uns typische Missverständnisse?",
+        "Do": "Wie gehst du damit um, wenn Gespräche schwierig werden?",
+        "Fr": "Was kann in Zukunft unsere Kommunikation verbessern?"
+      }
+    },
+    {
+      "thema": "Umgang mit Fehlern",
+      "seiten": {
+        "vorne": 83,
+        "hinten": 84
+      },
+      "zitat": "„Fehler \nerzählen viel – \nwenn wir bereit sind zuzuhören.“",
+      "tage": {
+        "Mo": "Wie gehst du persönlich mit eigenen Fehlern um?",
+        "Di": "Was lernst du aus eigenen Fehlern?",
+        "Mi": "Wie reagiert dein Umfeld auf deine Fehler?",
+        "Do": "Wie reagierst du auf Fehler anderer?",
+        "Fr": "Was hilft dir, Fehler loszulassen?"
+      }
+    },
+    {
+      "thema": "Lernen 2",
+      "seiten": {
+        "vorne": 85,
+        "hinten": 86
+      },
+      "zitat": "„Lernen  \nwird wertvoll, \nwenn wir Sinn darin sehen.“",
+      "tage": {
+        "Mo": "Was hast du zuletzt gelernt?",
+        "Di": "Was war eine wertvolle Lernerfahrung?",
+        "Mi": "Was möchtest du als nächstes lernen?",
+        "Do": "Wie gerne lernst du Neues?",
+        "Fr": "Was hilft dir beim Lernen für die Zukunft ?"
+      }
+    },
+    {
+      "thema": "Veränderung",
+      "seiten": {
+        "vorne": 87,
+        "hinten": 88
+      },
+      "zitat": "\"Veränderung braucht Zeit - \nund manchmal Geduld \nmit sich selbst.\"",
+      "tage": {
+        "Mo": "Wie gehst du mit Veränderungen um?",
+        "Di": "Was fällt dir bei Veränderungen schwer?",
+        "Mi": "Was hilft dir, offen für Veränderungen  zu bleiben?",
+        "Do": "Wann war Veränderung hilfreich?",
+        "Fr": "Was darf sich gerade verändern?"
+      }
+    },
+    {
+      "thema": "Sicherheit",
+      "seiten": {
+        "vorne": 89,
+        "hinten": 90
+      },
+      "zitat": "„Sicherheit entsteht, \nwenn Menschen \nsich zeigen dürfen.“",
+      "tage": {
+        "Mo": "Wann fühlst du dich sicher bei der Arbeit?",
+        "Di": "Was gibt dir Stabilität?",
+        "Mi": "Was verunsichert dich?",
+        "Do": "Wie gehen wir mit Unsicherheit um?",
+        "Fr": "Was würde Sicherheit stärken?"
+      }
+    },
+    {
+      "thema": "Mut",
+      "seiten": {
+        "vorne": 91,
+        "hinten": 92
+      },
+      "zitat": "„Mut heißt nicht, \nkeine Angst zu haben – \nsondern trotzdem loszugehen.“",
+      "tage": {
+        "Mo": "Wann warst du zuletzt mutig?",
+        "Di": "Wozu brauchst du manchmal Mut?",
+        "Mi": "Was würde Mut leichter machen?",
+        "Do": "Wie unterstützen wir Mut im Team?",
+        "Fr": "Wo lohnt sich ein mutiger Schritt?"
+      }
+    },
+    {
+      "thema": "Haltung",
+      "seiten": {
+        "vorne": 93,
+        "hinten": 94
+      },
+      "zitat": "„Haltung \nzeigt sich nicht im Reden, \nsondern im Handeln.“",
+      "tage": {
+        "Mo": "Wofür stehst du im Arbeitsalltag?",
+        "Di": "Wann zeigst du Haltung?",
+        "Mi": "Wo wird Haltung herausgefordert?",
+        "Do": "Wie sichtbar ist Haltung bei uns?",
+        "Fr": "Was stärkt deine Haltung?"
+      }
+    },
+    {
+      "thema": "Qualität 1",
+      "seiten": {
+        "vorne": 95,
+        "hinten": 96
+      },
+      "zitat": "„Qualität entsteht dort, \nwo Sorgfalt wichtiger ist \nals Geschwindigkeit.“",
+      "tage": {
+        "Mo": "Woran erkennst du gute Qualität in deiner Arbeit?",
+        "Di": "Was bedeutet Qualität für dich ganz konkret?",
+        "Mi": "Wann bist du mit deiner Arbeit wirklich zufrieden?",
+        "Do": "Wo lohnt es sich, genauer hinzuschauen?",
+        "Fr": "Was hat diese Woche zu guter Qualität beigetragen?"
+      }
+    },
+    {
+      "thema": "Gelassenheit",
+      "seiten": {
+        "vorne": 97,
+        "hinten": 98
+      },
+      "zitat": "„Gelassenheit wächst dort, \nwo nicht alles \nsofort gelöst werden muss.“",
+      "tage": {
+        "Mo": "Wann bleibst du gelassen?",
+        "Di": "Was bringt dich aus der Ruhe?",
+        "Mi": "Wie findest du wieder zur Gelassenheit?",
+        "Do": "Was hilft bei Druck?",
+        "Fr": "Wie wichtig ist dir Gelassenheit?"
+      }
+    },
+    {
+      "thema": "Selbstwirksamkeit",
+      "seiten": {
+        "vorne": 99,
+        "hinten": 100
+      },
+      "zitat": "„Selbstwirksamkeit \nfühlt sich an, wenn das \neigene Tun etwas bewegt.“",
+      "tage": {
+        "Mo": "Wann erlebst du Selbstwirksamkeit?",
+        "Di": "Was gibt dir das Gefühl, etwas zu bewirken?",
+        "Mi": "Wo fühlst du dich machtlos?",
+        "Do": "Was stärkt dein Zutrauen in dich?",
+        "Fr": "Was hast du selbst bewirkt?"
+      }
+    },
+    {
+      "thema": "Zukunft",
+      "seiten": {
+        "vorne": 101,
+        "hinten": 102
+      },
+      "zitat": "„Zukunft \nentsteht dort, wo Menschen \nsie gemeinsam gestalten.“",
+      "tage": {
+        "Mo": "Worauf blickst du mit Zuversicht?",
+        "Di": "Was macht dir Sorgen?",
+        "Mi": "Was möchtest du in der Zukunft mitgestalten?",
+        "Do": "Welche Chancen siehst du für unsere Zukunft?",
+        "Fr": "Was wünschst du dir für die Zukunft?"
+      }
+    },
+    {
+      "thema": "work life balance",
+      "seiten": {
+        "vorne": 103,
+        "hinten": 104
+      },
+      "zitat": "„Balance entsteht nicht durch \nperfektes Ausgleichen, sondern \ndurch bewusstes Entscheiden.“",
+      "tage": {
+        "Mo": "Woran merkst du, dass du gerade im Gleichgewicht bist?",
+        "Di": "Was bringt dich aktuell aus der Balance?",
+        "Mi": "Was hilft dir, in deiner Balance zu bleiben?",
+        "Do": "Wo könntest du klare Grenzen setzen?",
+        "Fr": "Was möchtest du in Zukunft bewusster gestalten?"
+      }
+    },
+    {
+      "thema": "Transparenz",
+      "seiten": {
+        "vorne": 105,
+        "hinten": 106
+      },
+      "zitat": "„Transparenz \nschafft Orientierung, \nauch wenn nicht alles einfach ist.“",
+      "tage": {
+        "Mo": "Woran bemerkst du transparente?",
+        "Di": "Wo wünschst du dir aktuell mehr Transparenz?",
+        "Mi": "Was macht Abläufe für dich nachvollziehbar?",
+        "Do": "Wie gehst du mit fehlenden Informationen um?",
+        "Fr": "Was würde mehr Transparenz für dich erleichtern?"
+      }
+    },
+    {
+      "thema": "Konflikte 1",
+      "seiten": {
+        "vorne": 107,
+        "hinten": 108
+      },
+      "zitat": "„Konflikte zeigen, \nwo Entwicklung \nmöglich ist.“",
+      "tage": {
+        "Mo": "Woran merkst du, dass sich ein Konflikt anbahnt?",
+        "Di": "Was fällt dir in Konfliktsituationen besonders schwer?",
+        "Mi": "Welche Gefühle tauchen bei dir in Konflikten auf?",
+        "Do": "Was hilft dir, in Konfliktsituationen ruhig zu bleiben?",
+        "Fr": "Was hilft dir, einen Konflikt zu entschärfen?"
+      }
+    },
+    {
+      "thema": "Konflikte 2",
+      "seiten": {
+        "vorne": 109,
+        "hinten": 110
+      },
+      "zitat": "„Wo Menschen zusammenarbeiten, \nentstehen Spannungen – \nentscheidend ist der Umgang damit.“",
+      "tage": {
+        "Mo": "Wann wird ein Konflikt für dich klärend statt belastend?",
+        "Di": "Wie offen werden Konflikte bei uns angesprochen?",
+        "Mi": "Was wünschst du dir im Umgang mit Konflikten?",
+        "Do": "Wie gehen wir mit unterschiedlichen Sichtweisen um?",
+        "Fr": "Was lernen wir aus Konflikten für die Zusammenarbeit?"
+      }
+    },
+    {
+      "thema": "Kommunikation 2",
+      "seiten": {
+        "vorne": 111,
+        "hinten": 112
+      },
+      "zitat": "„Zwischen Gesagtem \nund Gemeintem \nliegt oft ein Gespräch.“",
+      "tage": {
+        "Mo": "Was macht Kommunikation für dich klar und verständlich?",
+        "Di": "Wann sagst du Dinge eher indirekt – und warum?",
+        "Mi": "Wie offen können wir bei uns kommunizieren?",
+        "Do": "Was hilft dir, auch in Streitgesprächen ruhig zu bleiben?",
+        "Fr": "Was möchtest du in unserer Kommunikation ändern?"
+      }
+    },
+    {
+      "thema": "Kritik 1",
+      "seiten": {
+        "vorne": 113,
+        "hinten": 114
+      },
+      "zitat": "„Kritik kann verletzen – \noder weiterbringen. \nEntscheidend ist der Umgang damit.“",
+      "tage": {
+        "Mo": "Wann fällt es dir leicht, Kritik anzunehmen?",
+        "Di": "Was macht Kritik für dich schwer erträglich?",
+        "Mi": "Wie reagierst du innerlich auf kritische Rückmeldungen?",
+        "Do": "Was hilft dir, Kritik nicht persönlich zu nehmen?",
+        "Fr": "Was hast du aus einer kritischen Rückmeldung gelernt?"
+      }
+    },
+    {
+      "thema": "Kritik 2",
+      "seiten": {
+        "vorne": 115,
+        "hinten": 116
+      },
+      "zitat": "„Kritik wird wirksam, wenn \nsie Entwicklung meint und \nnicht Recht haben.“",
+      "tage": {
+        "Mo": "Was ist dir wichtig, wenn du selbst Kritik äußerst?",
+        "Di": "Wie klar und verständlich ist Kritik bei uns formuliert?",
+        "Mi": "Wann wird Kritik aus deiner Sicht unfair?",
+        "Do": "Wie kann deutliche Kritik wertschätzend bleiben?",
+        "Fr": "Was würde unsere Kritik-Kultur verbessern?"
+      }
+    },
+    {
+      "thema": "Loben 1",
+      "seiten": {
+        "vorne": 117,
+        "hinten": 118
+      },
+      "zitat": "„Loben \nheißt wahrnehmen, \nwas gelungen ist.“",
+      "tage": {
+        "Mo": "Woran erkennst du, dass Lob ehrlich gemeint ist?",
+        "Di": "Wann hat dich Lob zuletzt wirklich erreicht?",
+        "Mi": "Was fällt dir beim Loben leicht – was eher schwer?",
+        "Do": "Wie wirkt Lob auf deine Motivation?",
+        "Fr": "Wofür hättest du diese Woche jemanden loben können?"
+      }
+    },
+    {
+      "thema": "Loben 2",
+      "seiten": {
+        "vorne": 119,
+        "hinten": 120
+      },
+      "zitat": "„Lob wirkt dann, \nwenn es ehrlich und \nkonkret ist.“",
+      "tage": {
+        "Mo": "Wie konkret ist Lob bei uns formuliert?",
+        "Di": "Wann bleibt Lob eher allgemein oder vage?",
+        "Mi": "Wie unterscheidet sich Lob von Wertschätzung für dich?",
+        "Do": "Wie regelmäßig wird bei uns gelobt?",
+        "Fr": "Was würde unsere Lob-Kultur stärken?"
+      }
+    },
+    {
+      "thema": "Macht 1",
+      "seiten": {
+        "vorne": 121,
+        "hinten": 122
+      },
+      "zitat": "„Macht \nwird problematisch, \nwenn sie nicht reflektiert wird.“",
+      "tage": {
+        "Mo": "Wo erlebst du Macht im Arbeitsalltag?",
+        "Di": "Wann wirkt Macht unterstützend?",
+        "Mi": "Wann erzeugt Macht Druck bei dir?",
+        "Do": "Wie gehst du mit deinem eigenen Einfluss um?",
+        "Fr": "Was hilft dir, Macht positiv wahrzunehmen?"
+      }
+    },
+    {
+      "thema": "Macht 2",
+      "seiten": {
+        "vorne": 123,
+        "hinten": 124
+      },
+      "zitat": "„Macht \nund Verantwortung \ngehören zusammen.“",
+      "tage": {
+        "Mo": "Wie transparent ist der Umgang mit Macht bei uns?",
+        "Di": "Wie verantwortungsvoll erlebst du bei uns Macht?",
+        "Mi": "Was würdest du tun, wenn du mehr Macht hättest?",
+        "Do": "Wann wird Macht aus deiner Sicht unfair eingesetzt?",
+        "Fr": "Was würde einen gesunden Umgang mit Macht fördern?"
+      }
+    },
+    {
+      "thema": "Flexibilität 1",
+      "seiten": {
+        "vorne": 125,
+        "hinten": 126
+      },
+      "zitat": "„Flexibilität heißt nicht, \nalles mitzumachen, \nsondern beweglich zu bleiben.“",
+      "tage": {
+        "Mo": "Woran merkst du, dass du flexibel reagieren kannst?",
+        "Di": "In welchen Situationen fällt dir Flexibilität leicht?",
+        "Mi": "Wann wird Flexibilität für dich anstrengend?",
+        "Do": "Wo hat Flexibilität für dich Grenzen?",
+        "Fr": "Wo wünschst du dir aktuell mehr Spielraum?"
+      }
+    },
+    {
+      "thema": "Flexibilität 2",
+      "seiten": {
+        "vorne": 127,
+        "hinten": 128
+      },
+      "zitat": "„Flexibilität \nzeigt sich dort, \nwo Spielräume genutzt werden.“",
+      "tage": {
+        "Mo": "Wie flexibel sind Arbeitsabläufe bei uns gestaltet?",
+        "Di": "Wo fördern klare Regeln Flexibilität?",
+        "Mi": "Wann fehlt Flexibilität im Miteinander?",
+        "Do": "Wie nimmst du die Flexibilität anderer wahr?",
+        "Fr": "Was würde unsere Flexibilität im Alltag stärken?"
+      }
+    },
+    {
+      "thema": "Wertschätzung 2",
+      "seiten": {
+        "vorne": 129,
+        "hinten": 130
+      },
+      "zitat": "„Wertschätzung \nbraucht ehrliches Interesse \nam Mensche.“",
+      "tage": {
+        "Mo": "Woran merkst du im Alltag, dass du wertgeschätzt wirst?",
+        "Di": "Welche kleinen Gesten bedeuten dir besonders viel?",
+        "Mi": "Wann fühlst du dich eher übersehen?",
+        "Do": "Wie zeigst du anderen Wertschätzung im Alltag?",
+        "Fr": "Was würde unsere Wertschätzungskultur stärken?"
+      }
+    },
+    {
+      "thema": "Regeln 2",
+      "seiten": {
+        "vorne": 131,
+        "hinten": 132
+      },
+      "zitat": "„Regeln \nwirken dann, \nwenn sie verstanden werden.“",
+      "tage": {
+        "Mo": "Welche Regeln geben dir im Arbeitsalltag Sicherheit?",
+        "Di": "Wie verständlich werden Regeln bei uns kommuniziert?",
+        "Mi": "Welche Regeln sind für dich mehrdeutig?",
+        "Do": "Wo sorgen Regeln für Orientierung?",
+        "Fr": "Welche Regel sollte zusätzlich ergänzt werden?"
+      }
+    },
+    {
+      "thema": "Kennzahlen 1",
+      "seiten": {
+        "vorne": 133,
+        "hinten": 134
+      },
+      "zitat": "„Kennzahlen \nzeigen Entwicklungen – \nnicht die ganze Wirklichkeit.“",
+      "tage": {
+        "Mo": "Welche Kennzahlen sind für dich wirklich relevant?",
+        "Di": "Wobei helfen dir Kennzahlen im Alltag?",
+        "Mi": "Wann sagen Kennzahlen für dich zu wenig aus?",
+        "Do": "Wie gut verstehst du die Qualität Kennzahlen?",
+        "Fr": "Welche Kennzahl würdest du gern besser einordnen können?"
+      }
+    },
+    {
+      "thema": "Kennzahlen 2",
+      "seiten": {
+        "vorne": 135,
+        "hinten": 136
+      },
+      "zitat": "„Kennzahlen \nsind Werkzeuge \nund keine Urteile.“",
+      "tage": {
+        "Mo": "Wie offen werden Kennzahlen bei uns kommuniziert?",
+        "Di": "Wann erzeugen Kennzahlen Druck statt Orientierung?",
+        "Mi": "Wie werden Kennzahlen für Entscheidungen genutzt?",
+        "Do": "Was braucht es, damit Kennzahlen motivierend wirken?",
+        "Fr": "Welche Kennzahl sollte ergänzt oder verändert werden?"
+      }
+    },
+    {
+      "thema": "Stress 2",
+      "seiten": {
+        "vorne": 137,
+        "hinten": 138
+      },
+      "zitat": "„Stress wird leiser, \nwenn er angesprochen \nwerden darf.“",
+      "tage": {
+        "Mo": "Wie offen wird bei uns über Stress gesprochen ?",
+        "Di": "Was erhöht den Stress im Miteinander unnötig?",
+        "Mi": "Wie gehen andere mit Stress um?",
+        "Do": "Wie reagieren Führungskräfte auf Stress?",
+        "Fr": "Was würde langfristig zu weniger Stress beitragen?"
+      }
+    },
+    {
+      "thema": "Qualität 2",
+      "seiten": {
+        "vorne": 139,
+        "hinten": 140
+      },
+      "zitat": "„Qualität \nzeigt sich im Anspruch \nan die eigene Arbeit.“",
+      "tage": {
+        "Mo": "Welche Bedingungen fördern bei uns gute Qualität?",
+        "Di": "Wo gerät Qualität im Alltag unter Druck?",
+        "Mi": "Wie sprechen wir über Qualität im Team?",
+        "Do": "Was hilft, Qualität trotz Zeitdruck zu sichern?",
+        "Fr": "Was würde unsere Qualitätskultur weiter stärken?"
+      }
+    },
+    {
+      "thema": "Kreativität",
+      "seiten": {
+        "vorne": 141,
+        "hinten": 142
+      },
+      "zitat": "„Kreativität \nentsteht dort, \nwo Neues erlaubt ist.“",
+      "tage": {
+        "Mo": "Wie kreativ darf Arbeit bei uns sein?",
+        "Di": "Wie gehen wir mit unkonventionellen Vorschlägen um?",
+        "Mi": "Was fördert Kreativität im Team?",
+        "Do": "Wie sicher fühlst du dich, neue Ideen zu äußern?",
+        "Fr": "Was würde unsere Kreativitätskultur stärken?"
+      }
+    },
+    {
+      "thema": "Bezahlung",
+      "seiten": {
+        "vorne": 143,
+        "hinten": 144
+      },
+      "zitat": "„Bezahlung \nist mehr als Geld – \nsie sendet ein Signal.“",
+      "tage": {
+        "Mo": "Was bedeutet faire Bezahlung für dich persönlich?",
+        "Di": "Woran merkst du, dass Bezahlung für dich stimmig ist?",
+        "Mi": "Welche Rolle spielt Bezahlung für deine Motivation?",
+        "Do": "Wann fühlt sich Bezahlung aus deiner Sicht ungerecht an?",
+        "Fr": "Was wird bei Bezahlung oft übersehen?"
+      }
+    },
+    {
+      "thema": "Fluktuation",
+      "seiten": {
+        "vorne": 145,
+        "hinten": 146
+      },
+      "zitat": "„Wer bleibt, \nbraucht Gründe. \nWer geht, auch.“",
+      "tage": {
+        "Mo": "Was verstehst du unter Fluktuation?",
+        "Di": "Welche Gründe beeinflussen Bleiben oder Gehen?",
+        "Mi": "Was können wir aus Fluktuation lernen?",
+        "Do": "Wann wird Fluktuation problematisch?",
+        "Fr": "Was würde Fluktuation nachhaltig reduzieren?"
+      }
+    },
+    {
+      "thema": "Verbesserungen 1",
+      "seiten": {
+        "vorne": 147,
+        "hinten": 148
+      },
+      "zitat": "„Verbesserungen\n beginnen oft \nim Kleinen.“",
+      "tage": {
+        "Mo": "Was könnte ein kleines Stück besser werden?",
+        "Di": "Was wäre ein leichter Schritt?",
+        "Mi": "Wobei lohnt sich Ausprobieren?",
+        "Do": "Welche Idee hattest du zuletzt eingebracht?",
+        "Fr": "Welche Verbesserung ist realistisch?"
+      }
+    },
+    {
+      "thema": "Verbesserungen 2",
+      "seiten": {
+        "vorne": 149,
+        "hinten": 150
+      },
+      "zitat": "„Verbesserungen \nbrauchen Aufmerksamkeit, \nnicht Perfektion.“",
+      "tage": {
+        "Mo": "Was hat sich in der letzten Zeit schon verbessert?",
+        "Di": "Welcher Vorschlag hat nicht funktioniert?",
+        "Mi": "Was haben wir daraus gelernt?",
+        "Do": "Wie haben wir die Erkenntnis kommuniziert?",
+        "Fr": "Was sollten wir beibehalten?"
+      }
+    },
+    {
+      "thema": "MA-Gespräche 1",
+      "seiten": {
+        "vorne": 151,
+        "hinten": 152
+      },
+      "zitat": "„Gute MA-Gespräche \nsind Dialoge und \nkeine Monologe.“",
+      "tage": {
+        "Mo": "Was ist dir im MA-Gespräch besonders wichtig?",
+        "Di": "Wie bereitest du dich auf MA-Gespräche vor?",
+        "Mi": "Wie offen erlebst du MA-Gespräche?",
+        "Do": "Was erwartest du von deiner/m Gesprächspartner*in?",
+        "Fr": "Was erwartest du von dir in einem MA-Gespräch?"
+      }
+    },
+    {
+      "thema": "MA-Gespräche 2",
+      "seiten": {
+        "vorne": 153,
+        "hinten": 154
+      },
+      "zitat": "„Ein gutes MA-Gespräch \nstärkt Orientierung \nund Vertrauen.“",
+      "tage": {
+        "Mo": "Was nimmst du aus MA-Gesprächen mit?",
+        "Di": "Wie werden Vereinbarungen festgehalten?",
+        "Mi": "Was passiert nach dem MA-Gespräch?",
+        "Do": "Was hilft bei schwierigen Themen?",
+        "Fr": "Was würde MA-Gespräche wirksamer machen?"
+      }
+    },
+    {
+      "thema": "Mitbestimmung",
+      "seiten": {
+        "vorne": 155,
+        "hinten": 156
+      },
+      "zitat": "„Mitbestimmung \nstärkt\n Verantwortung.“",
+      "tage": {
+        "Mo": "Wo erlebst du Mitbestimmung im Alltag?",
+        "Di": "Wann fühlst du dich einbezogen?",
+        "Mi": "Was bedeutet Mitbestimmung für dich persönlich?",
+        "Do": "Wo wünschst du dir mehr Beteiligung?",
+        "Fr": "Wie können wir Mitbestimmung verbessern?"
+      }
+    },
+    {
+      "thema": "Unterstützung",
+      "seiten": {
+        "vorne": 157,
+        "hinten": 158
+      },
+      "zitat": "„Unterstützung \nbeginnt mit dem \nWahrnehmen der anderen.“",
+      "tage": {
+        "Mo": "Wann hast du zuletzt Unterstützung gebraucht?",
+        "Di": "Wann fällt es dir schwer, Unterstützung anzunehmen?",
+        "Mi": "Was erleichtert dir, um Unterstützung zu bitten?",
+        "Do": "Wie hast du das letzte Mal Unterstützung angeboten?",
+        "Fr": "Was würde unsere Unterstützungskultur verbessern?"
+      }
+    },
+    {
+      "thema": "Gleichberechtigung",
+      "seiten": {
+        "vorne": 159,
+        "hinten": 160
+      },
+      "zitat": "„Gleichberechtigung heißt, \nUnterschiede fair \nzu berücksichtigen.“",
+      "tage": {
+        "Mo": "Woran erkennst du Gleichberechtigung im Alltag?",
+        "Di": "Wann fühlst du dich gleichberechtigt behandelt?",
+        "Mi": "Wo erlebst du Ungleichbehandlung?",
+        "Do": "Was macht Gleichberechtigung für dich konkret?",
+        "Fr": "Was würde unsere Gleichberechtigungskultur stärken?"
+      }
+    },
+    {
+      "thema": "Generationen",
+      "seiten": {
+        "vorne": 161,
+        "hinten": 162
+      },
+      "zitat": "„Generationen \nlernen voneinander – \nwenn sie sich zuhören.“",
+      "tage": {
+        "Mo": "Was schätzt du an anderen Generationen?",
+        "Di": "Welche Unterschiede nimmst du wahr?",
+        "Mi": "Wo ergänzen sich Generationen gut?",
+        "Do": "Wodurch entstehen Irritationen zwischen Generationen?",
+        "Fr": "Was würde unsere Generationenkultur verbessern?"
+      }
+    },
+    {
+      "thema": "Onboarding",
+      "seiten": {
+        "vorne": 163,
+        "hinten": 164
+      },
+      "zitat": "„Gutes Onboarding \nbeginnt bereits vor \ndem ersten Arbeitstag.“",
+      "tage": {
+        "Mo": "Was hast du bei deinem Onboarding erlebt?",
+        "Di": "Welche Informationen sind am Anfang wichtig?",
+        "Mi": "Was fördert ein gutes Ankommen im Team?",
+        "Do": "Wie werden Erwartungen geklärt?",
+        "Fr": "Was würde unser Onboarding verbessern?"
+      }
+    }
+  ]
+}
