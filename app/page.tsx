@@ -8,9 +8,11 @@ type Entry = {
   tage: Record<string, string>;
 };
 
+type View = "day" | "quote" | "questions";
+
 export default function Home() {
   const [data, setData] = useState<Entry[]>([]);
-  const [showTheme, setShowTheme] = useState(false);
+  const [view, setView] = useState<View>("day");
 
   useEffect(() => {
     fetch("/data/edition1.json")
@@ -39,7 +41,8 @@ export default function Home() {
 
   const dayMap = ["", "Mo", "Di", "Mi", "Do", "Fr"];
   const dayKey = dayMap[weekday];
-  const question =
+
+  const todayQuestion =
     !isWeekend && entry && dayKey ? entry.tage[dayKey] : null;
 
   return (
@@ -50,13 +53,14 @@ export default function Home() {
         {formattedDate}
       </p>
 
-      {!showTheme && (
+      {/* VIEW: Tagesfrage */}
+      {view === "day" && (
         <>
           <div style={{ marginTop: "2.5rem", fontSize: "1.5rem" }}>
             {isWeekend ? (
               <strong>Schönes Wochenende ☀️</strong>
             ) : (
-              <strong>{question}</strong>
+              <strong>{todayQuestion || "Heute keine Frage verfügbar."}</strong>
             )}
           </div>
 
@@ -67,7 +71,7 @@ export default function Home() {
               </p>
 
               <button
-                onClick={() => setShowTheme(true)}
+                onClick={() => setView("quote")}
                 style={{
                   marginTop: "2rem",
                   padding: "0.8rem 1.2rem",
@@ -82,7 +86,8 @@ export default function Home() {
         </>
       )}
 
-      {showTheme && entry && (
+      {/* VIEW: Zitat */}
+      {view === "quote" && entry && (
         <>
           <h2 style={{ marginTop: "3rem" }}>{entry.thema}</h2>
 
@@ -96,17 +101,68 @@ export default function Home() {
             „{entry.zitat}“
           </blockquote>
 
-          <button
-            onClick={() => setShowTheme(false)}
-            style={{
-              marginTop: "2.5rem",
-              padding: "0.8rem 1.2rem",
-              fontSize: "1rem",
-              cursor: "pointer",
-            }}
-          >
-            Zur Tagesfrage
-          </button>
+          <div style={{ display: "flex", gap: "1rem", marginTop: "2.5rem" }}>
+            <button
+              onClick={() => setView("questions")}
+              style={{
+                padding: "0.8rem 1.2rem",
+                fontSize: "1rem",
+                cursor: "pointer",
+              }}
+            >
+              Zu den Fragen
+            </button>
+
+            <button
+              onClick={() => setView("day")}
+              style={{
+                padding: "0.8rem 1.2rem",
+                fontSize: "1rem",
+                cursor: "pointer",
+              }}
+            >
+              Zur Tagesfrage
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* VIEW: Fragen (Mo–Fr) */}
+      {view === "questions" && entry && (
+        <>
+          <h2 style={{ marginTop: "3rem" }}>{entry.thema}</h2>
+
+          <div style={{ marginTop: "2rem", fontSize: "1.1rem", lineHeight: 1.6 }}>
+            <div><strong>Mo:</strong> {entry.tage["Mo"]}</div>
+            <div><strong>Di:</strong> {entry.tage["Di"]}</div>
+            <div><strong>Mi:</strong> {entry.tage["Mi"]}</div>
+            <div><strong>Do:</strong> {entry.tage["Do"]}</div>
+            <div><strong>Fr:</strong> {entry.tage["Fr"]}</div>
+          </div>
+
+          <div style={{ display: "flex", gap: "1rem", marginTop: "2.5rem" }}>
+            <button
+              onClick={() => setView("quote")}
+              style={{
+                padding: "0.8rem 1.2rem",
+                fontSize: "1rem",
+                cursor: "pointer",
+              }}
+            >
+              Zurück zum Zitat
+            </button>
+
+            <button
+              onClick={() => setView("day")}
+              style={{
+                padding: "0.8rem 1.2rem",
+                fontSize: "1rem",
+                cursor: "pointer",
+              }}
+            >
+              Zur Tagesfrage
+            </button>
+          </div>
         </>
       )}
 
