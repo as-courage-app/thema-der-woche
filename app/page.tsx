@@ -132,7 +132,7 @@ export default function Home() {
           <div style={{ fontSize: "1.15rem", lineHeight: 1.7 }}>
             {(["Mo", "Di", "Mi", "Do", "Fr"] as const).map((d) => (
               <div key={d} style={{ display: "flex", gap: "0.8rem" }}>
-                <div style={{ width: "2.4rem",>{d}:</div>
+               <div style={{ width: "2.4rem" }}><strong>{d}:</strong></div>
                 <div>{entry.tage[d]}</div>
               </div>
             ))}
