@@ -111,12 +111,19 @@ export default function Home() {
   />
 
       {/* 3) Editionssatz ganz nach oben */}
-      <div style={{ fontSize: "0.95rem", color: "#333" }}>{topLine}</div>
+      <div style={{ fontSize: "1.25rem", color: "#000", fontWeight: 500 }}>
+  {topLine}
+</div>
 
       {/* Datum immer sichtbar */}
-      <div style={{ marginTop: "0.8rem", fontSize: "1.05rem" }}>
-        {formattedDate}
-      </div>
+      <div
+  style={{
+    marginTop: "0.8rem",
+    fontSize: "1.4rem",
+    fontWeight: 500,
+    color: "#000",
+ 
+
 
       {/* 1) Thema der Woche dominant und immer sichtbar */}
       <h1 style={{ marginTop: "1.2rem", fontSize: "2.6rem", color: "#000" }}>
