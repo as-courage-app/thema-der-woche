@@ -1,169 +1,100 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type Entry = {
-  thema: string;
-  zitat: string;
-  tage: Record<string, string>;
+type Draft = {
+  version: "1.0";
+  weeksCount: number;
+  startMonday: string; // YYYY-MM-DD
+  mode: "random" | "manual";
+  selectedThemeIds: string[];
+  plan: Array<{ weekIndex: number; themeId: string; mondayDate: string }>;
+  activeWeekIndex: number;
 };
 
-type View = "quote" | "day" | "week";
+const STORAGE_KEY = "thema-der-woche:draft:v1";
 
-export default function Home() {
-  const [data, setData] = useState<Entry[]>([]);
-  const [view, setView] = useState<View>("day");
+function loadDraft(): Draft | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Draft;
+    if (!parsed?.version) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export default function HomePage() {
+  const [hasDraft, setHasDraft] = useState(false);
 
   useEffect(() => {
-    fetch("/data/edition1.json")
-      .then((res) => res.json())
-      .then((json) => setData(json.eintraege || []))
-      .catch(() => setData([]));
+    const d = loadDraft();
+    setHasDraft(Boolean(d));
   }, []);
 
-  const today = new Date();
-  const weekday = today.getDay(); // 0=So ... 6=Sa
-  const isWeekend = weekday === 0 || weekday === 6;
-
-  const formattedDate = today.toLocaleDateString("de-DE", {
-    weekday: "long",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  // Startdatum der 1. Edition: Montag, 02.02.2026
-  const startDate = new Date("2026-02-02T00:00:00");
-  const msPerWeek = 1000 * 60 * 60 * 24 * 7;
-  const diffWeeks = Math.floor((today.getTime() - startDate.getTime()) / msPerWeek);
-
-  const index = diffWeeks >= 0 ? diffWeeks : 0;
-  const entry: Entry | null = index < data.length ? data[index] : null;
-
-  const dayKeys = ["", "Mo", "Di", "Mi", "Do", "Fr"];
-  const todayKey = dayKeys[weekday] || "";
-
-  const todayQuestion =
-    !isWeekend && entry && todayKey ? entry.tage[todayKey] : "";
-
-  const topLine =
-    "Zeitlose Fragen und Impulse fuer Fuehrung und wertschaetzende Kommunikation - 1. Edition";
-
-  function MenuButton(props: { label: string; target: View }) {
-    const active = view === props.target;
-    return (
-      <button
-        onClick={() => setView(props.target)}
-        style={{
-          padding: "0.85rem 1.1rem",
-          border: "1px solid #000",
-          background: active ? "#000" : "transparent",
-          color: active ? "#fff" : "#000",
-          cursor: "pointer",
-          fontSize: "1.1rem",
-          fontWeight: 700,
-        }}
-      >
-        {props.label}
-      </button>
-    );
-  }
-
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        padding: "2rem",
-        fontFamily: "Arial, sans-serif",
-        backgroundImage: "url(/images/bg.jpg)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        color: "#000",
-        fontSize: "1.1rem",
-        lineHeight: 1.5,
-      }}
-    >
-      <div style={{ position: "relative" }}>
-        {/* Logo oben rechts */}
-        <img
-          src="/images/logo.jpg"
-          alt="as-courage"
-          style={{
-            position: "absolute",
-            top: "1.5rem",
-            right: "1.5rem",
-            width: "260px",
-            height: "auto",
-          }}
-        />
+    <main className="min-h-screen">
+      {/* Background Image */}
+      <div
+        className="relative min-h-screen bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/cover-01.jpg')" }}
+      >
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-black/45" />
 
-        {/* Kopfzeile */}
-        <div style={{ fontSize: "1.55rem", fontWeight: 700, color: "#000" }}>
-          {topLine}
-        </div>
+        {/* Content */}
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-10">
+          <div className="max-w-xl rounded-3xl bg-white/90 p-6 shadow-xl backdrop-blur-md md:p-8">
+            <p className="text-sm font-medium tracking-wide text-neutral-600">
+              Das Thema der Woche · 1. Edition
+            </p>
 
-        {/* Datum */}
-        <div style={{ fontSize: "1.7rem", fontWeight: 700, marginTop: "0.6rem", color: "#000" }}>
-          {formattedDate}
-        </div>
+            <h1 className="mt-2 text-3xl font-semibold leading-tight text-neutral-900 md:text-4xl">
+              Jede Woche ein Fokus.
+              <br />
+              Jeden Tag ein Impuls.
+            </h1>
 
-        {/* Thema dominant */}
-        <h1 style={{ fontSize: "3.1rem", marginTop: "1.0rem", color: "#000" }}>
-          {entry ? entry.thema : "Thema wird geladen"}
-        </h1>
+            <p className="mt-4 text-base leading-relaxed text-neutral-700">
+              Wähle die Anzahl der Wochen, entscheide dich für Zufall oder manuelle Themenwahl
+              und starte an einem Montag. Die App merkt sich deine Planung lokal auf deinem Gerät.
+            </p>
 
-        {/* Menue */}
-        <div style={{ display: "flex", gap: "0.9rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
-          <MenuButton label="Zitat der Woche" target="quote" />
-          <MenuButton label="Tagesfrage" target="day" />
-          <MenuButton label="Alle Fragen der Woche" target="week" />
-        </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="/setup"
+                className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
+              >
+                Loslegen
+              </a>
 
-        {/* Inhalt */}
-        <section style={{ marginTop: "2.0rem" }}>
-          {/* Tagesfrage */}
-          {view === "day" && (
-            <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#000" }}>
-              {isWeekend ? "Schoenes Wochenende" : todayQuestion}
+              {hasDraft ? (
+                <a
+                  href="/plan"
+                  className="inline-flex items-center justify-center rounded-2xl border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
+                >
+                  Letzte Planung fortsetzen
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center justify-center rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-400"
+                  title="Noch keine gespeicherte Planung gefunden"
+                >
+                  Fortsetzen (noch nichts gespeichert)
+                </button>
+              )}
             </div>
-          )}
 
-          {/* Zitat */}
-          {view === "quote" && (
-            <blockquote
-              style={{
-                marginTop: "1rem",
-                fontSize: "2.0rem",
-                fontStyle: "italic",
-                fontWeight: 700,
-                color: "#000",
-              }}
-            >
-              {entry ? '"' + entry.zitat + '"' : '"..."'}
-            </blockquote>
-          )}
-
-          {/* Wochenfragen */}
-          {view === "week" && entry && (
-            <div style={{ marginTop: "0.8rem" }}>
-              {["Mo", "Di", "Mi", "Do", "Fr"].map((d) => (
-                <div key={d} style={{ display: "flex", gap: "1rem", marginBottom: "0.5rem" }}>
-                  {/* Label-Spalte (Einzug) */}
-                  <div style={{ width: "3rem", fontWeight: 800, fontSize: "1.7rem", color: "#000" }}>
-                    {d}:
-                  </div>
-                  {/* Frage fett */}
-                  <div style={{ fontWeight: 800, fontSize: "1.7rem", color: "#000" }}>
-                    {entry.tage[d]}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+            <p className="mt-5 text-xs text-neutral-500">
+              Hinweis: Speicherung via LocalStorage (nur auf diesem Gerät/Browser).
+            </p>
+          </div>
+        </div>
       </div>
     </main>
   );
 }
- 
