@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Draft = {
   version: "1.0";
@@ -36,15 +36,12 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen">
-      {/* Background Image */}
       <div
         className="relative min-h-screen bg-cover bg-center"
         style={{ backgroundImage: "url('/images/cover-01.jpg')" }}
       >
-        {/* Overlay for readability */}
         <div className="absolute inset-0 bg-black/45" />
 
-        {/* Content */}
         <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-10">
           <div className="max-w-xl rounded-3xl bg-white/90 p-6 shadow-xl backdrop-blur-md md:p-8">
             <p className="text-sm font-medium tracking-wide text-neutral-600">
