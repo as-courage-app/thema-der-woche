@@ -1,1 +1,11 @@
+export default function SetupPage() {
+  return (
+    <main className="min-h-screen p-6">
+      <h1 className="text-2xl font-semibold">Setup</h1>
+      <p className="mt-2 text-neutral-700">
+        Platzhalter. Als nächstes bauen wir hier Wochenanzahl, Startmontag und Zufall/Manuell.
+      </p>
+    </main>
+  );
+}
 
