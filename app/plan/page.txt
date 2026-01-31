@@ -1,1 +1,11 @@
+export default function PlanPage() {
+  return (
+    <main className="min-h-screen p-6">
+      <h1 className="text-2xl font-semibold">Plan</h1>
+      <p className="mt-2 text-neutral-700">
+        Platzhalter. Hier kommt später die Übersicht deiner Wochenplanung hin.
+      </p>
+    </main>
+  );
+}
 
