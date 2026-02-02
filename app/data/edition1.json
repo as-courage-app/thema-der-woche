@@ -1,0 +1,494 @@
+[
+  {
+    "id": "ed1-01-anerkennung-1",
+    "title": "",
+    "quote": "Anerkennung \nmacht Arbeit \nmenschlich.",
+    "questions": [
+      "Wann hast du dich zuletzt anerkannt gefühlt?",
+      "Woran merkst du, dass deine Arbeit gesehen wird?",
+      "Welche Form von Anerkennung tut dir wirklich gut?",
+      "Was wird in deinem Umfeld oft geleistet, \naber selten benannt?",
+      "Wie zeigst du anderen Anerkennung im Alltag?"
+    ]
+  },
+  {
+    "id": "ed1-02-belastung",
+    "title": "Belastung",
+    "quote": "Belastung \nwird leichter, \nwenn man sie nicht allein trägt.",
+    "questions": [
+      "Wann wird Arbeit für dich belastend?",
+      "Woran erkennst du Überlastung?",
+      "Wie sprichst du Belastung an?",
+      "Was hilft bei hoher Belastung?",
+      "Was könnte entlasten?"
+    ]
+  },
+  {
+    "id": "ed1-03-diskriminierung",
+    "title": "Diskriminierung",
+    "quote": "Wo Menschen sich erklären müssen, \nstatt einfach da zu sein, \ngeht etwas verloren.",
+    "questions": [
+      "Wo beginnt Diskriminierung im Alltag?",
+      "Welche Aktionen können ausgrenzen?",
+      "Wie reagieren wir auf diskriminierende Aussagen?",
+      "Was hilft, sensibler zu werden?",
+      "Was braucht mehr Schutz im Team?"
+    ]
+  },
+  {
+    "id": "ed1-04-ehrlichkeit",
+    "title": "Ehrlichkeit",
+    "quote": "Ehrlichkeit braucht Mut – \nund macht Zusammenarbeit \nleichter.",
+    "questions": [
+      "Wann ist Ehrlichkeit hilfreich?",
+      "Wo fällt Ehrlichkeit schwer?",
+      "Wie ehrlich dürfen wir sein?",
+      "Was schützt ehrliche Gespräche?",
+      "Wo wünschst du dir mehr Offenheit?"
+    ]
+  },
+  {
+    "id": "ed1-05-entscheidungsfindung",
+    "title": "Entscheidungsfindung",
+    "quote": "Manche Entscheidungen \nzeigen erst im Gehen, \nob sie richtig sind.",
+    "questions": [
+      "Wie triffst du Entscheidungen?",
+      "Was macht Entscheidungen schwierig?",
+      "Wann schiebst du Entscheidungen auf?",
+      "Was gibt dir Sicherheit beim Entscheiden?",
+      "Welche Entscheidung steht gerade an?"
+    ]
+  },
+  {
+    "id": "ed1-06-erfolg",
+    "title": "Erfolg",
+    "quote": "Erfolg fühlt sich dann gut an, \nwenn er nicht auf \nKosten anderer geht.",
+    "questions": [
+      "Was bedeutet Erfolg für dich?",
+      "Woran messen wir Erfolg?",
+      "Wird Erfolg sichtbar gemacht?",
+      "Wie gehen wir mit Misserfolg um?",
+      "Was war dein letzter Erfolg?"
+    ]
+  },
+  {
+    "id": "ed1-07-feedback",
+    "title": "Feedback",
+    "quote": "Gutes Feedback \nmacht Entwicklung möglich, \nund nicht die Menschen kleiner.",
+    "questions": [
+      "Wie erlebst du Feedback?",
+      "Wann hilft Feedback wirklich?",
+      "Was macht Feedback schwer?",
+      "Wie oft findet Feedback statt?",
+      "Was sollte öfter rückgemeldet werden?"
+    ]
+  },
+  {
+    "id": "ed1-08-fehlerkultur",
+    "title": "Fehlerkultur",
+    "quote": "Fehler \nsind selten das Problem. \nSchweigen darüber schon eher.",
+    "questions": [
+      "Wie wird mit Fehlern umgegangen?",
+      "Wann dürfen Fehler Lernchancen sein?",
+      "Wie sicher ist Ansprechen?",
+      "Was hilft Offenheit?",
+      "Was verbessert unsere Fehlerkultur?"
+    ]
+  },
+  {
+    "id": "ed1-09-flexibilit-t-1",
+    "title": "Flexibilität 1",
+    "quote": "Flexibilität heißt nicht, \nalles mitzumachen, \nsondern beweglich zu bleiben.",
+    "questions": [
+      "Woran merkst du, dass du flexibel reagieren kannst?",
+      "In welchen Situationen fällt dir Flexibilität leicht?",
+      "Wann wird Flexibilität für dich anstrengend?",
+      "Wo hat Flexibilität für dich Grenzen?",
+      "Wo wünschst du dir aktuell mehr Spielraum?"
+    ]
+  },
+  {
+    "id": "ed1-10-fluktuation",
+    "title": "Fluktuation",
+    "quote": "Wer bleibt, \nbraucht Gründe. \nWer geht, auch.",
+    "questions": [
+      "Was verstehst du unter Fluktuation?",
+      "Welche Gründe beeinflussen Bleiben oder Gehen?",
+      "Was können wir aus Fluktuation lernen?",
+      "Wann wird Fluktuation problematisch?",
+      "Was würde Fluktuation nachhaltig reduzieren?"
+    ]
+  },
+  {
+    "id": "ed1-11-fuehrung-1",
+    "title": "Führung 1",
+    "quote": "Führung \nzeigt sich besonders dann, \nwenn es schwierig wird.",
+    "questions": [
+      "Wofür trägt Führung Verantwortung?",
+      "Wie klar sind Zuständigkeiten geregelt?",
+      "Wie unterstützt  Führung Mitarbeitende?",
+      "Wie verhält sich Führung bei Fehlern?",
+      "Was stärkt Vertrauen in Führung?"
+    ]
+  },
+  {
+    "id": "ed1-12-gerechtigkeit",
+    "title": "Gerechtigkeit",
+    "quote": "Gerechtigkeit heißt nicht: \nalle gleich – \nsondern alle passend.",
+    "questions": [
+      "Was bedeutet Gerechtigkeit für dich?",
+      "Wann fühlt sich etwas gerecht an?",
+      "Wo erlebst du Ungerechtigkeit?",
+      "Wie gehen wir mit Ungerechtigkeit um?",
+      "Was sollte gerechter werden?"
+    ]
+  },
+  {
+    "id": "ed1-13-gleichberechtigung",
+    "title": "Gleichberechtigung",
+    "quote": "Gleichberechtigung heißt, \nUnterschiede fair \nzu berücksichtigen.",
+    "questions": [
+      "Woran erkennst du Gleichberechtigung im Alltag?",
+      "Wann fühlst du dich gleichberechtigt behandelt?",
+      "Wo erlebst du Ungleichbehandlung?",
+      "Was macht Gleichberechtigung für dich konkret?",
+      "Was würde unsere Gleichberechtigungskultur stärken?"
+    ]
+  },
+  {
+    "id": "ed1-14-grenzen",
+    "title": "Grenzen",
+    "quote": "Ein klares Nein \nkann ein großes Ja \nzu sich selbst sein.",
+    "questions": [
+      "Wo setzt du klare Grenzen?",
+      "Wann fällt Abgrenzen schwer?",
+      "Wie reagierst du auf Grenzüberschreitungen?",
+      "Was schützt deine Grenzen?",
+      "Wo wäre ein Nein hilfreich?"
+    ]
+  },
+  {
+    "id": "ed1-15-humor",
+    "title": "Humor",
+    "quote": "Ein Lächeln \nlöst nicht jedes Problem – \naber oft die Anspannung.",
+    "questions": [
+      "Wann tut Humor gut?",
+      "Wo ist Humor heikel?",
+      "Was bringt Leichtigkeit?",
+      "Wie löst Humor Spannung?",
+      "Wann haben wir zuletzt gelacht?"
+    ]
+  },
+  {
+    "id": "ed1-16-kennzahlen-1",
+    "title": "Kennzahlen 1",
+    "quote": "Kennzahlen \nzeigen Entwicklungen – \nnicht die ganze Wirklichkeit.",
+    "questions": [
+      "Welche Kennzahlen sind für dich wirklich relevant?",
+      "Wobei helfen dir Kennzahlen im Alltag?",
+      "Wann sagen Kennzahlen für dich zu wenig aus?",
+      "Wie gut verstehst du die Qualität Kennzahlen?",
+      "Welche Kennzahl würdest du gern besser einordnen können?"
+    ]
+  },
+  {
+    "id": "ed1-17-klarheit",
+    "title": "Klarheit",
+    "quote": "Klarheit schafft Ruhe. \nAuch dann, \nwenn sie nicht bequem ist.",
+    "questions": [
+      "Weißt du, was von dir erwartet wird?",
+      "Wo fehlt dir Orientierung?",
+      "Was macht Entscheidungen klar?",
+      "Wie gehen wir mit Unklarheit um?",
+      "Was brauchst du für mehr Klarheit?"
+    ]
+  },
+  {
+    "id": "ed1-18-kommunikation-1",
+    "title": "Kommunikation 1",
+    "quote": "Kommunikation \nbeginnt nicht mit Worten,  \nsondern mit Zuhören.",
+    "questions": [
+      "Wann fühlst du dich in Gesprächen wirklich gehört?",
+      "Was macht für dich ein gutes Gespräch aus?",
+      "Wo entstehen bei uns typische Missverständnisse?",
+      "Wie gehst du damit um, wenn Gespräche schwierig werden?",
+      "Was kann in Zukunft unsere Kommunikation verbessern?"
+    ]
+  },
+  {
+    "id": "ed1-19-konflikte-1",
+    "title": "Konflikte 1",
+    "quote": "Konflikte zeigen, \nwo Entwicklung \nmöglich ist.",
+    "questions": [
+      "Woran merkst du, dass sich ein Konflikt anbahnt?",
+      "Was fällt dir in Konfliktsituationen besonders schwer?",
+      "Welche Gefühle tauchen bei dir in Konflikten auf?",
+      "Was hilft dir, in Konfliktsituationen ruhig zu bleiben?",
+      "Was hilft dir, einen Konflikt zu entschärfen?"
+    ]
+  },
+  {
+    "id": "ed1-20-kreativitaet",
+    "title": "Kreativität",
+    "quote": "Kreativität \nentsteht dort, \nwo Neues erlaubt ist.",
+    "questions": [
+      "Wie kreativ darf Arbeit bei uns sein?",
+      "Wie gehen wir mit unkonventionellen Vorschlägen um?",
+      "Was fördert Kreativität im Team?",
+      "Wie sicher fühlst du dich, neue Ideen zu äußern?",
+      "Was würde unsere Kreativitätskultur stärken?"
+    ]
+  },
+  {
+    "id": "ed1-21-kritik-1",
+    "title": "Kritik 1",
+    "quote": "Kritik kann verletzen – \noder weiterbringen. \nEntscheidend ist der Umgang damit.",
+    "questions": [
+      "Wann fällt es dir leicht, Kritik anzunehmen?",
+      "Was macht Kritik für dich schwer erträglich?",
+      "Wie reagierst du innerlich auf kritische Rückmeldungen?",
+      "Was hilft dir, Kritik nicht persönlich zu nehmen?",
+      "Was hast du aus einer kritischen Rückmeldung gelernt?"
+    ]
+  },
+  {
+    "id": "ed1-22-lernen-1",
+    "title": "Lernen 1",
+    "quote": "Lernen \nbeginnt oft mit einem ehrlichen: \nIch weiß es noch nicht.",
+    "questions": [
+      "Wann lernst du am besten?",
+      "Wie gehen wir mit Nichtwissen um?",
+      "Wo gibt es Lernräume?",
+      "Wie teilen wir Wissen?",
+      "Was würdest du gern lernen?"
+    ]
+  },
+  {
+    "id": "ed1-23-macht-1",
+    "title": "Macht 1",
+    "quote": "Macht \nwird problematisch, \nwenn sie nicht reflektiert wird.",
+    "questions": [
+      "Wo erlebst du Macht im Arbeitsalltag?",
+      "Wann wirkt Macht unterstützend?",
+      "Wann erzeugt Macht Druck bei dir?",
+      "Wie gehst du mit deinem eigenen Einfluss um?",
+      "Was hilft dir, Macht positiv wahrzunehmen?"
+    ]
+  },
+  {
+    "id": "ed1-24-ma-gespraeche-1",
+    "title": "MA-Gespräche 1",
+    "quote": "Gute MA-Gespräche \nsind Dialoge und \nkeine Monologe.",
+    "questions": [
+      "Was ist dir im MA-Gespräch besonders wichtig?",
+      "Wie bereitest du dich auf MA-Gespräche vor?",
+      "Wie offen erlebst du MA-Gespräche?",
+      "Was erwartest du von deiner/m Gesprächspartner*in?",
+      "Was erwartest du von dir in einem MA-Gespräch?"
+    ]
+  },
+  {
+    "id": "ed1-25-motivation",
+    "title": "Motivation",
+    "quote": "Motivation \nwächst dort, \nwo Menschen gerne sind.",
+    "questions": [
+      "Was motiviert dich aktuell?",
+      "Was kostet Energie?",
+      "Was hält dich dran?",
+      "Was motiviert im Team?",
+      "Was würde Motivation steigern?"
+    ]
+  },
+  {
+    "id": "ed1-26-nachhaltigkeit",
+    "title": "Nachhaltigkeit",
+    "quote": "Was heute gut ist, \nsollte morgen \nnoch tragen.",
+    "questions": [
+      "Was bedeutet Nachhaltigkeit im Arbeitsalltag?",
+      "Wo handeln wir bereits nachhaltig?",
+      "Wo könnten wir nachhaltiger werden?",
+      "Wie gehen wir mit Ressourcen um?",
+      "Woran merken wir langfristige Wirkung?"
+    ]
+  },
+  {
+    "id": "ed1-27-pausen",
+    "title": "Pausen",
+    "quote": "Pausen \nsind kein Stillstand – \nsie sind Voraussetzung.",
+    "questions": [
+      "Wie regelmäßig machst du Pausen?",
+      "Woran merkst du, dass eine Pause nötig ist?",
+      "Wie erholsam sind deine Pausen?",
+      "Was verhindert Pausen im Alltag?",
+      "Was würde dir heute guttun?"
+    ]
+  },
+  {
+    "id": "ed1-28-prioritaeten",
+    "title": "Prioritäten",
+    "quote": "Nicht alles Wichtige ist dringend – \nund nicht alles Dringende \nist wichtig.",
+    "questions": [
+      "Woran erkennst du gerade deine Prioritäten?",
+      "Was wird oft dringend, aber nicht wichtig?",
+      "Wie triffst du Prioritätsentscheidungen?",
+      "Wo verzettelst du dich manchmal?",
+      "Was darf aktuell warten?"
+    ]
+  },
+  {
+    "id": "ed1-29-qualitaet-1",
+    "title": "Qualität 1",
+    "quote": "Qualität entsteht dort, \nwo Sorgfalt wichtiger ist \nals Geschwindigkeit.",
+    "questions": [
+      "Woran erkennst du gute Qualität in deiner Arbeit?",
+      "Was bedeutet Qualität für dich ganz konkret?",
+      "Wann bist du mit deiner Arbeit wirklich zufrieden?",
+      "Wo lohnt es sich, genauer hinzuschauen?",
+      "Was hat diese Woche zu guter Qualität beigetragen?"
+    ]
+  },
+  {
+    "id": "ed1-30-regeln-1",
+    "title": "Regeln 1",
+    "quote": "Regeln \nsollen Orientierung geben – \nnicht das Denken ersetzen.",
+    "questions": [
+      "Welche Regeln helfen dir?",
+      "Wo engen Regeln ein?",
+      "Wie klar sind Regeln?",
+      "Wer gestaltet Regeln?",
+      "Was sollte angepasst werden?"
+    ]
+  },
+  {
+    "id": "ed1-31-selbstfuehrung",
+    "title": "Selbstführung",
+    "quote": "Wer gut für sich sorgt, \nkann auch gut \nfür andere da sein.",
+    "questions": [
+      "Wie gut kannst du dich selbst strukturieren?",
+      "Was hilft dir, fokussiert zu bleiben?",
+      "Woran merkst du, dass du dich selbst überforderst?",
+      "Wie gehst du mit eigenen Erwartungen um?",
+      "Was stärkt deine Selbstwirksamkeit?"
+    ]
+  },
+  {
+    "id": "ed1-32-selbstwirksamkeit",
+    "title": "Selbstwirksamkeit",
+    "quote": "Selbstwirksamkeit \nfühlt sich an, wenn das \neigene Tun etwas bewegt.",
+    "questions": [
+      "Wann erlebst du Selbstwirksamkeit?",
+      "Was gibt dir das Gefühl, etwas zu bewirken?",
+      "Wo fühlst du dich machtlos?",
+      "Was stärkt dein Zutrauen in dich?",
+      "Was hast du selbst bewirkt?"
+    ]
+  },
+  {
+    "id": "ed1-33-sinn",
+    "title": "Sinn",
+    "quote": "Sinn \nzeigt sich oft nicht im Großen, \nsondern im täglichen Tun.",
+    "questions": [
+      "Wann fühlt sich Arbeit sinnvoll an?",
+      "Für wen machen wir das?",
+      "Wo entsteht Sinn im Kleinen?",
+      "Was gibt deinem Tun Bedeutung?",
+      "Was würde fehlen ohne unsere Arbeit?"
+    ]
+  },
+  {
+    "id": "ed1-34-stress-1",
+    "title": "Stress 1",
+    "quote": "Stress entsteht oft dort, \nwo zu wenig Luft \nzum Atmen bleibt.",
+    "questions": [
+      "Woran merkst du Stress?",
+      "Was stresst dich besonders?",
+      "Was hilft dir runterzufahren?",
+      "Wie sprechen wir über Stress?",
+      "Was würde Stress reduzieren?"
+    ]
+  },
+  {
+    "id": "ed1-35-transparenz",
+    "title": "Transparenz",
+    "quote": "Transparenz \nschafft Orientierung, \nauch wenn nicht alles einfach ist.",
+    "questions": [
+      "Woran bemerkst du transparente?",
+      "Wo wünschst du dir aktuell mehr Transparenz?",
+      "Was macht Abläufe für dich nachvollziehbar?",
+      "Wie gehst du mit fehlenden Informationen um?",
+      "Was würde mehr Transparenz für dich erleichtern?"
+    ]
+  },
+  {
+    "id": "ed1-36-veraenderung",
+    "title": "Veränderung",
+    "quote": "Veränderung braucht Zeit - \nund manchmal Geduld \nmit sich selbst.",
+    "questions": [
+      "Wie gehst du mit Veränderungen um?",
+      "Was fällt dir bei Veränderungen schwer?",
+      "Was hilft dir, offen für Veränderungen  zu bleiben?",
+      "Wann war Veränderung hilfreich?",
+      "Was darf sich gerade verändern?"
+    ]
+  },
+  {
+    "id": "ed1-37-verantwortung-1",
+    "title": "Verantwortung 1",
+    "quote": "Verantwortung \nbeginnt dort, \nwo Ausreden enden.",
+    "questions": [
+      "Wofür trägst du Verantwortung?",
+      "Wo ist Verantwortung unklar?",
+      "Wo hättest du gerne mehr Verantwortung?",
+      "Wann wird Verantwortung geteilt?",
+      "Was braucht verantwortliches Handeln?"
+    ]
+  },
+  {
+    "id": "ed1-38-verbesserungen-1",
+    "title": "Verbesserungen 1",
+    "quote": "Verbesserungen\n beginnen oft \nim Kleinen.",
+    "questions": [
+      "Was könnte ein kleines Stück besser werden?",
+      "Was wäre ein leichter Schritt?",
+      "Wobei lohnt sich Ausprobieren?",
+      "Welche Idee hattest du zuletzt eingebracht?",
+      "Welche Verbesserung ist realistisch?"
+    ]
+  },
+  {
+    "id": "ed1-39-vision",
+    "title": "Vision",
+    "quote": "Eine gute Vision \ngibt Richtung – \nkeine Geschwindigkeit vor.",
+    "questions": [
+      "Wofür arbeiten wir hier?",
+      "Was soll bleiben?",
+      "Was darf sich verändern?",
+      "Was gibt Richtung?",
+      "Woran merken wir Fortschritt?"
+    ]
+  },
+  {
+    "id": "ed1-40-wertschaetzung-1",
+    "title": "Wertschätzung 1",
+    "quote": "Manchmal reicht es, \ngesehen zu werden, \num einen guten Tag zu haben.",
+    "questions": [
+      "Woran erkennst du wertschätzenden Umgang?",
+      "Wann fühlst du dich nicht wertgeschätzt?",
+      "Wie zeigst du anderen gegenüber Wertschätzung?",
+      "Was bedeutet Wertschätzung  für dich konkret?",
+      "Wie könnten wir mehr Wertschätzung zeigen?"
+    ]
+  },
+  {
+    "id": "ed1-41-zusammenarbeit",
+    "title": "Zusammenarbeit",
+    "quote": "Gemeinsam \nheißt nicht gleich – \nsondern miteinander.",
+    "questions": [
+      "Wann funktioniert Zusammenarbeit gut?",
+      "Wo hakt es im Miteinander?",
+      "Was brauchst du von anderen?",
+      "Wie unterstützen wir uns?",
+      "Was würde Zusammenarbeit verbessern?"
+    ]
+  }
+]

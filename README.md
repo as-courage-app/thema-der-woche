@@ -1,37 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Das Thema der Woche – App (Edition 1)
 
-## Getting Started
+## Kurzbeschreibung
+„Das Thema der Woche“ ist eine kleine Web-App zur einfachen Wochenplanung mit thematischen Impulsen.  
+Nutzer*innen wählen die Anzahl der Wochen, ein Startdatum (Montag) und entscheiden, ob Themen zufällig oder manuell ausgewählt werden. Die Planung wird lokal im Browser gespeichert.
 
-First, run the development server:
+## Zielgruppe
+- Trainer*innen, Coaches
+- Teams und Organisationen
+- Menschen, die mit Wochenimpulsen (Mo–Fr) arbeiten
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Kernnutzen
+- Klarer Fokus pro Woche
+- Konkrete Tagesimpulse (Montag bis Freitag)
+- Schnelle Einrichtung ohne Account
+- Lokale Speicherung (LocalStorage)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Funktionsumfang (Edition 1)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Enthalten
+- Startseite (Deckblatt)
+- Setup (`/setup`)
+  - Wochenanzahl (1–41)
+  - Startdatum (nur Montag)
+  - Modus: Zufall oder Manuell
+- Themenauswahl (`/themes`)
+  - 41 Wochenthemen
+  - alphabetisch sortiert
+  - Auswahl-Limit = Wochenanzahl
+- Lokale Speicherung der Planung (Draft)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### In Arbeit / folgt
+- Plan-Generierung (`/plan`)
+- Wochenansicht (Mo–Fr)
+- Verknüpfung mit Zitaten & Tagesfragen (`edition1.json`)
+- Reset / Neu planen / Fortsetzen
 
-## Learn More
+## UX-Prinzipien
+- Wenige Schritte, klare Sprache
+- Konsistentes Layout (Hintergrundbild + Overlay + Content-Card)
+- Barrierearm & verständlich
+- Kein Overengineering – iterativ & pragmatisch
 
-To learn more about Next.js, take a look at the following resources:
+## Technik
+- Framework: Next.js (App Router)
+- Hosting: Vercel
+- Speicherung: LocalStorage
+- Entwicklung: Webpack-Dev-Server (Turbopack deaktiviert)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Projektstatus
+- Startseite: ✅
+- Setup-Seite: ✅
+- Themenauswahl: ✅
+- Plan-Logik: ⏳ in Vorbereitung
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Arbeitsweise
+- Schritt-für-Schritt-Entwicklung
+- Änderungen erst nach visueller Prüfung
+- Fokus auf Verständlichkeit & UX-Kohärenz
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
+© as-courage – Das Thema der Woche

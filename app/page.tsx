@@ -1,97 +1,123 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import BackgroundLayout from '../components/BackgroundLayout';
 
-type Draft = {
-  version: "1.0";
-  weeksCount: number;
-  startMonday: string; // YYYY-MM-DD
-  mode: "random" | "manual";
-  selectedThemeIds: string[];
-  plan: Array<{ weekIndex: number; themeId: string; mondayDate: string }>;
-  activeWeekIndex: number;
+const SETUP_KEY = 'as-courage.themeSetup.v1';
+
+type SetupState = {
+  edition?: number;
+  weeksCount?: number;
+  startMonday?: string;
+  mode?: 'manual' | 'random';
+  createdAt?: string;
 };
 
-const STORAGE_KEY = "thema-der-woche:draft:v1";
-
-function loadDraft(): Draft | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Draft;
-    if (!parsed?.version) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
 export default function HomePage() {
-  const [hasDraft, setHasDraft] = useState(false);
+  const router = useRouter();
+  const [lastSetup, setLastSetup] = useState<SetupState | null>(null);
 
   useEffect(() => {
-    const d = loadDraft();
-    setHasDraft(Boolean(d));
+    try {
+      const raw = localStorage.getItem(SETUP_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as SetupState;
+      setLastSetup(parsed);
+    } catch {
+      // ignorieren
+    }
   }, []);
 
+  const hasSetup =
+    !!lastSetup &&
+    typeof lastSetup.weeksCount === 'number' &&
+    typeof lastSetup.startMonday === 'string' &&
+    (lastSetup.mode === 'manual' || lastSetup.mode === 'random');
+
   return (
-    <main className="min-h-screen">
-      <div
-        className="relative min-h-screen bg-cover bg-center"
-        style={{ backgroundImage: "url('/images/cover-01.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-black/45" />
-
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-10">
-          <div className="max-w-xl rounded-3xl bg-white/90 p-6 shadow-xl backdrop-blur-md md:p-8">
-            <p className="text-sm font-medium tracking-wide text-neutral-600">
-              Das Thema der Woche · 1. Edition
+    <BackgroundLayout>
+      {/* Seite garantiert ohne Scrollbalken */}
+      <div className="min-h-screen w-full overflow-hidden px-4">
+        {/* Zentrum / Overlay auf Hintergrundbild */}
+        <div className="mx-auto flex min-h-screen max-w-3xl items-center justify-center">
+          {/* Content-Box */}
+          <div className="w-full rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md sm:p-8">
+            <h1 className="text-3xl font-semibold tracking-tight">Thema der Woche</h1>
+            <p className="mt-2 text-sm text-slate-700">
+              Starte ein neues Wochenpaket (Edition 1) oder mache dort weiter, wo du zuletzt aufgehört hast.
             </p>
 
-            <h1 className="mt-2 text-3xl font-semibold leading-tight text-neutral-900 md:text-4xl">
-              Jede Woche ein Fokus.
-              <br />
-              Jeden Tag ein Impuls.
-            </h1>
+            {/* Letzter Stand */}
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="text-sm font-medium text-slate-800">Letzter Stand</div>
 
-            <p className="mt-4 text-base leading-relaxed text-neutral-700">
-              Wähle die Anzahl der Wochen, entscheide dich für Zufall oder manuelle Themenwahl
-              und starte an einem Montag. Die App merkt sich deine Planung lokal auf deinem Gerät.
-            </p>
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="/setup"
-                className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
-              >
-                Loslegen
-              </a>
-
-              {hasDraft ? (
-                <a
-                  href="/plan"
-                  className="inline-flex items-center justify-center rounded-2xl border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
-                >
-                  Letzte Planung fortsetzen
-                </a>
+              {!hasSetup ? (
+                <p className="mt-2 text-sm text-slate-600">
+                  Noch kein Setup gespeichert. Klicke auf „Neues Setup starten“.
+                </p>
               ) : (
+                <div className="mt-2 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                  <div>
+                    <span className="font-medium">Edition:</span> {lastSetup.edition ?? 1}
+                  </div>
+                  <div>
+                    <span className="font-medium">Modus:</span>{' '}
+                    {lastSetup.mode === 'manual' ? 'Manuell' : 'Zufall'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Wochen:</span> {lastSetup.weeksCount}
+                  </div>
+                  <div>
+                    <span className="font-medium">Start (Mo):</span> {lastSetup.startMonday}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Aktionen */}
+            <div className="mt-6 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => router.push('/setup')}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
+              >
+                Neues Setup starten
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push('/themes')}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
+                title="Geht zur Themenauswahl"
+              >
+                Zur Themenauswahl
+              </button>
+
+              {hasSetup && (
                 <button
                   type="button"
-                  disabled
-                  className="inline-flex items-center justify-center rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-400"
-                  title="Noch keine gespeicherte Planung gefunden"
+                  onClick={() => router.push('/themes')}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
+                  title="Macht mit dem gespeicherten Stand weiter"
                 >
-                  Fortsetzen (noch nichts gespeichert)
+                  Weiter mit letztem Stand
                 </button>
               )}
             </div>
 
-            <p className="mt-5 text-xs text-neutral-500">
-              Hinweis: Speicherung via LocalStorage (nur auf diesem Gerät/Browser).
-            </p>
+            {/* Fahrplan */}
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm font-medium text-slate-800">Kurzer Fahrplan</div>
+              <ol className="mt-2 list-decimal pl-5 text-sm text-slate-700">
+                <li>Setup: Wochenzahl + Start-Montag + Modus</li>
+                <li>Themen auswählen (Edition 1: 41 Themen)</li>
+                <li>Zitate/Fragen anzeigen & später CSV/Export (wenn du willst)</li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>
-    </main>
+    </BackgroundLayout>
   );
 }
