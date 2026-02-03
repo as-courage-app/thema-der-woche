@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import edition1 from '../data/edition1.json';
 
+const LS_SETUP = 'as-courage.themeSetup.v1';
+
 type EditionRow = {
   id: string;
   title?: string;
   quote: string;
   questions: string[];
 };
+
+type LicenseTier = 'A' | 'B' | 'C';
 
 type SetupState = {
   edition?: number;
@@ -19,10 +23,16 @@ type SetupState = {
   mode?: 'manual' | 'random';
   themeIds?: string[];
   createdAt?: string;
+
+  // ✅ neu: für A/B/C-Logik (robust: akzeptiert alten + neuen Feldnamen)
+  selectedLicenseTier?: LicenseTier;
+  licenseTier?: LicenseTier;
+
+  // ✅ neu: iCal Haken
+  icalEnabled?: boolean;
 };
 
 const THEMES: EditionRow[] = edition1 as unknown as EditionRow[];
-const LS_SETUP = 'as-courage.themeSetup.v1';
 
 const BRAND_ORANGE = '#F3910A';
 
@@ -66,13 +76,11 @@ function formatDE(date: Date): string {
 }
 
 function prettifyId(id: string): string {
-  // Entfernt technische Präfixe wie "Ed1", "01" usw.
-  // Beispiel: "Ed1-01-anerkennung-1" → "Anerkennung 1"
   const cleaned = id
-    .replace(/^ed\d+-\d+-/i, '')   // Ed1-01-
-    .replace(/^ed\d+\s*/i, '')     // Ed1 
-    .replace(/^\d+-/, '')          // 01-
-    .replace(/-/g, ' ')            // Bindestriche → Leerzeichen
+    .replace(/^ed\d+-\d+-/i, '') // Ed1-01-
+    .replace(/^ed\d+\s*/i, '') // Ed1
+    .replace(/^\d+-/, '') // 01-
+    .replace(/-/g, ' ')
     .trim();
 
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
@@ -81,6 +89,139 @@ function prettifyId(id: string): string {
 function displayTitle(row: EditionRow): string {
   const t = row.title?.trim();
   return t && t.length > 0 ? t : prettifyId(row.id);
+}
+
+/** ✅ Download-Helfer */
+function downloadTextFile(filename: string, content: string, mime = 'text/plain;charset=utf-8') {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** ✅ Minimal gültige ICS (Platzhalter) – echte Inhalte bauen wir als nächsten Schritt */
+function pad2(n: number) {
+  return String(n).padStart(2, '0');
+}
+
+function yyyymmdd(d: Date) {
+  return `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
+}
+
+function escapeIcsText(s: string) {
+  return String(s ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
+}
+
+function dtstampUtc() {
+  const now = new Date();
+  const y = now.getUTCFullYear();
+  const m = pad2(now.getUTCMonth() + 1);
+  const d = pad2(now.getUTCDate());
+  const hh = pad2(now.getUTCHours());
+  const mm = pad2(now.getUTCMinutes());
+  const ss = pad2(now.getUTCSeconds());
+  return `${y}${m}${d}T${hh}${mm}${ss}Z`;
+}
+
+/**
+ * ✅ Erzeugt eine echte ICS-Datei nach deinen Regeln:
+ * - ganztägig
+ * - Mo–Fr: Thema + Zitat + Tagesfrage
+ * - Sa/So: "Schönes Wochenende"
+ */
+function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]): string {
+  const stamp = dtstampUtc();
+  const uidBase = `tdw-${stamp}-${Math.random().toString(16).slice(2)}`;
+
+  const weeksCount = setup?.weeksCount ?? 0;
+  const startIso = setup?.startMonday;
+
+  const baseDate = parseIsoDate(startIso);
+  if (!baseDate || weeksCount < 1 || selectedThemes.length === 0) {
+    return [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//as-courage//Thema der Woche//DE',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'END:VCALENDAR',
+      '',
+    ].join('\r\n');
+  }
+
+  // Begrenzung: nicht mehr Wochen exportieren als Themen vorhanden sind
+  const countWeeks = Math.min(weeksCount, selectedThemes.length);
+
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//as-courage//Thema der Woche//DE',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ];
+
+  let eventIndex = 0;
+
+  for (let w = 0; w < countWeeks; w++) {
+    const theme = selectedThemes[w];
+    const weekMonday = addDays(baseDate, w * 7);
+    const title = displayTitle(theme);
+    const quote = theme.quote ?? '';
+
+    // Mo–Fr
+    for (let day = 0; day < 5; day++) {
+      const date = addDays(weekMonday, day);
+      const dtStart = yyyymmdd(date);
+      const dtEnd = yyyymmdd(addDays(date, 1));
+
+      const question = theme.questions?.[day] ?? '';
+      const summary = `${title}: ${question || 'Tagesimpuls'}`;
+      const desc = `Thema: ${title}\nZitat: ${quote}\nTagesfrage: ${question}`;
+
+      lines.push('BEGIN:VEVENT');
+      lines.push(`UID:${uidBase}-${eventIndex}@as-courage`);
+      lines.push(`DTSTAMP:${stamp}`);
+      lines.push(`DTSTART;VALUE=DATE:${dtStart}`);
+      lines.push(`DTEND;VALUE=DATE:${dtEnd}`);
+      lines.push('TRANSP:TRANSPARENT');
+      lines.push(`SUMMARY:${escapeIcsText(summary)}`);
+      lines.push(`DESCRIPTION:${escapeIcsText(desc)}`);
+      lines.push('END:VEVENT');
+
+      eventIndex++;
+    }
+
+    // Sa/So
+    for (let day = 5; day < 7; day++) {
+      const date = addDays(weekMonday, day);
+      const dtStart = yyyymmdd(date);
+      const dtEnd = yyyymmdd(addDays(date, 1));
+
+      lines.push('BEGIN:VEVENT');
+      lines.push(`UID:${uidBase}-${eventIndex}@as-courage`);
+      lines.push(`DTSTAMP:${stamp}`);
+      lines.push(`DTSTART;VALUE=DATE:${dtStart}`);
+      lines.push(`DTEND;VALUE=DATE:${dtEnd}`);
+      lines.push('TRANSP:TRANSPARENT');
+      lines.push(`SUMMARY:${escapeIcsText('Schönes Wochenende')}`);
+      lines.push(`DESCRIPTION:${escapeIcsText('Schönes Wochenende!')}`);
+      lines.push('END:VEVENT');
+
+      eventIndex++;
+    }
+  }
+
+  lines.push('END:VCALENDAR', '');
+  return lines.join('\r\n');
 }
 
 export default function QuotesPage() {
@@ -151,6 +292,12 @@ export default function QuotesPage() {
 
   const currentTitle = current ? displayTitle(current) : '';
 
+  // ✅ Button nur bei C + iCal-Haken (robust: alter/neuer Feldname)
+  const showIcalButton = useMemo(() => {
+    const tier = setup?.selectedLicenseTier ?? setup?.licenseTier;
+    return tier === 'C' && Boolean(setup?.icalEnabled);
+  }, [setup]);
+
   return (
     <BackgroundLayout>
       <div className="mx-auto flex h-full max-w-6xl px-10 py-3">
@@ -159,10 +306,24 @@ export default function QuotesPage() {
           <div className="p-5 sm:p-7 shrink-0">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight">Zitate & Tagesimpulse</h1>
+                <h1 className="text-2xl font-semibold tracking-tight">Zitate &amp; Tagesimpulse</h1>
               </div>
 
               <div className="flex flex-wrap gap-2">
+                {showIcalButton && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ics = buildIcsFromPlan(setup, selectedThemes);
+                      downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
+                    }}
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
+                    title="iCal-Datei herunterladen"
+                  >
+                    iCal herunterladen
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => router.push('/themes')}

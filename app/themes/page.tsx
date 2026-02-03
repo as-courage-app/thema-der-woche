@@ -41,13 +41,22 @@ function readLS<T>(key: string, fallback: T): T {
   }
 }
 
-function writeLS<T>(key: string, value: T) {
+function writeLS<T extends Record<string, any>>(key: string, value: T) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    const prevRaw = localStorage.getItem(key);
+    const prev = prevRaw ? JSON.parse(prevRaw) : {};
+
+    const next = {
+      ...prev,   // ✅ ALLES Bestehende behalten (Lizenz, iCal, Startdatum, …)
+      ...value,  // ✅ NUR das überschreiben, was du bewusst setzt (z. B. themeIds)
+    };
+
+    localStorage.setItem(key, JSON.stringify(next));
   } catch {
     // Storage kann blockiert sein – Seite soll trotzdem laufen
   }
 }
+
 
 function isMondayISO(iso: string) {
   const d = new Date(iso + 'T00:00:00');

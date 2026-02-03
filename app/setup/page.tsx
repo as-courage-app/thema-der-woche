@@ -1,10 +1,26 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 
 const SETUP_KEY = 'as-courage.themeSetup.v1';
+
+type LicenseTier = 'A' | 'B' | 'C';
+
+type SetupState = {
+  edition?: number;
+  weeksCount?: number;
+  startMonday?: string;
+  mode?: 'manual' | 'random';
+  createdAt?: string;
+
+  // ✅ Nur Auswahl/Vorlieben – keine echte Lizenz!
+  selectedLicenseTier?: LicenseTier;
+
+  // ✅ iCal-Wunsch (nur in C aktivierbar)
+  icalEnabled?: boolean;
+};
 
 function isMondayISO(iso: string) {
   const d = new Date(iso + 'T00:00:00');
@@ -30,14 +46,32 @@ export default function SetupPage() {
   const [startMonday, setStartMonday] = useState<string>(nextMondayISO());
   const [error, setError] = useState<string | null>(null);
 
-  // Wenn schon mal etwas gespeichert wurde: wieder laden (nice UX)
+  // ✅ Lizenz-Auswahl (nur als Auswahl gespeichert)
+  const [selectedLicenseTier, setSelectedLicenseTier] = useState<LicenseTier>('A');
+
+  // ✅ iCal (nur wenn C)
+  const [icalEnabled, setIcalEnabled] = useState<boolean>(false);
+  const isIcalAllowed = useMemo(() => selectedLicenseTier === 'C', [selectedLicenseTier]);
+
+  // Wenn Lizenz nicht C: iCal sicherheitshalber aus (damit keine „Altwerte“ bleiben)
+  useEffect(() => {
+    if (!isIcalAllowed && icalEnabled) setIcalEnabled(false);
+  }, [isIcalAllowed, icalEnabled]);
+
+  // Vorherige Einstellungen laden
   useEffect(() => {
     try {
       const raw = localStorage.getItem(SETUP_KEY);
       if (!raw) return;
-      const s = JSON.parse(raw);
+      const s = JSON.parse(raw) as SetupState;
+
       if (typeof s.weeksCount === 'number' && s.weeksCount >= 1) setWeeksCount(s.weeksCount);
       if (typeof s.startMonday === 'string' && s.startMonday.length === 10) setStartMonday(s.startMonday);
+
+      if (s.selectedLicenseTier === 'A' || s.selectedLicenseTier === 'B' || s.selectedLicenseTier === 'C') {
+        setSelectedLicenseTier(s.selectedLicenseTier);
+      }
+      setIcalEnabled(Boolean(s.icalEnabled));
     } catch {
       // ignorieren
     }
@@ -59,30 +93,66 @@ export default function SetupPage() {
       return;
     }
 
-    // ✅ EINHEITLICH speichern – das liest /themes später aus
-    localStorage.setItem(
-      SETUP_KEY,
-      JSON.stringify({
-        edition: 1,
-        weeksCount,
-        startMonday,
-        mode, // 'manual' | 'random'
-        createdAt: new Date().toISOString(),
-      })
-    );
+    const payload: SetupState = {
+      edition: 1,
+      weeksCount,
+      startMonday,
+      mode,
+      createdAt: new Date().toISOString(),
 
+      selectedLicenseTier,
+      icalEnabled: isIcalAllowed ? icalEnabled : false,
+    };
+
+    localStorage.setItem(SETUP_KEY, JSON.stringify(payload));
+
+    // ✅ /themes bleibt frei sichtbar – wie gewünscht
     router.push('/themes');
   }
 
   return (
     <BackgroundLayout>
-      {/* Wichtig: h-full statt min-h-screen, damit kein doppeltes 100vh entsteht */}
+      {/* h-full statt min-h-screen, damit kein doppeltes 100vh entsteht */}
       <div className="mx-auto flex h-full max-w-2xl items-center px-4 overflow-hidden">
         <div className="w-full rounded-2xl bg-white/90 p-6 shadow-xl backdrop-blur-md">
           <h1 className="text-2xl font-semibold tracking-tight">Setup – Thema der Woche</h1>
           <p className="mt-1 text-sm text-slate-700">
-            Wähle Anzahl Wochen und den Start-Montag. Danach geht’s zur Themenauswahl.
+            Wähle Anzahl Wochen, Start-Montag und deine Variante. Danach geht’s zur Themenübersicht.
           </p>
+
+          {/* ✅ Varianten-Auswahl (ohne Preise) */}
+          <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">
+            <div className="text-sm font-medium text-slate-800">Variante wählen</div>
+            <div className="mt-1 text-xs text-slate-600">
+              Die Themenübersicht ist frei sichtbar. Bestimmte Funktionen werden später je nach gekaufter Lizenz freigeschaltet.
+            </div>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {(['A', 'B', 'C'] as LicenseTier[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => {
+                    setSelectedLicenseTier(t);
+                    setError(null);
+                  }}
+                  className={[
+                    'rounded-xl border px-3 py-3 text-left text-sm transition',
+                    selectedLicenseTier === t
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-slate-200 bg-white hover:bg-slate-50',
+                  ].join(' ')}
+                >
+                  <div className="font-semibold">Variante {t}</div>
+                  <div className={selectedLicenseTier === t ? 'text-white/80 text-xs' : 'text-slate-600 text-xs'}>
+                    {t === 'A' && 'Einzellizenz für 12 Monate · ohne iCal'}
+                    {t === 'B' && 'Einzellizenz dauerhaft · ohne iCal'}
+                    {t === 'C' && 'Einzellizenz dauerhaft · mit Teamkalender/iCal'}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white p-3">
@@ -128,6 +198,32 @@ export default function SetupPage() {
             </div>
           </div>
 
+          {/* ✅ iCal sichtbar für alle, aber nur in C aktivierbar */}
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4"
+                checked={isIcalAllowed ? icalEnabled : false}
+                disabled={!isIcalAllowed}
+                onChange={(e) => setIcalEnabled(e.target.checked)}
+              />
+              <span className="text-sm text-slate-800">
+                Teamkalender/iCal für diese Planung erzeugen
+                <span className="block text-xs text-slate-600">
+                  {isIcalAllowed ? (
+                    <>Wenn aktiviert, erscheint später auf „Zitate &amp; Tagesimpulse“ ein Download-Button.</>
+                  ) : (
+                    <>
+                      Diese Funktion ist nur in <span className="font-semibold">Variante C</span> enthalten.
+                      Du kannst Variante C auswählen, um die Option zu aktivieren.
+                    </>
+                  )}
+                </span>
+              </span>
+            </label>
+          </div>
+
           {error && (
             <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
               {error}
@@ -153,8 +249,7 @@ export default function SetupPage() {
           </div>
 
           <p className="mt-4 text-xs text-slate-600">
-            Hinweis: Beide Wege führen zur gleichen Themenauswahl. Der Unterschied ist nur: Dort ist „Zufall“ bereits
-            vorausgewählt.
+            Hinweis: Beide Wege führen zur gleichen Themenübersicht. Der Unterschied ist nur: Bei „Zufall“ ist die spätere Auswahl automatisiert.
           </p>
         </div>
       </div>
