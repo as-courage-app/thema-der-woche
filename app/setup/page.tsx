@@ -113,10 +113,12 @@ export default function SetupPage() {
   return (
     <BackgroundLayout>
       {/* h-full statt min-h-screen, damit kein doppeltes 100vh entsteht */}
-      <div className="mx-auto flex h-full max-w-2xl items-center px-4 overflow-hidden">
-        <div className="w-full rounded-2xl bg-white/90 p-6 shadow-xl backdrop-blur-md">
-          <h1 className="text-2xl font-semibold tracking-tight">Setup – Thema der Woche</h1>
-          <p className="mt-1 text-sm text-slate-700">
+      <div className="mx-auto flex w-full max-w-none items-start px-0 py-0 sm:max-w-2xl sm:px-4 sm:py-6 sm:items-center">
+        <div className="w-full rounded-none sm:rounded-2xl bg-white/98 sm:bg-white/90 p-4 sm:p-6 shadow-none sm:shadow-xl backdrop-blur-lg min-h-[100dvh] sm:min-h-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+  Setup – Thema der Woche
+</h1>
+<p className="mt-2 text-sm text-slate-800">
             Wähle Anzahl Wochen, Start-Montag und deine Variante. Danach geht’s zur Themenübersicht.
           </p>
 
@@ -143,8 +145,16 @@ export default function SetupPage() {
                       : 'border-slate-200 bg-white hover:bg-slate-50',
                   ].join(' ')}
                 >
-                  <div className="font-semibold">Variante {t}</div>
-                  <div className={selectedLicenseTier === t ? 'text-white/80 text-xs' : 'text-slate-600 text-xs'}>
+                  <div
+  className={
+    selectedLicenseTier === t
+      ? 'font-semibold text-white'
+      : 'font-semibold text-slate-900'
+  }
+>
+  Variante {t}
+</div>
+                  <div className={selectedLicenseTier === t ? 'text-white/90 text-xs' : 'text-slate-800 text-xs'}>
                     {t === 'A' && 'Einzellizenz für 12 Monate · ohne iCal'}
                     {t === 'B' && 'Einzellizenz dauerhaft · ohne iCal'}
                     {t === 'C' && 'Einzellizenz dauerhaft · mit Teamkalender/iCal'}
@@ -167,7 +177,7 @@ export default function SetupPage() {
                   setWeeksCount(Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 1);
                   setError(null);
                 }}
-                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                className="mt-2 w-full rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 px-3 py-2 text-base outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20"
               />
               <p className="mt-1 text-xs text-slate-600">Pro Woche: Mo–Fr (5 Tagesimpulse).</p>
             </div>
@@ -181,13 +191,13 @@ export default function SetupPage() {
                   setStartMonday(e.target.value);
                   setError(null);
                 }}
-                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 [color-scheme:light] outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20"
               />
               <div className="mt-2 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setStartMonday(nextMondayISO())}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs hover:bg-slate-50"
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 hover:bg-slate-50"
                 >
                   Nächster Montag
                 </button>
@@ -242,7 +252,7 @@ export default function SetupPage() {
             <button
               type="button"
               onClick={() => saveAndGo('random')}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
+              className="rounded-xl border border-slate-400 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-100"
             >
               Zufall auswählen
             </button>

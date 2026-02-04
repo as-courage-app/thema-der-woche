@@ -38,7 +38,7 @@ export default function HomePage() {
   return (
     <BackgroundLayout>
       {/* Seite garantiert ohne Scrollbalken */}
-      <div className="min-h-screen w-full overflow-hidden px-4">
+      <div className="h-[100dvh] w-full overflow-y-auto px-4 sm:min-h-screen sm:overflow-hidden">
         {/* Zentrum / Overlay auf Hintergrundbild */}
         <div className="mx-auto flex min-h-screen max-w-3xl items-center justify-center">
           {/* Content-Box */}

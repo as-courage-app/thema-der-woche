@@ -238,11 +238,14 @@ export default function ThemesPage() {
           {/* Kopf bleibt sichtbar */}
           <div className="p-5 sm:p-7 shrink-0">
             <header>
-              <h1 className="text-2xl font-semibold tracking-tight">Themenauswahl – Edition 1</h1>
-              <p className="mt-1 text-sm text-slate-700">
-                Wähle genau <span className="font-semibold">{weeksCount}</span> Thema/Themen aus. Bereits genutzte Themen
-                bleiben auswählbar – sie sind nur markiert.
-              </p>
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+  Themenauswahl – Edition 1
+</h1>
+              <p className="mt-2 text-sm text-slate-900">
+  Wähle genau{' '}
+  <span className="font-semibold text-slate-900">{weeksCount}</span>{' '}
+  Thema/Themen aus. Bereits genutzte Themen bleiben auswählbar – sie sind nur markiert.
+</p>
             </header>
           </div>
 
