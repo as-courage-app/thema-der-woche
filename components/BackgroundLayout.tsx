@@ -40,7 +40,7 @@ export default function BackgroundLayout({ children }: BackgroundLayoutProps) {
       </div>
 
       {/* Content: Mobile oben starten + scrollen, ab Tablet zentrieren */}
-      <main className="relative z-10 flex w-full justify-center px-4 pt-20 pb-6 sm:items-center sm:px-[62px] sm:py-[70px]">
+      <main className="relative z-10 flex w-full justify-center px-4 pt-20 pb-6 sm:px-[62px] sm:py-[70px]">
         {children}
       </main>
     </div>

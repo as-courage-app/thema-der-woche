@@ -41,19 +41,32 @@ function readLS<T>(key: string, fallback: T): T {
   }
 }
 
-function writeLS<T extends Record<string, any>>(key: string, value: T) {
+function writeLS<T>(key: string, value: T) {
   try {
-    const prevRaw = localStorage.getItem(key);
-    const prev = prevRaw ? JSON.parse(prevRaw) : {};
+    // ✅ Arrays (selectedThemes, usedThemes) IMMER direkt speichern
+    if (Array.isArray(value)) {
+      localStorage.setItem(key, JSON.stringify(value));
+      return;
+    }
 
-    const next = {
-      ...prev,   // ✅ ALLES Bestehende behalten (Lizenz, iCal, Startdatum, …)
-      ...value,  // ✅ NUR das überschreiben, was du bewusst setzt (z. B. themeIds)
-    };
+    // ✅ Für Objekte: merge (z. B. setup)
+    if (value && typeof value === 'object') {
+      const prevRaw = localStorage.getItem(key);
+      const prev = prevRaw ? JSON.parse(prevRaw) : {};
 
-    localStorage.setItem(key, JSON.stringify(next));
+      const next = {
+        ...prev,
+        ...(value as any),
+      };
+
+      localStorage.setItem(key, JSON.stringify(next));
+      return;
+    }
+
+    // ✅ Für primitive Werte: direkt speichern
+    localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    // Storage kann blockiert sein – Seite soll trotzdem laufen
+    // bewusst leer
   }
 }
 
@@ -111,6 +124,15 @@ export default function ThemesPage() {
   const [usedThemes, setUsedThemes] = useState<string[]>([]);
 
   useEffect(() => {
+  try {
+    const raw = localStorage.getItem(LS.usedThemes);
+    if (raw) setUsedThemes(JSON.parse(raw));
+  } catch {
+    // bewusst leer
+  }
+}, []);
+
+  useEffect(() => {
     const possibleKeys = [LS.setup, 'as-courage.themeSetup', 'themeSetup', 'setup', 'as-courage.setup.v1'];
 
     let setup: any = null;
@@ -140,8 +162,19 @@ export default function ThemesPage() {
       if (setup.mode === 'manual' || setup.mode === 'random') setMode(setup.mode);
     }
 
-    const used = readLS<string[]>(LS.usedThemes, []);
-    setUsedThemes(Array.isArray(used) ? used : []);
+    const usedRaw = readLS<any>(LS.usedThemes, []);
+
+let usedArr: string[] = [];
+if (Array.isArray(usedRaw)) {
+  usedArr = usedRaw;
+} else if (usedRaw && typeof usedRaw === 'object') {
+  // ✅ Reparatur: {"0":"id1","1":"id2"} -> ["id1","id2"]
+  usedArr = Object.values(usedRaw).filter((x): x is string => typeof x === 'string');
+}
+
+// ✅ sauber zurückschreiben, damit PC dauerhaft korrekt ist
+writeLS(LS.usedThemes, usedArr);
+setUsedThemes(usedArr);
 
     const sel = readLS<string[]>(LS.selection, []);
     setSelectedThemes(Array.isArray(sel) ? sel : []);
@@ -233,15 +266,15 @@ export default function ThemesPage() {
 
   return (
     <BackgroundLayout>
-      <div className="mx-auto flex h-full max-w-6xl px-6 sm:px-10 py-3">
-        <div className="w-full max-h-[calc(100vh-10rem)] rounded-2xl bg-white/85 shadow-xl backdrop-blur-md overflow-hidden flex flex-col">
+      <div className="mx-auto flex min-h-[100svh] max-w-6xl px-3 py-2 sm:px-10 sm:py-3">
+        <div className="w-full rounded-2xl bg-white/85 shadow-xl backdrop-blur-md flex flex-col">
           {/* Kopf bleibt sichtbar */}
           <div className="p-5 sm:p-7 shrink-0">
             <header>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+              <h1 className="text-2xl font-semibold tracking-tight text-black">
   Themenauswahl – Edition 1
 </h1>
-              <p className="mt-2 text-sm text-slate-900">
+              <p className="mt-2 text-sm text-black">
   Wähle genau{' '}
   <span className="font-semibold text-slate-900">{weeksCount}</span>{' '}
   Thema/Themen aus. Bereits genutzte Themen bleiben auswählbar – sie sind nur markiert.
@@ -253,7 +286,7 @@ export default function ThemesPage() {
           <div className="px-5 pb-5 sm:px-7 sm:pb-7 flex-1 min-h-0 overflow-auto">
             {/* Setup-Zeile */}
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 bg-white p-3">
+              <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                 <label className="block text-sm font-medium text-slate-800">Modus</label>
                 <div className="mt-2 flex gap-2">
                   <button
@@ -289,7 +322,7 @@ export default function ThemesPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-3">
+              <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                 <label className="block text-sm font-medium text-slate-800">Anzahl Wochen</label>
                 <input
                   type="number"
@@ -308,7 +341,7 @@ export default function ThemesPage() {
                 <p className="mt-1 text-xs text-slate-600">Pro Woche: Mo–Fr (5 Tagesimpulse).</p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-3">
+              <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                 <label className="block text-sm font-medium text-slate-800">Start (Montag)</label>
                 <input
                   type="date"
@@ -349,12 +382,12 @@ export default function ThemesPage() {
               <button
                 type="button"
                 onClick={clearSelection}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-black hover:bg-slate-50"
               >
                 Auswahl löschen
               </button>
 
-              <div className="ml-auto text-sm text-slate-700">
+              <div className="ml-auto text-sm text-black sm:text-slate-700">
                 Ausgewählt: <span className="font-semibold">{selectedThemes.length}</span> / {weeksCount}
               </div>
             </div>
@@ -460,19 +493,16 @@ export default function ThemesPage() {
               </div>
             )}
 
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="text-xs text-slate-600">
-                Nächster Schritt: (Route: <span className="font-mono">{NEXT_ROUTE}</span>)
-              </div>
+           <div className="mt-4 flex items-center justify-end gap-3">
+  <button
+    type="button"
+    onClick={onContinue}
+    className="rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+  >
+    Weiter
+  </button>
+</div>
 
-              <button
-                type="button"
-                onClick={onContinue}
-                className="rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
-              >
-                Weiter
-              </button>
-            </div>
           </div>
         </div>
       </div>
