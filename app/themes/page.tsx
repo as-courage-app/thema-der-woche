@@ -197,10 +197,16 @@ setUsedThemes(usedArr);
     });
   }
 
-  function clearSelection() {
-    setError(null);
-    setSelectedThemes([]);
-  }
+ function clearSelection() {
+  setError(null);
+  setSelectedThemes([]);
+}
+
+function clearUsedThemes() {
+  setError(null);
+  setUsedThemes([]);
+  writeLS(LS.usedThemes, []);
+}
 
   function pickRandomThemes() {
     setError(null);
@@ -386,6 +392,13 @@ setUsedThemes(usedArr);
               >
                 Auswahl löschen
               </button>
+<button
+  type="button"
+  onClick={clearUsedThemes}
+  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 hover:bg-amber-100"
+>
+  genutzt löschen
+</button>
 
               <div className="ml-auto text-sm text-black sm:text-slate-700">
                 Ausgewählt: <span className="font-semibold">{selectedThemes.length}</span> / {weeksCount}

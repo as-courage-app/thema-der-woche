@@ -46,11 +46,23 @@ const WEEKDAYS = [
 
 function readSetup(): SetupState | null {
   try {
-    const raw = localStorage.getItem(LS_SETUP);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SetupState;
-    if (!parsed || typeof parsed !== 'object') return null;
-    return parsed;
+    const possibleKeys = [
+      LS_SETUP, // as-courage.themeSetup.v1
+      'as-courage.themeSetup', // ältere Variante
+      'themeSetup',
+      'setup',
+      'as-courage.setup.v1',
+    ];
+
+    for (const k of possibleKeys) {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+
+      const parsed = JSON.parse(raw) as SetupState;
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -238,6 +250,11 @@ export default function QuotesPage() {
     const s = readSetup();
     setSetup(s);
 
+    console.log('TDW setup:', s);
+    console.log('TDW startMonday:', s?.startMonday);
+    console.log('TDW weeksCount:', s?.weeksCount);
+    console.log('TDW themeIds:', s?.themeIds);
+
     const ids = s?.themeIds ?? [];
     const initialDays: Record<string, number> = {};
     for (const id of ids) initialDays[id] = 0;
@@ -260,8 +277,22 @@ export default function QuotesPage() {
   const totalPages = selectedThemes.length;
   const clampedIndex = totalPages > 0 ? Math.min(pageIndex, totalPages - 1) : 0;
   const current: EditionRow | null = totalPages > 0 ? selectedThemes[clampedIndex] : null;
+  
+  const weekMondayDate = useMemo(() => {
+  const base = parseIsoDate(setup?.startMonday);
+  if (!base) return null;
+  return addDays(base, clampedIndex * 7);
+}, [setup?.startMonday, clampedIndex]);
+
+  const weekdayDateText = useMemo(() => {
+  // liefert für Mo–Fr: "dd.mm.yyyy" passend zur aktuellen Woche
+  if (!weekMondayDate) return (index: number) => '';
+  return (index: number) => formatDE(addDays(weekMondayDate, index));
+}, [weekMondayDate]);
 
   const dateRangeText = useMemo(() => {
+    
+
     const base = parseIsoDate(setup?.startMonday);
     if (!base) return '';
     const monday = addDays(base, clampedIndex * 7);
@@ -300,8 +331,8 @@ export default function QuotesPage() {
 
   return (
     <BackgroundLayout>
-      <div className="mx-auto flex h-full max-w-6xl px-10 py-3">
-        <div className="w-full max-h-[calc(100vh-10rem)] rounded-2xl bg-white/85 shadow-xl backdrop-blur-md overflow-hidden flex flex-col">
+      <div className="mx-auto flex h-full min-h-[100svh] lg:min-h-0 max-w-6xl px-10 py-3">
+        <div className="w-full max-h-none lg:max-h-[calc(100vh-10rem)] rounded-none sm:rounded-2xl bg-white/98 sm:bg-white/85 shadow-none sm:shadow-xl backdrop-blur-md min-h-[100dvh] sm:min-h-0 overflow-visible lg:overflow-hidden flex flex-col">
           {/* Kopf */}
           <div className="p-5 sm:p-7 shrink-0">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -390,14 +421,14 @@ export default function QuotesPage() {
           </div>
 
           {/* Split-Bereich */}
-          <div className="flex-1 min-h-0 px-5 pb-5 sm:px-7 sm:pb-7">
+          <div className="flex-1 min-h-0 overflow-auto lg:overflow-hidden px-5 pb-5 sm:px-7 sm:pb-7">
             {!current ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                 Ich finde noch keine ausgewählten Themen. Bitte gehe zur Themenauswahl und wähle Themen aus.
               </div>
             ) : (
-              <div className="h-full rounded-2xl border border-slate-200 bg-white overflow-hidden">
-                <div className="h-full flex flex-col lg:flex-row">
+              <div className="rounded-2xl border border-slate-200 bg-white lg:h-full lg:overflow-hidden">
+                <div className="flex flex-col lg:flex-row">
                   {/* LINKS: Bild */}
                   <div className="relative lg:w-1/2 bg-slate-100">
                     <div className="h-64 lg:h-full">
@@ -411,7 +442,7 @@ export default function QuotesPage() {
                   </div>
 
                   {/* RECHTS: Inhalt */}
-                  <div className="lg:w-1/2 h-full overflow-auto">
+                  <div className="lg:w-1/2 lg:h-full lg:overflow-auto">
                     <div className="p-5 lg:p-6">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <h2 className="text-lg font-semibold text-slate-900">{currentTitle}</h2>
@@ -429,27 +460,30 @@ export default function QuotesPage() {
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {WEEKDAYS.map((d) => (
-                          <button
-                            key={d.key}
-                            type="button"
-                            onClick={() =>
-                              setActiveDay((prev) => ({
-                                ...prev,
-                                [current.id]: d.index,
-                              }))
-                            }
-                            className={[
-                              'rounded-full px-3 py-1.5 text-xs border',
-                              dayIndex === d.index
-                                ? 'bg-slate-900 text-white border-slate-900'
-                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50',
-                            ].join(' ')}
-                          >
-                            {d.key}
-                          </button>
-                        ))}
-                      </div>
+  {WEEKDAYS.map((d) => (
+    <button
+      key={d.key}
+      type="button"
+      onClick={() =>
+        setActiveDay((prev) => ({
+          ...prev,
+          [current.id]: d.index,
+        }))
+      }
+      className={[
+        'rounded-full px-3 py-1.5 text-xs border',
+        dayIndex === d.index
+          ? 'bg-slate-900 text-white border-slate-900'
+          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50',
+      ].join(' ')}
+    >
+      <span className="flex flex-col items-center leading-tight">
+        <span>{d.key}</span>
+        <span className="text-[10px] opacity-80">{weekdayDateText(d.index)}</span>
+      </span>
+    </button>
+  ))}
+</div>
 
                       <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
                         <div className="text-sm font-medium text-slate-800">{WEEKDAYS[dayIndex].label}</div>
