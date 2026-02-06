@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import Link from 'next/link';
+import { getAppMode, FREE_WEEKS_COUNT } from '@/lib/appMode';
 
 const SETUP_KEY = 'as-courage.themeSetup.v1';
 
@@ -42,6 +43,7 @@ function nextMondayISO(from = new Date()) {
 
 export default function SetupPage() {
   const router = useRouter();
+  const isFree = getAppMode() === 'free';
 
   const [weeksCount, setWeeksCount] = useState<number>(4);
   const [startMonday, setStartMonday] = useState<string>(nextMondayISO());
@@ -58,6 +60,10 @@ export default function SetupPage() {
   useEffect(() => {
     if (!isIcalAllowed && icalEnabled) setIcalEnabled(false);
   }, [isIcalAllowed, icalEnabled]);
+
+  useEffect(() => {
+  if (isFree) setWeeksCount(FREE_WEEKS_COUNT);
+}, [isFree]);
 
   // Vorherige Einstellungen laden
   useEffect(() => {
@@ -105,7 +111,14 @@ export default function SetupPage() {
       icalEnabled: isIcalAllowed ? icalEnabled : false,
     };
 
-    localStorage.setItem(SETUP_KEY, JSON.stringify(payload));
+    const weeksCountSafe = Math.min(2, Math.max(1, Number(payload.weeksCount) || 1));
+    localStorage.setItem(
+  SETUP_KEY,
+  JSON.stringify({
+    ...payload,
+    weeksCount: weeksCountSafe,
+  })
+);
 
     // ✅ /themes bleibt frei sichtbar – wie gewünscht
     router.push('/themes');
@@ -180,13 +193,24 @@ export default function SetupPage() {
               <input
                 type="number"
                 min={1}
-                max={52}
+                max={2}
                 value={weeksCount}
                 onChange={(e) => {
-                  const n = Number(e.target.value);
-                  setWeeksCount(Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 1);
-                  setError(null);
-                }}
+  const raw = e.target.value;
+
+  // wenn jemand kurz alles löscht: wir springen auf 1 zurück
+  if (raw === '') {
+    setWeeksCount(1);
+    setError(null);
+    return;
+  }
+
+  const n = Math.floor(Number(raw));
+  const clamped = Number.isFinite(n) ? Math.min(2, Math.max(1, n)) : 1;
+
+  setWeeksCount(clamped);
+  setError(null);
+}}
                 className="mt-2 w-full rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 px-3 py-2 text-base outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20"
               />
               <p className="mt-1 text-xs text-slate-600">Pro Woche: Mo–Fr (5 Tagesimpulse).</p>

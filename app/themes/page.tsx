@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import Link from 'next/link';
+import { getAppMode, FREE_ALLOWED_THEMES } from '@/lib/appMode';
 
 // Datei muss liegen unter: app/data/edition1.json
 import edition1 from '../data/edition1.json';
@@ -211,7 +212,9 @@ function clearUsedThemes() {
 
   function pickRandomThemes() {
     setError(null);
-    const pool = sortedThemes.map((t) => t.id);
+   const pool = sortedThemes
+  .map((t) => t.id)
+  .filter((id) => getAppMode() !== 'free' || FREE_ALLOWED_THEMES.has(id));
     const n = Math.min(weeksCount, pool.length);
     const copy = [...pool];
 
@@ -283,12 +286,21 @@ function clearUsedThemes() {
     Themenauswahl <span className="text-base font-normal tracking-wide">(Edition 1)</span>
   </h1>
 
+ <div className="flex gap-2">
+  <Link
+    href="/setup"
+    className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
+  >
+    Neues Setup
+  </Link>
+
   <Link
     href="/"
     className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
   >
     Startseite
   </Link>
+</div>
 </div>
               <p className="mt-2 text-sm text-black">
   Wähle genau{' '}
@@ -338,24 +350,40 @@ function clearUsedThemes() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
-                <label className="block text-sm font-medium text-slate-800">Anzahl Wochen</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={52}
-                  value={weeksCount}
-                  onChange={(e) => {
-                    const n = Number(e.target.value);
-                    const next = Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 1;
-                    setWeeksCount(next);
-                    setError(null);
-                    setSelectedThemes((prev) => prev.slice(0, next));
-                  }}
-                  className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                />
-                <p className="mt-1 text-xs text-slate-600">Pro Woche: Mo–Fr (5 Tagesimpulse).</p>
-              </div>
+             <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
+  <label className="block text-sm font-medium text-slate-800">
+    Anzahl Wochen
+  </label>
+
+  <input
+    type="number"
+    min={1}
+    max={2}
+    value={weeksCount}
+    onChange={(e) => {
+      const raw = e.target.value;
+
+      if (raw === '') {
+        setWeeksCount(1);
+        setSelectedThemes((prev) => prev.slice(0, 1));
+        setError(null);
+        return;
+      }
+
+      const n = Math.floor(Number(raw));
+      const next = Number.isFinite(n) ? Math.min(2, Math.max(1, n)) : 1;
+
+      setWeeksCount(next);
+      setSelectedThemes((prev) => prev.slice(0, next));
+      setError(null);
+    }}
+    className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+  />
+
+  <p className="mt-1 text-xs text-slate-600">
+    Pro Woche: Mo–Fr (5 Tagesimpulse).
+  </p>
+</div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                 <label className="block text-sm font-medium text-slate-800">Start (Montag)</label>
@@ -440,22 +468,29 @@ function clearUsedThemes() {
               >
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {sortedThemes.map((t) => {
+                   const isFree = getAppMode() === 'free';
+                    const isAllowedInFree = !isFree || FREE_ALLOWED_THEMES.has(t.id);
                     const isSelected = selectedSet.has(t.id);
                     const isUsed = usedSet.has(t.id);
-                    const disabled = mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount;
-
+                    const disabled =
+  !isAllowedInFree ||
+  (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount);
+   const dimBecauseLimit = (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount) || (mode === 'random' && selectedThemes.length > 0 && !isSelected);
                     return (
                       <li key={t.id}>
                         <button
                           type="button"
                           disabled={disabled}
-                          onClick={() => toggleTheme(t.id)}
+                          onClick={() => {
+  if (mode === 'random') return;
+  toggleTheme(t.id);
+}}
                           className={[
                             'w-full rounded-xl border px-3 py-3 text-left text-sm transition',
                             isSelected
                               ? 'border-slate-900 bg-slate-900 text-white'
                               : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
-                            disabled ? 'cursor-not-allowed opacity-40' : '',
+                            (disabled || dimBecauseLimit) ? 'cursor-not-allowed opacity-40' : '',
                           ].join(' ')}
                         >
                           <div className="flex items-start justify-between gap-2">
