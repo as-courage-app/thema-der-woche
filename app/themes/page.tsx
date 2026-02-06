@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
+import Link from 'next/link';
 
 // Datei muss liegen unter: app/data/edition1.json
 import edition1 from '../data/edition1.json';
@@ -277,9 +278,18 @@ function clearUsedThemes() {
           {/* Kopf bleibt sichtbar */}
           <div className="p-5 sm:p-7 shrink-0">
             <header>
-              <h1 className="text-2xl font-semibold tracking-tight text-black">
-  Themenauswahl – Edition 1
-</h1>
+              <div className="flex items-start justify-between gap-4">
+  <h1 className="text-2xl font-semibold tracking-tight text-black">
+    Themenauswahl <span className="text-base font-normal tracking-wide">(Edition 1)</span>
+  </h1>
+
+  <Link
+    href="/"
+    className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
+  >
+    Startseite
+  </Link>
+</div>
               <p className="mt-2 text-sm text-black">
   Wähle genau{' '}
   <span className="font-semibold text-slate-900">{weeksCount}</span>{' '}

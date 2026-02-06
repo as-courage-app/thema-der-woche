@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import edition1 from '../data/edition1.json';
+import Link from 'next/link';
 
 const LS_SETUP = 'as-courage.themeSetup.v1';
 
@@ -337,39 +338,48 @@ export default function QuotesPage() {
           <div className="p-5 sm:p-7 shrink-0">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight">Zitate &amp; Tagesimpulse</h1>
+                <h1 className="text-2xl font-semibold tracking-tight">
+  Zitate &amp; Tagesimpulse <span className="text-base font-normal tracking-wide">(Edition 1)</span>
+</h1>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {showIcalButton && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const ics = buildIcsFromPlan(setup, selectedThemes);
-                      downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
-                    }}
-                    className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
-                    title="iCal-Datei herunterladen"
-                  >
-                    iCal herunterladen
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => router.push('/themes')}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
-                >
-                  Themen ändern
-                </button>
-                <button
-                  type="button"
-                  onClick={() => router.push('/setup')}
-                  className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
-                >
-                  Neues Setup
-                </button>
-              </div>
+              <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
+  <div className="flex flex-wrap gap-2">
+    {showIcalButton && (
+      <button
+        type="button"
+        onClick={() => {
+          const ics = buildIcsFromPlan(setup, selectedThemes);
+          downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
+        }}
+        className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
+        title="iCal-Datei herunterladen"
+      >
+        iCal herunterladen
+      </button>
+    )}
+    <button
+      type="button"
+      onClick={() => router.push('/themes')}
+      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
+    >
+      Themen ändern
+    </button>
+    <button
+      type="button"
+      onClick={() => router.push('/setup')}
+      className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
+    >
+      Neues Setup
+    </button>
+  </div>
+  <Link
+    href="/"
+    className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
+  >
+    Startseite
+  </Link>
+</div>
             </div>
 
             {/* Navigation */}

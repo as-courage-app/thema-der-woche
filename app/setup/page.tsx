@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
+import Link from 'next/link';
 
 const SETUP_KEY = 'as-courage.themeSetup.v1';
 
@@ -115,9 +116,18 @@ export default function SetupPage() {
       {/* h-full statt min-h-screen, damit kein doppeltes 100vh entsteht */}
       <div className="mx-auto flex w-full max-w-none items-start px-0 py-0 sm:max-w-2xl sm:px-4 sm:py-6 sm:items-center">
         <div className="w-full rounded-none sm:rounded-2xl bg-white/98 sm:bg-white/90 p-4 sm:p-6 shadow-none sm:shadow-xl backdrop-blur-lg min-h-[100dvh] sm:min-h-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-  Setup – Thema der Woche
-</h1>
+          <div className="flex items-start justify-between gap-4">
+  <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+    Setup – Thema der Woche <span className="text-base font-normal tracking-wide">(Edition 1)</span>
+  </h1>
+
+  <Link
+    href="/"
+    className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
+  >
+    Startseite
+  </Link>
+</div>
 <p className="mt-2 text-sm text-slate-800">
             Wähle Anzahl Wochen, Start-Montag und deine Variante. Danach geht’s zur Themenübersicht.
           </p>
