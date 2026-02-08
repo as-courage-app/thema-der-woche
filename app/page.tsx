@@ -1,132 +1,66 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../components/BackgroundLayout';
 
-const SETUP_KEY = 'as-courage.themeSetup.v1';
-
-type SetupState = {
-  edition?: number;
-  weeksCount?: number;
-  startMonday?: string;
-  mode?: 'manual' | 'random';
-  createdAt?: string;
-};
+const FULL_LANDING_URL = process.env.NEXT_PUBLIC_FULL_LANDING_URL; // später: Shop-Landingpage
 
 export default function HomePage() {
   const router = useRouter();
-  const [lastSetup, setLastSetup] = useState<SetupState | null>(null);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SETUP_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as SetupState;
-      setLastSetup(parsed);
-    } catch {
-      // ignorieren
+  function goFree() {
+    router.push('/free');
+  }
+
+  function goFull() {
+    // Später öffentlich: direkt in den Shop (wenn env gesetzt ist)
+    if (FULL_LANDING_URL && FULL_LANDING_URL.startsWith('http')) {
+      window.location.href = FULL_LANDING_URL;
+      return;
     }
-  }, []);
-
-  const hasSetup =
-    !!lastSetup &&
-    typeof lastSetup.weeksCount === 'number' &&
-    typeof lastSetup.startMonday === 'string' &&
-    (lastSetup.mode === 'manual' || lastSetup.mode === 'random');
+    // Für Feldtest / handverlesene Tester*innen:
+    router.push('/full');
+  }
 
   return (
     <BackgroundLayout>
-      {/* Seite garantiert ohne Scrollbalken */}
-      <div className="min-h-[100svh] w-full overflow-y-auto px-4 sm:min-h-screen sm:overflow-hidden">
-        {/* Zentrum / Overlay auf Hintergrundbild */}
-        <div className="mx-auto flex max-w-3xl items-center justify-center">
-          {/* Content-Box */}
-          <div className="w-full rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md sm:p-8">
-            <h1 className="text-3xl font-semibold tracking-tight text-black">
-  Thema der Woche <span className="text-base font-normal tracking-wide">(Edition 1)</span>
-</h1>
-            <p className="mt-2 text-sm text-slate-700">
-              Starte ein neues Wochenpaket oder mache dort weiter, wo du zuletzt aufgehört hast.
+      <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
+        <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold text-slate-900">
+              Thema der Woche <span className="text-slate-600">(Edition 1)</span>
+            </h1>
+            <p className="text-sm text-slate-700">
+              Bitte wähle aus, welche Version du nutzen möchtest.
             </p>
-
-            {/* Letzter Stand */}
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-  <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
-    {/* Links: Überschrift + 1 Wert */}
-    <div>
-      <div className="text-sm font-medium text-slate-800">Letzter Stand</div>
-      {!hasSetup ? (
-        <p className="mt-2 text-sm text-slate-600">
-          Noch kein Setup gespeichert. Klicke auf „Neues Setup starten“.
-        </p>
-      ) : (
-        <div className="mt-2">
-          <span className="font-medium">Modus:</span>{' '}
-          {lastSetup.mode === 'manual' ? 'Manuell' : 'Zufall'}
-        </div>
-      )}
-    </div>
-
-    {/* Rechts: 2 Werte */}
-    <div>
-      {!hasSetup ? null : (
-        <div className="grid gap-2">
-          <div>
-            <span className="font-medium">Wochen:</span> {lastSetup.weeksCount}
           </div>
-          <div>
-            <span className="font-medium">Start (Mo):</span> {lastSetup.startMonday}
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={goFree}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:bg-slate-50"
+            >
+              <div className="text-base font-semibold text-slate-900">Free</div>
+              <div className="mt-1 text-sm text-slate-700">kostenlos</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={goFull}
+              className="w-full rounded-2xl border border-slate-900 bg-slate-900 px-4 py-4 text-left text-white shadow-sm transition hover:opacity-95"
+            >
+              <div className="text-base font-semibold">Full</div>
+              <div className="mt-1 text-sm opacity-90">mit Lizenz</div>
+            </button>
           </div>
-        </div>
-      )}
-    </div>
-  </div>
-</div>
 
-            {/* Aktionen */}
-           <div className="mt-6 flex flex-wrap gap-2">
-  <button
-    type="button"
-    onClick={() => router.push('/setup')}
-    className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
-  >
-    Neues Setup starten
-  </button>
-
-  <button
-    type="button"
-    onClick={() => router.push('/themes')}
-    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-black hover:bg-slate-50"
-    title="Geht zur Themenauswahl"
-  >
-    Zur Themenauswahl
-  </button>
-
-  {hasSetup && (
-    <button
-      type="button"
-      onClick={() => router.push('/themes')}
-      className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-black hover:bg-slate-50"
-      title="Macht mit dem gespeicherten Stand weiter"
-    >
-      Weiter mit letztem Stand
-    </button>
-  )}
-</div>
-
-            {/* Fahrplan */}
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-sm font-medium text-slate-800">Kurzer Fahrplan</div>
-              <ol className="mt-2 list-decimal pl-5 text-sm text-slate-700">
-                <li>Setup: Wochenzahl + Start-Montag/Datum + Modus</li>
-                <li>Auswahl aus 41 Themen möglich (Manuell oder per Zufall)</li>
-                <li>Zitate/Fragen anzeigen & optional iCal-Export (Variante C)</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      </div>
+          <p className="mt-5 text-xs text-slate-600">
+            Hinweis: „Full“ kann später automatisch zur Shop-Landingpage führen.
+          </p>
+        </section>
+      </main>
     </BackgroundLayout>
   );
 }
