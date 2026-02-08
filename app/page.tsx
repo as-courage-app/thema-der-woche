@@ -1,64 +1,87 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import BackgroundLayout from '../components/BackgroundLayout';
 
-const FULL_LANDING_URL = process.env.NEXT_PUBLIC_FULL_LANDING_URL; // später: Shop-Landingpage
+const APP_MODE_KEY = 'as-courage.appMode.v1';
+
+type AppMode = 'free' | 'full' | null;
+
+function readMode(): AppMode {
+  try {
+    const v = localStorage.getItem(APP_MODE_KEY);
+    if (v === 'free' || v === 'full') return v;
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 export default function HomePage() {
-  const router = useRouter();
+  const [mode, setMode] = useState<AppMode>(null);
 
-  function goFree() {
-    router.push('/free');
-  }
+  useEffect(() => {
+    setMode(readMode());
+  }, []);
 
-  function goFull() {
-    // Später öffentlich: direkt in den Shop (wenn env gesetzt ist)
-    if (FULL_LANDING_URL && FULL_LANDING_URL.startsWith('http')) {
-      window.location.href = FULL_LANDING_URL;
-      return;
-    }
-    // Für Feldtest / handverlesene Tester*innen:
-    router.push('/full');
-  }
+  const title = useMemo(() => {
+    if (mode === 'free') return 'Free-Version';
+    if (mode === 'full') return 'Full-Version';
+    return 'Bitte Version wählen';
+  }, [mode]);
 
   return (
     <BackgroundLayout>
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
         <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold text-slate-900">
-              Thema der Woche <span className="text-slate-600">(Edition 1)</span>
-            </h1>
-            <p className="text-sm text-slate-700">
-              Bitte wähle aus, welche Version du nutzen möchtest.
-            </p>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            Thema der Woche <span className="text-slate-600">(Edition 1)</span>
+          </h1>
+
+          <div className="mt-2 text-sm text-slate-700">
+            <span className="font-semibold">{title}</span>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={goFree}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:bg-slate-50"
-            >
-              <div className="text-base font-semibold text-slate-900">Free</div>
-              <div className="mt-1 text-sm text-slate-700">kostenlos</div>
-            </button>
+          {mode === null ? (
+            <div className="mt-6">
+              <p className="text-sm text-slate-700">
+                Du hast noch keine Version gewählt.
+              </p>
+              <Link
+                href="/version"
+                className="mt-3 inline-block rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50"
+              >
+                Zur Auswahl
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/themes"
+                className="block rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:bg-slate-50"
+              >
+                <div className="text-base font-semibold text-slate-900">
+                  Themen auswählen
+                </div>
+                <div className="mt-1 text-sm text-slate-700">
+                  weiter zur Themenübersicht
+                </div>
+              </Link>
 
-            <button
-              type="button"
-              onClick={goFull}
-              className="w-full rounded-2xl border border-slate-900 bg-slate-900 px-4 py-4 text-left text-white shadow-sm transition hover:opacity-95"
-            >
-              <div className="text-base font-semibold">Full</div>
-              <div className="mt-1 text-sm opacity-90">mit Lizenz</div>
-            </button>
-          </div>
-
-          <p className="mt-5 text-xs text-slate-600">
-            Hinweis: „Full“ kann später automatisch zur Shop-Landingpage führen.
-          </p>
+              <Link
+                href="/setup"
+                className="block rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:bg-slate-50"
+              >
+                <div className="text-base font-semibold text-slate-900">
+                  Setup starten
+                </div>
+                <div className="mt-1 text-sm text-slate-700">
+                  Wochenanzahl & Startdatum festlegen
+                </div>
+              </Link>
+            </div>
+          )}
         </section>
       </main>
     </BackgroundLayout>
