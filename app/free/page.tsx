@@ -10,7 +10,7 @@ export default function FreeEntryPage() {
 
   useEffect(() => {
     localStorage.setItem(APP_MODE_KEY, 'free');
-    router.replace('/'); // ✅ immer zurück zur Startseite
+    router.replace('/start'); // ✅ nach der Wahl zur Startseite (Free/Full sichtbar)
   }, [router]);
 
   return null;
