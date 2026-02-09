@@ -111,8 +111,11 @@ export default function SetupPage() {
       icalEnabled: isIcalAllowed ? icalEnabled : false,
     };
 
-    const weeksCountSafe = Math.min(2, Math.max(1, Number(payload.weeksCount) || 1));
-    localStorage.setItem(
+    const weeksCountSafe = isFree
+  ? Math.min(FREE_WEEKS_COUNT, Math.max(1, Number(payload.weeksCount) || 1))
+  : Math.max(1, Number(payload.weeksCount) || 1);
+
+localStorage.setItem(
   SETUP_KEY,
   JSON.stringify({
     ...payload,
@@ -193,7 +196,7 @@ export default function SetupPage() {
               <input
                 type="number"
                 min={1}
-                max={2}
+                max={isFree ? FREE_WEEKS_COUNT : undefined}
                 value={weeksCount}
                 onChange={(e) => {
   const raw = e.target.value;
@@ -206,7 +209,8 @@ export default function SetupPage() {
   }
 
   const n = Math.floor(Number(raw));
-  const clamped = Number.isFinite(n) ? Math.min(2, Math.max(1, n)) : 1;
+  const upper = isFree ? FREE_WEEKS_COUNT : 999; // Full: praktisch kein Limit im Feld
+const clamped = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
 
   setWeeksCount(clamped);
   setError(null);

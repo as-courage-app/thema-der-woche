@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import Link from 'next/link';
-import { getAppMode, FREE_ALLOWED_THEMES } from '@/lib/appMode';
+import { getAppMode, FREE_ALLOWED_THEMES, FREE_WEEKS_COUNT } from '@/lib/appMode';
 
 // Datei muss liegen unter: app/data/edition1.json
 import edition1 from '../data/edition1.json';
@@ -109,6 +109,7 @@ function displayTitle(t: { id: string; title?: string }): string {
 }
 
 export default function ThemesPage() {
+  const isFree = getAppMode() === 'free';
   const router = useRouter();
 
   const sortedThemes = useMemo(() => {
@@ -358,7 +359,7 @@ function clearUsedThemes() {
   <input
     type="number"
     min={1}
-    max={2}
+    max={isFree ? FREE_WEEKS_COUNT : undefined}
     value={weeksCount}
     onChange={(e) => {
       const raw = e.target.value;
@@ -371,7 +372,8 @@ function clearUsedThemes() {
       }
 
       const n = Math.floor(Number(raw));
-      const next = Number.isFinite(n) ? Math.min(2, Math.max(1, n)) : 1;
+      const upper = isFree ? FREE_WEEKS_COUNT : 999;
+const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
 
       setWeeksCount(next);
       setSelectedThemes((prev) => prev.slice(0, next));
@@ -469,6 +471,7 @@ function clearUsedThemes() {
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {sortedThemes.map((t) => {
                    const isFree = getAppMode() === 'free';
+                   console.log('APP_MODE in themes:', getAppMode());
                     const isAllowedInFree = !isFree || FREE_ALLOWED_THEMES.has(t.id);
                     const isSelected = selectedSet.has(t.id);
                     const isUsed = usedSet.has(t.id);
