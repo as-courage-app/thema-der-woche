@@ -72,7 +72,15 @@ export default function SetupPage() {
       if (!raw) return;
       const s = JSON.parse(raw) as SetupState;
 
-      if (typeof s.weeksCount === 'number' && s.weeksCount >= 1) setWeeksCount(s.weeksCount);
+      if (typeof s.weeksCount === 'number' && s.weeksCount >= 1) {
+  const loaded = s.weeksCount;
+
+  const nowFree = localStorage.getItem('as-courage.appMode.v1') === 'free';
+  const upper = nowFree ? FREE_WEEKS_COUNT : 999;
+
+  const clamped = Math.min(upper, Math.max(1, loaded));
+  setWeeksCount(clamped);
+}
       if (typeof s.startMonday === 'string' && s.startMonday.length === 10) setStartMonday(s.startMonday);
 
       if (s.selectedLicenseTier === 'A' || s.selectedLicenseTier === 'B' || s.selectedLicenseTier === 'C') {
@@ -111,9 +119,14 @@ export default function SetupPage() {
       icalEnabled: isIcalAllowed ? icalEnabled : false,
     };
 
-    const weeksCountSafe = isFree
+const weeksCountSafe = isFree
   ? Math.min(FREE_WEEKS_COUNT, Math.max(1, Number(payload.weeksCount) || 1))
   : Math.max(1, Number(payload.weeksCount) || 1);
+
+// ✅ UI-State in Free sofort auf den sicheren Wert bringen
+if (isFree && weeksCount !== weeksCountSafe) {
+  setWeeksCount(weeksCountSafe);
+}
 
 localStorage.setItem(
   SETUP_KEY,

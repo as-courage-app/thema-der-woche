@@ -10,7 +10,25 @@ export default function FreeEntryPage() {
 
   useEffect(() => {
     localStorage.setItem(APP_MODE_KEY, 'free');
-    router.replace('/start'); // ✅ nach der Wahl zur Startseite (Free/Full sichtbar)
+
+    // ✅ Setup-State in Free sofort bereinigen: weeksCount nur 1..2
+    try {
+      const SETUP_KEY = 'as-courage.themeSetup.v1';
+      const raw = localStorage.getItem(SETUP_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        const loaded = Number(s?.weeksCount) || 1;
+        const clamped = Math.min(2, Math.max(1, loaded));
+
+        if (clamped !== loaded) {
+          localStorage.setItem(SETUP_KEY, JSON.stringify({ ...s, weeksCount: clamped }));
+        }
+      }
+    } catch {
+      // ignorieren
+    }
+
+    router.replace('/start');
   }, [router]);
 
   return null;
