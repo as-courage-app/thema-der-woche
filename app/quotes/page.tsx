@@ -338,8 +338,11 @@ export default function QuotesPage() {
           <div className="p-5 sm:p-7 shrink-0">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight">
-  Zitate &amp; Tagesimpulse <span className="text-base font-normal tracking-wide">(Edition 1)</span>
+                <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+  Zitate &amp; Tagesimpulse{' '}
+  <span className="text-base font-normal tracking-wide text-slate-600">
+    (Edition 1)
+  </span>
 </h1>
               </div>
 
@@ -359,23 +362,23 @@ export default function QuotesPage() {
       </button>
     )}
     <button
-      type="button"
-      onClick={() => router.push('/themes')}
-      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
-    >
-      Themen ändern
-    </button>
+  type="button"
+  onClick={() => router.push('/themes')}
+  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer"
+>
+  Themen ändern
+</button>
     <button
       type="button"
       onClick={() => router.push('/setup')}
-      className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
+      className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
     >
       Neues Setup
     </button>
   </div>
   <Link
     href="/"
-    className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
+    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
   >
     Startseite
   </Link>
@@ -391,8 +394,8 @@ export default function QuotesPage() {
                 className={[
                   'rounded-xl px-4 py-2 text-sm border',
                   canPrev
-                    ? 'border-slate-200 bg-white hover:bg-slate-50'
-                    : 'border-slate-200 bg-white opacity-40 cursor-not-allowed',
+                    ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
+                    : 'border-slate-200 bg-white text-slate-400 cursor-not-allowed',
                 ].join(' ')}
               >
                 Zurück
@@ -405,7 +408,7 @@ export default function QuotesPage() {
                 className={[
                   'rounded-xl px-4 py-2 text-sm border',
                   canNext
-                    ? 'border-slate-200 bg-white hover:bg-slate-50'
+                    ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
                     : 'border-slate-200 bg-white opacity-40 cursor-not-allowed',
                 ].join(' ')}
               >

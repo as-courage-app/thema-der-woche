@@ -291,14 +291,14 @@ function clearUsedThemes() {
  <div className="flex gap-2">
   <Link
     href="/setup"
-    className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
+    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
   >
     Neues Setup
   </Link>
 
   <Link
     href="/"
-    className="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition shrink-0"
+    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
   >
     Startseite
   </Link>
