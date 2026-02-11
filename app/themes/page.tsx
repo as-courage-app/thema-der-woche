@@ -109,6 +109,7 @@ function displayTitle(t: { id: string; title?: string }): string {
 }
 
 export default function ThemesPage() {
+  
   const isFree = getAppMode() === 'free';
   const router = useRouter();
 
@@ -372,7 +373,7 @@ function clearUsedThemes() {
       }
 
       const n = Math.floor(Number(raw));
-      const upper = isFree ? FREE_WEEKS_COUNT : 999;
+      const upper = isFree ? FREE_WEEKS_COUNT : 41;
 const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
 
       setWeeksCount(next);

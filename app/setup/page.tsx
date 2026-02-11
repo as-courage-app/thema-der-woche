@@ -76,7 +76,7 @@ export default function SetupPage() {
   const loaded = s.weeksCount;
 
   const nowFree = localStorage.getItem('as-courage.appMode.v1') === 'free';
-  const upper = nowFree ? FREE_WEEKS_COUNT : 999;
+  const upper = nowFree ? FREE_WEEKS_COUNT : 41;
 
   const clamped = Math.min(upper, Math.max(1, loaded));
   setWeeksCount(clamped);
@@ -121,7 +121,7 @@ export default function SetupPage() {
 
 const weeksCountSafe = isFree
   ? Math.min(FREE_WEEKS_COUNT, Math.max(1, Number(payload.weeksCount) || 1))
-  : Math.max(1, Number(payload.weeksCount) || 1);
+  : Math.min(41, Math.max(1, Number(payload.weeksCount) || 1));
 
 // ✅ UI-State in Free sofort auf den sicheren Wert bringen
 if (isFree && weeksCount !== weeksCountSafe) {
@@ -209,7 +209,7 @@ localStorage.setItem(
               <input
                 type="number"
                 min={1}
-                max={isFree ? FREE_WEEKS_COUNT : undefined}
+                max={isFree ? FREE_WEEKS_COUNT : 41}
                 value={weeksCount}
                 onChange={(e) => {
   const raw = e.target.value;
@@ -222,7 +222,7 @@ localStorage.setItem(
   }
 
   const n = Math.floor(Number(raw));
-  const upper = isFree ? FREE_WEEKS_COUNT : 999; // Full: praktisch kein Limit im Feld
+  const upper = isFree ? FREE_WEEKS_COUNT : 41; // Full: praktisch kein Limit im Feld
 const clamped = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
 
   setWeeksCount(clamped);
