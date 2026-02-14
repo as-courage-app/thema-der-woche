@@ -35,7 +35,7 @@ export default function StartPage() {
 
   if (!ready || mode === null) return null;
 
-  const title = mode === 'free' ? 'Free-Version' : 'Full-Version';
+  const title = mode === 'free' ? 'Kostenlose Version' : 'Vollversion';
 
   return (
     <BackgroundLayout>

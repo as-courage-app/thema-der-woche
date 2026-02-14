@@ -48,7 +48,7 @@ export default function VersionPage() {
               href="/free"
               className="block rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:bg-slate-50"
             >
-              <div className="text-base font-semibold text-slate-900">Free</div>
+              <div className="text-base font-semibold text-slate-900">Kostenlose Version</div>
               <div className="mt-1 text-sm text-slate-700">kostenlos (dauerhaft)</div>
             </Link>
 
@@ -56,7 +56,7 @@ export default function VersionPage() {
               href="/full"
               className="block rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:bg-slate-50"
             >
-              <div className="text-base font-semibold text-slate-900">Full</div>
+              <div className="text-base font-semibold text-slate-900">Vollversion</div>
               <div className="mt-1 text-sm text-slate-700">mit Lizenz (nach Ende des Feldtests)</div>
             </Link>
           </div>

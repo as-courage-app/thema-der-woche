@@ -28,7 +28,7 @@ export default function FreeEntryPage() {
       // ignorieren
     }
 
-    router.replace('/setup');
+    router.replace('/start');
   }, [router]);
 
   return null;
