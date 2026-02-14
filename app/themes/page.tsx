@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
-import Link from 'next/link';
+import ThemeThumb from '@/components/ThemeThumb';
 import { getAppMode, FREE_ALLOWED_THEMES, FREE_WEEKS_COUNT } from '@/lib/appMode';
 
 // Datei muss liegen unter: app/data/edition1.json
@@ -13,9 +14,9 @@ type Mode = 'manual' | 'random';
 
 type EditionRow = {
   id: string;
-  title?: string; // <-- wichtig: kann fehlen/leer sein
+  title?: string;
   quote: string;
-  questions: string[]; // 5 Fragen: Mo–Fr
+  questions: string[];
 };
 
 const THEMES: EditionRow[] = edition1 as unknown as EditionRow[];
@@ -26,7 +27,7 @@ const LS = {
   selection: 'as-courage.selectedThemes.v1',
 };
 
-// ✅ Ordner heißt "quotes" → Route ist /quotes
+// Ordner heißt "quotes" → Route ist /quotes
 const NEXT_ROUTE = '/quotes';
 
 function sortDE(a: string, b: string) {
@@ -45,33 +46,24 @@ function readLS<T>(key: string, fallback: T): T {
 
 function writeLS<T>(key: string, value: T) {
   try {
-    // ✅ Arrays (selectedThemes, usedThemes) IMMER direkt speichern
     if (Array.isArray(value)) {
       localStorage.setItem(key, JSON.stringify(value));
       return;
     }
 
-    // ✅ Für Objekte: merge (z. B. setup)
     if (value && typeof value === 'object') {
       const prevRaw = localStorage.getItem(key);
       const prev = prevRaw ? JSON.parse(prevRaw) : {};
-
-      const next = {
-        ...prev,
-        ...(value as any),
-      };
-
+      const next = { ...prev, ...(value as any) };
       localStorage.setItem(key, JSON.stringify(next));
       return;
     }
 
-    // ✅ Für primitive Werte: direkt speichern
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // bewusst leer
   }
 }
-
 
 function isMondayISO(iso: string) {
   const d = new Date(iso + 'T00:00:00');
@@ -90,31 +82,40 @@ function nextMondayISO(from = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-/** ✅ Fallback: macht aus IDs einen lesbaren Titel */
 function prettifyId(id: string): string {
-  // z. B. "Anerkennung-1" -> "Anerkennung 1"
-  // z. B. "Ed1-01-anerkennung-1" -> "Anerkennung 1"
-  const cleaned = id
-    .replace(/^ed\d+-\d+-/i, '') // entfernt z. B. Ed1-01-
-    .replace(/-/g, ' ')
-    .trim();
-
+  const cleaned = id.replace(/^ed\d+-\d+-/i, '').replace(/-/g, ' ').trim();
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
-/** ✅ Liefert IMMER einen sichtbaren Titel */
 function displayTitle(t: { id: string; title?: string }): string {
   const title = t.title?.trim();
   return title && title.length > 0 ? title : prettifyId(t.id);
 }
 
+function normalizeStringArray(input: unknown): string[] {
+  if (Array.isArray(input)) {
+    return input.filter((x): x is string => typeof x === 'string');
+  }
+  if (input && typeof input === 'object') {
+    // Reparatur: {"0":"id1","1":"id2"} -> ["id1","id2"]
+    return Object.values(input as Record<string, unknown>).filter((x): x is string => typeof x === 'string');
+  }
+  return [];
+}
+
 export default function ThemesPage() {
-  
-  const isFree = getAppMode() === 'free';
   const router = useRouter();
 
+  const [appMode, setAppMode] = useState<'free' | 'full' | null>(null);
+
+useEffect(() => {
+  setAppMode(getAppMode());
+}, []);
+
+const isFree = appMode === 'free';
+const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
+
   const sortedThemes = useMemo(() => {
-    // ✅ Sortierung nach sichtbarem Titel (nicht nur nach t.title)
     return [...THEMES].sort((x, y) => sortDE(displayTitle(x), displayTitle(y)));
   }, []);
 
@@ -123,20 +124,12 @@ export default function ThemesPage() {
   const [startMonday, setStartMonday] = useState<string>(nextMondayISO());
 
   const [error, setError] = useState<string | null>(null);
-
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [usedThemes, setUsedThemes] = useState<string[]>([]);
 
+  // Initial laden + alte/kaputte LS-Strukturen reparieren
   useEffect(() => {
-  try {
-    const raw = localStorage.getItem(LS.usedThemes);
-    if (raw) setUsedThemes(JSON.parse(raw));
-  } catch {
-    // bewusst leer
-  }
-}, []);
-
-  useEffect(() => {
+    // Setup aus LS lesen (inkl. möglicher Alt-Keys)
     const possibleKeys = [LS.setup, 'as-courage.themeSetup', 'themeSetup', 'setup', 'as-courage.setup.v1'];
 
     let setup: any = null;
@@ -161,29 +154,24 @@ export default function ThemesPage() {
         (typeof setup.anzahlWochen === 'number' && setup.anzahlWochen) ||
         null;
 
-      if (wc && wc >= 1) setWeeksCount(wc);
+      if (wc && wc >= 1) setWeeksCount(Math.min(upperWeeks, Math.max(1, wc)));
       if (typeof setup.startMonday === 'string' && setup.startMonday.length === 10) setStartMonday(setup.startMonday);
       if (setup.mode === 'manual' || setup.mode === 'random') setMode(setup.mode);
     }
 
-    const usedRaw = readLS<any>(LS.usedThemes, []);
+    // usedThemes laden + reparieren
+    const usedRaw = readLS<unknown>(LS.usedThemes, []);
+    const usedArr = normalizeStringArray(usedRaw);
+    writeLS(LS.usedThemes, usedArr);
+    setUsedThemes(usedArr);
 
-let usedArr: string[] = [];
-if (Array.isArray(usedRaw)) {
-  usedArr = usedRaw;
-} else if (usedRaw && typeof usedRaw === 'object') {
-  // ✅ Reparatur: {"0":"id1","1":"id2"} -> ["id1","id2"]
-  usedArr = Object.values(usedRaw).filter((x): x is string => typeof x === 'string');
-}
+    // selection laden
+    const selRaw = readLS<unknown>(LS.selection, []);
+    const selArr = normalizeStringArray(selRaw);
+    setSelectedThemes(selArr.slice(0, Math.min(selArr.length, upperWeeks)));
+  }, [upperWeeks]);
 
-// ✅ sauber zurückschreiben, damit PC dauerhaft korrekt ist
-writeLS(LS.usedThemes, usedArr);
-setUsedThemes(usedArr);
-
-    const sel = readLS<string[]>(LS.selection, []);
-    setSelectedThemes(Array.isArray(sel) ? sel : []);
-  }, []);
-
+  // selection persistieren
   useEffect(() => {
     writeLS(LS.selection, selectedThemes);
   }, [selectedThemes]);
@@ -201,22 +189,24 @@ setUsedThemes(usedArr);
     });
   }
 
- function clearSelection() {
-  setError(null);
-  setSelectedThemes([]);
-}
+  function clearSelection() {
+    setError(null);
+    setSelectedThemes([]);
+  }
 
-function clearUsedThemes() {
-  setError(null);
-  setUsedThemes([]);
-  writeLS(LS.usedThemes, []);
-}
+  function clearUsedThemes() {
+    setError(null);
+    setUsedThemes([]);
+    writeLS(LS.usedThemes, []);
+  }
 
   function pickRandomThemes() {
     setError(null);
-   const pool = sortedThemes
-  .map((t) => t.id)
-  .filter((id) => getAppMode() !== 'free' || FREE_ALLOWED_THEMES.has(id));
+
+    const pool = sortedThemes
+      .map((t) => t.id)
+      .filter((id) => !isFree || FREE_ALLOWED_THEMES.has(id));
+
     const n = Math.min(weeksCount, pool.length);
     const copy = [...pool];
 
@@ -224,6 +214,7 @@ function clearUsedThemes() {
       const j = Math.floor(Math.random() * (i + 1));
       [copy[i], copy[j]] = [copy[j], copy[i]];
     }
+
     setSelectedThemes(copy.slice(0, n));
   }
 
@@ -266,12 +257,10 @@ function clearUsedThemes() {
     setUsedThemes(nextUsed);
     writeLS(LS.usedThemes, nextUsed);
 
-    // ✅ sichere Route
     router.push(NEXT_ROUTE);
   }
 
   const selectedTitles = useMemo(() => {
-    // ✅ Map mit sichtbarem Titel (fallback), nicht nur t.title
     const map = new Map(sortedThemes.map((t) => [t.id, displayTitle(t)]));
     return selectedThemes.map((id) => map.get(id) ?? prettifyId(id));
   }, [selectedThemes, sortedThemes]);
@@ -284,31 +273,33 @@ function clearUsedThemes() {
           <div className="p-5 sm:p-7 shrink-0">
             <header>
               <div className="flex items-start justify-between gap-4">
-  <h1 className="text-2xl font-semibold tracking-tight text-black">
-    Themenauswahl <span className="text-base font-normal tracking-wide">(Edition 1)</span>
-  </h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-black">
+                  Themenauswahl <span className="text-base font-normal tracking-wide">(Edition 1)</span>
+                </h1>
 
- <div className="flex gap-2">
-  <Link
-    href="/setup"
-    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-  >
-    Neues Setup
-  </Link>
+                <div className="flex gap-2">
+                  <Link
+                    href="/setup"
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Neues Setup
+                  </Link>
 
-  <Link
-    href="/"
-    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-  >
-    Startseite
-  </Link>
-</div>
-</div>
+                  <Link
+                    href="/"
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Startseite
+                  </Link>
+                </div>
+              </div>
+
               <p className="mt-2 text-sm text-black">
-  Wähle genau{' '}
-  <span className="font-semibold text-slate-900">{weeksCount}</span>{' '}
-  Thema/Themen aus. Bereits genutzte Themen bleiben auswählbar – sie sind nur markiert.
-</p>
+                Wähle genau{' '}
+                <span className="font-semibold text-slate-900">{weeksCount}</span>{' '}
+                Thema/Themen aus. Bereits genutzte Themen bleiben auswählbar – sie sind nur markiert.
+              </p>
+
             </header>
           </div>
 
@@ -316,6 +307,7 @@ function clearUsedThemes() {
           <div className="px-5 pb-5 sm:px-7 sm:pb-7 flex-1 min-h-0 overflow-auto">
             {/* Setup-Zeile */}
             <div className="grid gap-3 sm:grid-cols-3">
+              {/* Modus */}
               <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                 <label className="block text-sm font-medium text-slate-800">Modus</label>
                 <div className="mt-2 flex gap-2">
@@ -334,6 +326,7 @@ function clearUsedThemes() {
                   >
                     Manuell
                   </button>
+
                   <button
                     type="button"
                     onClick={() => {
@@ -352,42 +345,39 @@ function clearUsedThemes() {
                 </div>
               </div>
 
-             <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
-  <label className="block text-sm font-medium text-slate-800">
-    Anzahl Wochen
-  </label>
+              {/* Anzahl Wochen */}
+              <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
+                <label className="block text-sm font-medium text-slate-800">Anzahl Wochen</label>
 
-  <input
-    type="number"
-    min={1}
-    max={isFree ? FREE_WEEKS_COUNT : undefined}
-    value={weeksCount}
-    onChange={(e) => {
-      const raw = e.target.value;
+                <input
+                  type="number"
+                  min={1}
+                  max={41}
+                  value={weeksCount}
+                  onChange={(e) => {
+                    const raw = e.target.value;
 
-      if (raw === '') {
-        setWeeksCount(1);
-        setSelectedThemes((prev) => prev.slice(0, 1));
-        setError(null);
-        return;
-      }
+                    if (raw === '') {
+                      setWeeksCount(1);
+                      setSelectedThemes((prev) => prev.slice(0, 1));
+                      setError(null);
+                      return;
+                    }
 
-      const n = Math.floor(Number(raw));
-      const upper = isFree ? FREE_WEEKS_COUNT : 41;
-const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
+                    const n = Math.floor(Number(raw));
+                    const next = Number.isFinite(n) ? Math.min(upperWeeks, Math.max(1, n)) : 1;
 
-      setWeeksCount(next);
-      setSelectedThemes((prev) => prev.slice(0, next));
-      setError(null);
-    }}
-    className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-  />
+                    setWeeksCount(next);
+                    setSelectedThemes((prev) => prev.slice(0, next));
+                    setError(null);
+                  }}
+                  className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                />
 
-  <p className="mt-1 text-xs text-slate-600">
-    Pro Woche: Mo–Fr (5 Tagesimpulse).
-  </p>
-</div>
+                <p className="mt-1 text-xs text-slate-600">Pro Woche: Mo–Fr (5 Tagesimpulse).</p>
+              </div>
 
+              {/* Start */}
               <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                 <label className="block text-sm font-medium text-slate-800">Start (Montag)</label>
                 <input
@@ -399,6 +389,7 @@ const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
                   }}
                   className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
                 />
+
                 <div className="mt-2 flex gap-2">
                   <button
                     type="button"
@@ -407,9 +398,8 @@ const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
                   >
                     Nächster Montag
                   </button>
-                  <div className="self-center text-xs text-slate-600">
-                    {isMondayISO(startMonday) ? '✓ Montag' : '✕ kein Montag'}
-                  </div>
+
+                  <div className="self-center text-xs text-slate-600">{isMondayISO(startMonday) ? '✓ Montag' : '✕ kein Montag'}</div>
                 </div>
               </div>
             </div>
@@ -433,13 +423,22 @@ const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
               >
                 Auswahl löschen
               </button>
-<button
-  type="button"
-  onClick={clearUsedThemes}
-  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 hover:bg-amber-100"
->
-  genutzt löschen
-</button>
+
+              <button
+                type="button"
+                onClick={clearUsedThemes}
+                className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 hover:bg-amber-100"
+              >
+                genutzt löschen
+              </button>
+
+              <button
+                type="button"
+                onClick={onContinue}
+                className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                Weiter
+              </button>
 
               <div className="ml-auto text-sm text-black sm:text-slate-700">
                 Ausgewählt: <span className="font-semibold">{selectedThemes.length}</span> / {weeksCount}
@@ -460,56 +459,47 @@ const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
                   {mode === 'manual'
                     ? canSelectMore
                       ? 'Du kannst noch auswählen.'
-                      : 'Genug ausgewählt (weitere Auswahl deaktiviert).'
+                      : 'Auswahl vollständig (Weitere Auswahl deaktiviert).'
                     : 'In Zufall: Auswahl wird durch Ziehung gesetzt, ist aber weiterhin änderbar.'}
                 </div>
               </div>
 
-              <div
-                className="h-72 overflow-auto rounded-2xl border border-slate-200 bg-white p-2"
-                aria-label="Themenliste"
-              >
+              <div className="h-72 overflow-auto rounded-2xl border border-slate-200 bg-white p-2" aria-label="Themenliste">
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {sortedThemes.map((t) => {
-                   const isFree = getAppMode() === 'free';
-                   console.log('APP_MODE in themes:', getAppMode());
                     const isAllowedInFree = !isFree || FREE_ALLOWED_THEMES.has(t.id);
                     const isSelected = selectedSet.has(t.id);
                     const isUsed = usedSet.has(t.id);
+
                     const disabled =
-  !isAllowedInFree ||
-  (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount);
-   const dimBecauseLimit = (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount) || (mode === 'random' && selectedThemes.length > 0 && !isSelected);
+                      !isAllowedInFree || (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount);
+
+                    const dimBecauseLimit =
+                      (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount) ||
+                      (mode === 'random' && selectedThemes.length > 0 && !isSelected);
+
                     return (
                       <li key={t.id}>
                         <button
                           type="button"
                           disabled={disabled}
                           onClick={() => {
-  if (mode === 'random') return;
-  toggleTheme(t.id);
-}}
+                            if (mode === 'random') return;
+                            toggleTheme(t.id);
+                          }}
                           className={[
                             'w-full rounded-xl border px-3 py-3 text-left text-sm transition',
                             isSelected
                               ? 'border-slate-900 bg-slate-900 text-white'
                               : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
-                            (disabled || dimBecauseLimit) ? 'cursor-not-allowed opacity-40' : '',
+                            disabled || dimBecauseLimit ? 'cursor-not-allowed opacity-40' : '',
                           ].join(' ')}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            {/* ✅ Hier war t.title -> jetzt immer sichtbar */}
                             <div className="flex items-center gap-3">
-  <img
-    src={`/images/themes/${t.id}.jpg`}
-    alt=""
-    className="h-10 w-10 rounded-lg object-cover bg-slate-100"
-    onError={(e) => {
-      (e.currentTarget as HTMLImageElement).src = '/images/demo.jpg';
-    }}
-  />
-  <div className="font-medium">{displayTitle(t)}</div>
-</div>
+                              <ThemeThumb id={t.id} />
+                              <div className="font-medium">{displayTitle(t)}</div>
+                            </div>
 
                             <div className="flex gap-1">
                               {isUsed && (
@@ -519,7 +509,7 @@ const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
                               )}
                               {isSelected && (
                                 <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 text-xs text-white">
-                                  gewählt
+                                  ✓
                                 </span>
                               )}
                             </div>
@@ -555,16 +545,15 @@ const next = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
               </div>
             )}
 
-           <div className="mt-4 flex items-center justify-end gap-3">
-  <button
-    type="button"
-    onClick={onContinue}
-    className="rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
-  >
-    Weiter
-  </button>
-</div>
-
+            <div className="mt-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onContinue}
+                className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                Weiter
+              </button>
+            </div>
           </div>
         </div>
       </div>
