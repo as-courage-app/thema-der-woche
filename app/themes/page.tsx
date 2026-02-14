@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
-import ThemeThumb from '@/components/ThemeThumb';
 import { getAppMode, FREE_ALLOWED_THEMES, FREE_WEEKS_COUNT } from '@/lib/appMode';
 
 // Datei muss liegen unter: app/data/edition1.json
@@ -497,7 +496,17 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-3">
-                              <ThemeThumb id={t.id} />
+                              <div className="h-10 w-16 overflow-hidden rounded-lg bg-slate-100">
+  <img
+    src={`/images/themes/${t.id}.jpg`}
+    alt=""
+    className="h-full w-full object-cover object-center"
+    onError={(e) => {
+      (e.currentTarget as HTMLImageElement).src = '/images/demo.jpg';
+    }}
+  />
+</div>
+
                               <div className="font-medium">{displayTitle(t)}</div>
                             </div>
 
