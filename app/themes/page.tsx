@@ -130,6 +130,7 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
 
   const [error, setError] = useState<string | null>(null);
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [selectionLoaded, setSelectionLoaded] = useState(false);
   function moveSelectedTheme(from: number, dir: -1 | 1) {
   setSelectedThemes((prev) => {
     const to = Math.max(0, Math.min(prev.length - 1, from + dir));
@@ -138,7 +139,7 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
 
     // Reihenfolge persistieren (selber Key wie bisher)
     try {
-      localStorage.setItem('as-courage.selectedThemes.v1', JSON.stringify(next));
+      writeLS(LS.selection, next);
     } catch {
       // egal, dann bleibt es nur im UI
     }
@@ -190,12 +191,14 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
     const selRaw = readLS<unknown>(LS.selection, []);
     const selArr = normalizeStringArray(selRaw);
     setSelectedThemes(selArr.slice(0, Math.min(selArr.length, upperWeeks)));
+    setSelectionLoaded(true);
   }, [upperWeeks]);
 
   // selection persistieren
   useEffect(() => {
-    writeLS(LS.selection, selectedThemes);
-  }, [selectedThemes]);
+  if (!selectionLoaded) return;
+  writeLS(LS.selection, selectedThemes);
+}, [selectedThemes]);
 
   const selectedSet = useMemo(() => new Set(selectedThemes), [selectedThemes]);
   const usedSet = useMemo(() => new Set(usedThemes), [usedThemes]);
@@ -203,17 +206,19 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
   const canSelectMore = selectedThemes.length < weeksCount;
 
   function toggleTheme(id: string) {
-    setError(null);
-    setSelectedThemes((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      return [...prev, id];
-    });
-  }
+  setError(null);
+  setSelectedThemes((prev) => {
+    const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+    writeLS(LS.selection, next);
+    return next;
+  });
+}
 
   function clearSelection() {
-    setError(null);
-    setSelectedThemes([]);
-  }
+  setError(null);
+  setSelectedThemes([]);
+  writeLS(LS.selection, []);
+}
 
   function clearUsedThemes() {
     setError(null);
