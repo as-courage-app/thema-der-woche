@@ -405,7 +405,7 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
 
               {/* Start */}
               <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
-                <label className="block text-sm font-medium text-slate-800">Start (Montag)</label>
+                <label className="block text-sm font-medium text-slate-800">Start (bitte Montags starten)</label>
                 <input
                   type="date"
                   value={startMonday}

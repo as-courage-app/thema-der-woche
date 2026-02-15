@@ -234,7 +234,7 @@ const clamped = Number.isFinite(n) ? Math.min(upper, Math.max(1, n)) : 1;
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-3">
-              <label className="block text-sm font-medium text-slate-800">Startdatum (Montag)</label>
+              <label className="block text-sm font-medium text-slate-800">Startdatum (bitte Montags starten)</label>
               <input
                 type="date"
                 value={startMonday}
