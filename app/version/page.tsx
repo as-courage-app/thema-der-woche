@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
+import { useEffect, useState } from 'react';
 
 const APP_MODE_KEY = 'as-courage.appMode.v1';
 
@@ -16,6 +17,13 @@ export default function VersionPage() {
     }
     router.push('/start');
   }
+const [mounted, setMounted] = useState(false);
+
+useEffect(() => {
+  setMounted(true);
+}, []);
+
+if (!mounted) return null;
 
   return (
     <BackgroundLayout>
