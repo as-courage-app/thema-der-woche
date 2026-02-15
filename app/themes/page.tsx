@@ -561,7 +561,10 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
 
           {/* Footer: IMMER sichtbar + nicht transparent */}
           <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4 sm:px-7">
-            <div className="text-sm font-medium text-slate-800">Deine Auswahl</div>
+            <div className="text-sm text-slate-800">
+  <span className="text-base font-semibold">Deine Auswahl</span>{' '}
+  <span className="font-medium">(Reihenfolge nach Auswahl mit Pfeiltasten frei veränderbar)</span>
+</div>
 
             {selectedThemes.length === 0 ? (
               <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-600">
