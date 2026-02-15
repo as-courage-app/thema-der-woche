@@ -8,6 +8,12 @@ import { getAppMode, FREE_ALLOWED_THEMES, FREE_WEEKS_COUNT } from '@/lib/appMode
 
 // Datei muss liegen unter: app/data/edition1.json
 import edition1 from '../data/edition1.json';
+function moveItem<T>(arr: T[], from: number, to: number): T[] {
+  const next = arr.slice();
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
 
 type Mode = 'manual' | 'random';
 
@@ -124,6 +130,22 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
 
   const [error, setError] = useState<string | null>(null);
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  function moveSelectedTheme(from: number, dir: -1 | 1) {
+  setSelectedThemes((prev) => {
+    const to = Math.max(0, Math.min(prev.length - 1, from + dir));
+    if (to === from) return prev;
+    const next = moveItem(prev, from, to);
+
+    // Reihenfolge persistieren (selber Key wie bisher)
+    try {
+      localStorage.setItem('as-courage.selectedThemes.v1', JSON.stringify(next));
+    } catch {
+      // egal, dann bleibt es nur im UI
+    }
+
+    return next;
+  });
+}
   const [usedThemes, setUsedThemes] = useState<string[]>([]);
 
   // Initial laden + alte/kaputte LS-Strukturen reparieren
@@ -542,15 +564,43 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
               </div>
             ) : (
               <div className="mt-2 flex flex-wrap gap-2">
-                {selectedTitles.map((title, i) => (
-                  <span
-                    key={`${title}-${i}`}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs"
-                    title="Auswahl"
-                  >
-                    {title}
-                  </span>
-                ))}
+                {selectedThemes.map((id, i) => {
+  const theme = (edition1 as any[]).find((x: any) => x.id === id);
+  const title = theme ? displayTitle(theme) : id;
+
+  return (
+    <span
+      key={`${id}-${i}`}
+      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs"
+      title="Auswahl"
+    >
+      <span>{title}</span>
+
+      <button
+        type="button"
+        onClick={() => moveSelectedTheme(i, -1)}
+        disabled={i === 0}
+        className="rounded-md border border-slate-200 px-1.5 py-0.5 text-xs disabled:opacity-40"
+        title="Hoch"
+        aria-label="Thema nach oben schieben"
+      >
+        ↑
+      </button>
+
+      <button
+        type="button"
+        onClick={() => moveSelectedTheme(i, 1)}
+        disabled={i === selectedThemes.length - 1}
+        className="rounded-md border border-slate-200 px-1.5 py-0.5 text-xs disabled:opacity-40"
+        title="Runter"
+        aria-label="Thema nach unten schieben"
+      >
+        ↓
+      </button>
+    </span>
+  );
+})}
+
               </div>
             )}
 
