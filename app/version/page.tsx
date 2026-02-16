@@ -15,7 +15,7 @@ export default function VersionPage() {
     } catch {
       // bewusst leer
     }
-    router.push('/start');
+    router.push('/account');
   }
 const [mounted, setMounted] = useState(false);
 
@@ -40,8 +40,8 @@ if (!mounted) return null;
             <div className="font-semibold text-slate-900">Hinweis</div>
 
             <p className="mt-2">
-              Sie können dauerhaft testen! Über ein kurzes Feedback zu Bedienung, Darstellung und Inhalten würde ich
-              mich sehr freuen. Haben Sie Verbesserungsvorschläge? Dann einfach kurz beschreiben, fertig. 😊
+              Du kannst noch bis zum 28.02.2026 testen! Über ein kurzes Feedback zu Bedienung, Darstellung und Inhalten würde ich
+              mich sehr freuen. Hast du Verbesserungsvorschläge? Dann einfach kurz beschreiben, fertig. 😊
             </p>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
