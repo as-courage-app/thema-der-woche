@@ -15,7 +15,7 @@ export default function VersionPage() {
     } catch {
       // bewusst leer
     }
-    router.push('/account');
+    router.push(next === 'free' ? '/start' : '/account');
   }
 const [mounted, setMounted] = useState(false);
 
