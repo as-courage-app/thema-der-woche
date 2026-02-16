@@ -102,79 +102,101 @@ export default function AccountPage() {
     <BackgroundLayout>
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
         <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
-          <h1 className="text-2xl font-semibold text-slate-900">Anmelden oder Konto erstellen</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">
+  Thema der Woche <span className="text-slate-600">(Edition 1)</span>
+</h1>
 
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={() => setMode('signup')}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold shadow ${
-                mode === 'signup' ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'
-              }`}
-            >
-              Konto erstellen
-            </button>
+<p className="mt-2 text-sm text-slate-700">
+  Wähle deine Lizenz-Variante. Danach wirst du zur Zahlung weitergeleitet.
+</p>
 
-            <button
-              type="button"
-              onClick={() => setMode('login')}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold shadow ${
-                mode === 'login' ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'
-              }`}
-            >
-              Anmelden
-            </button>
-          </div>
+<div className="mt-6 grid gap-4 md:grid-cols-3">
+  {/* Variante A */}
+  <button
+    type="button"
+    onClick={() => startCheckout('A')}
+    className="group flex h-full cursor-pointer flex-col text-left rounded-2xl bg-white p-5 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+  >
+    <div className="flex items-start justify-between gap-3">
+      <span className="text-lg font-semibold text-slate-900">Variante A</span>
+      <span className="text-lg font-bold text-slate-900">19,99 €</span>
+    </div>
+    <div className="mt-2 text-sm text-slate-700">
+      Einzellizenz für 12 Monate ab Anmeldung
+    </div>
+    <ul className="mt-3 list-disc pl-5 text-sm text-slate-700">
+      <li>41 Wochenthemen</li>
+      <li>41 Bilder &amp; Zitate</li>
+      <li>205 Tagesimpulse</li>
+    </ul>
+  </button>
 
-          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-            <label className="text-sm font-semibold text-slate-900">
-              E-Mail
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm"
-                placeholder="name@beispiel.de"
-                autoComplete="email"
-              />
-            </label>
+  {/* Variante B */}
+  <button
+    type="button"
+    onClick={() => startCheckout('B')}
+    className="group flex h-full cursor-pointer flex-col text-left rounded-2xl bg-white p-5 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+  >
+    <div className="flex items-start justify-between gap-3">
+      <span className="text-lg font-semibold text-slate-900">Variante B</span>
+      <span className="text-lg font-bold text-slate-900">39,99 €</span>
+    </div>
+    <div className="mt-2 text-sm text-slate-700">Einzellizenz dauerhaft ohne zeitliche Beschränkung</div>
+    <ul className="mt-3 list-disc pl-5 text-sm text-slate-700">
+      <li>41 Wochenthemen</li>
+      <li>41 Bilder &amp; Zitate</li>
+      <li>205 Tagesimpulse</li>
+    </ul>
+  </button>
 
-            <label className="text-sm font-semibold text-slate-900">
-              Passwort
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm"
-                placeholder="••••••••"
-                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-              />
-            </label>
+  {/* Variante C */}
+  <button
+    type="button"
+    onClick={() => startCheckout('C')}
+    className="group flex h-full cursor-pointer flex-col text-left rounded-2xl bg-white p-5 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+  >
+    <div className="flex items-start justify-between gap-3">
+      <span className="text-lg font-semibold text-slate-900">Variante C</span>
+      <span className="text-lg font-bold text-slate-900">59,99 €</span>
+    </div>
+    <div className="mt-2 text-sm text-slate-700">Einzellizenz dauerhaft ohne zeitliche Beschränkung</div>
+    <ul className="mt-3 list-disc pl-5 text-sm text-slate-700">
+      <li>41 Wochenthemen</li>
+      <li>41 Bilder &amp; Zitate</li>
+      <li>205 Tagesimpulse</li>
+      <li>Teamkalender iCal</li>
+    </ul>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow disabled:opacity-60"
-            >
-              {loading ? 'Bitte warten…' : mode === 'signup' ? 'Konto erstellen' : 'Anmelden'}
-            </button>
+    <p className="mt-3 text-xs font-semibold text-emerald-700">
+      Teamkalender/iCal-Funktion zum download
+    </p>
+  </button>
+</div>
 
-            <button
-              type="button"
-              onClick={() => startCheckout('A')}
-              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              Vollversion kaufen (A) – 19,99 €
-            </button>
+<p className="mt-5 text-xs text-slate-700">
+  Mit Klick auf eine Variante startest du den Bezahlvorgang. Es gelten unsere{' '}
+  <a href="/agb" className="font-semibold underline hover:text-slate-900">
+    AGB
+  </a>
+  , die{' '}
+  <a href="/datenschutz" className="font-semibold underline hover:text-slate-900">
+    Datenschutzhinweise
+  </a>{' '}
+  und das{' '}
+  <a href="/impressum" className="font-semibold underline hover:text-slate-900">
+    Impressum
+  </a>
+  .
+</p>
 
-            {message && (
-              <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm text-slate-800">{message}</p>
-            )}
-          </form>
+{message && (
+  <p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-800">{message}</p>
+)}
 
-          <p className="mt-6 text-xs text-slate-600">
-            Provisorisch: Lizenz-Auswahl (A/B/C) und „Themen/Setup“ sperren wir als Nächstes nach Login.
-          </p>
+<p className="mt-6 text-xs text-slate-600">
+  Hinweis: Nach dem Kauf kannst du dich anmelden oder ein Konto erstellen.
+</p>
+
         </section>
       </main>
     </BackgroundLayout>
