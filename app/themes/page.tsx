@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import { getAppMode, FREE_ALLOWED_THEMES, FREE_WEEKS_COUNT } from '@/lib/appMode';
+import RequireAuth from '@/components/RequireAuth';
 
 // Datei muss liegen unter: app/data/edition1.json
 import edition1 from '../data/edition1.json';
@@ -292,7 +293,8 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
   }, [selectedThemes, sortedThemes]);
 
   return (
-    <BackgroundLayout>
+    <RequireAuth>
+      <BackgroundLayout>
       <div className="mx-auto flex min-h-[100svh] max-w-6xl px-3 py-2 sm:px-10 sm:py-3">
         <div className="w-full rounded-2xl bg-white/85 shadow-xl backdrop-blur-md flex flex-col">
           {/* Kopf bleibt sichtbar */}
@@ -624,6 +626,8 @@ const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
           </div>
         </div>
       </div>
-    </BackgroundLayout>
+          </BackgroundLayout>
+    </RequireAuth>
   );
 }
+
