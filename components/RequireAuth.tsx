@@ -1,29 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
 type Props = {
   children: React.ReactNode;
 };
 
+/**
+ * Feldtest-Regel:
+ * - Diese Pfade (und Unterpfade) sind IM FELDTEST ohne Login erreichbar.
+ * - Alle anderen Seiten werden bei fehlender Session auf /account?next=... umgeleitet.
+ */
+const FIELDTEST_PUBLIC_PREFIXES = ['/themes', '/setup'];
+
+function isPublicPath(pathname: string | null) {
+  if (!pathname) return false;
+  return FIELDTEST_PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
 export default function RequireAuth({ children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [ok, setOk] = useState(false);
 
+  const publicHere = useMemo(() => isPublicPath(pathname), [pathname]);
+
   useEffect(() => {
     let alive = true;
 
+    // Feldtest: öffentliche Seiten sofort freigeben (kein Supabase-Call, kein Redirect)
+    if (publicHere) {
+      setOk(true);
+      return;
+    }
+
     async function check() {
-      const { data } = await supabase.auth.getSession();
-      const hasSession = !!data.session;
+      const { data, error } = await supabase.auth.getSession();
+      const hasSession = !!data?.session && !error;
 
       if (!alive) return;
 
       if (!hasSession) {
-        // Zurück zu /account, und wir merken uns, woher die Person kam
         router.replace(`/account?next=${encodeURIComponent(pathname || '/')}`);
         return;
       }
@@ -34,6 +53,9 @@ export default function RequireAuth({ children }: Props) {
     check();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Feldtest: öffentliche Seiten niemals weg-redirecten
+      if (publicHere) return;
+
       if (!session) {
         router.replace(`/account?next=${encodeURIComponent(pathname || '/')}`);
       }
@@ -41,11 +63,12 @@ export default function RequireAuth({ children }: Props) {
 
     return () => {
       alive = false;
-      sub.subscription.unsubscribe();
+      sub?.subscription?.unsubscribe();
     };
-  }, [router, pathname]);
+  }, [router, pathname, publicHere]);
 
-  if (!ok) return null; // bewusst leer, damit es nicht flackert
+  // bewusst leer, damit es nicht flackert
+  if (!ok) return null;
 
   return <>{children}</>;
 }
