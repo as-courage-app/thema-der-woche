@@ -443,20 +443,22 @@ useEffect(() => {
 <button
   type="button"
   onClick={() => {
-  if (!podcastAllowed) return;
-  if (!podcastReady) {
-    window.alert('Podcastfolge in Bearbeitung und aktuell nicht verfügbar.');
-    return;
-  }
-  setShowPodcast((s) => !s);
-}}
-  disabled={!podcastAllowed}
-  
+    if (!podcastAllowed) {
+      window.alert('Podcast nur in Variante C verfügbar.');
+      return;
+    }
+    if (!podcastReady) {
+      window.alert('Podcastfolge in Bearbeitung und aktuell nicht verfügbar.');
+      return;
+    }
+    setShowPodcast((s) => !s);
+  }}
+  disabled={false}
   className={[
     'rounded-xl px-4 py-2 text-sm border',
     podcastAllowed && podcastReady
-  ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
-  : 'border-slate-200 bg-white text-slate-400 cursor-pointer',
+      ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
+      : 'border-slate-200 bg-white text-slate-400 cursor-pointer',
   ].join(' ')}
 >
   🎧 Podcast
