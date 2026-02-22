@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '@/components/BackgroundLayout';
 import { supabase } from '@/lib/supabaseClient';
+import RequireAuth from '@/components/RequireAuth';
 
 type Salutation = 'm' | 'w' | 'd' | 'frei';
 
@@ -145,134 +146,136 @@ export default function KontoPage() {
   }
 
   return (
-    <BackgroundLayout>
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
-        <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-semibold text-slate-900">Konto anlegen</h1>
-            <Link
-              href="/account"
-              className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-            >
-              Zurück
-            </Link>
-          </div>
-
-          <p className="text-lg font-semibold text-slate-700">
-            Bitte richte jetzt dein Konto ein. Danach kannst du dich auf der Account-Seite anmelden.
-          </p>
-
-          <form onSubmit={handleCreateAccount} className="mt-5 flex flex-col gap-3">
-            <label className="text-sm font-semibold text-slate-900">
-              Freie Anrede
-              <input
-                type="text"
-                value={salutationFree}
-                onChange={(e) => setSalutationFree(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                placeholder="z. B. Mx, keine Angabe, Herr, Frau, …"
-              />
-            </label>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="text-sm font-semibold text-slate-900">
-                Vorname
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                />
-              </label>
-
-              <label className="text-sm font-semibold text-slate-900">
-                Name
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                />
-              </label>
+    <RequireAuth>
+      <BackgroundLayout>
+        <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
+          <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h1 className="text-2xl font-semibold text-slate-900">Konto anlegen</h1>
+              <Link
+                href="/account"
+                className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+              >
+                Zurück
+              </Link>
             </div>
 
-            <label className="text-sm font-semibold text-slate-900">
-              E-Mail
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  writeCheckoutEmail(e.target.value);
-                }}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                placeholder="name@beispiel.de"
-                autoComplete="email"
-              />
-            </label>
+            <p className="text-lg font-semibold text-slate-700">
+              Bitte richte jetzt dein Konto ein. Danach kannst du dich auf der Account-Seite anmelden.
+            </p>
 
-            <label className="text-sm font-semibold text-slate-900">
-              Passwort
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                placeholder="••••••••"
-                autoComplete="new-password"
-              />
-            </label>
+            <form onSubmit={handleCreateAccount} className="mt-5 flex flex-col gap-3">
+              <label className="text-sm font-semibold text-slate-900">
+                Freie Anrede
+                <input
+                  type="text"
+                  value={salutationFree}
+                  onChange={(e) => setSalutationFree(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  placeholder="z. B. Mx, keine Angabe, Herr, Frau, …"
+                />
+              </label>
 
-            <label className="text-sm font-semibold text-slate-900">
-              Passwort bestätigen
-              <input
-                type="password"
-                value={password2}
-                onChange={(e) => setPassword2(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                placeholder="••••••••"
-                autoComplete="new-password"
-              />
-            </label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="text-sm font-semibold text-slate-900">
+                  Vorname
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  />
+                </label>
 
-            <label className="text-sm font-semibold text-slate-900">
-              Telefon (freiwillig)
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                placeholder="+49 …"
-                autoComplete="tel"
-              />
-            </label>
+                <label className="text-sm font-semibold text-slate-900">
+                  Name
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  />
+                </label>
+              </div>
 
-            <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-white/70 px-3 py-2 text-base text-slate-800 ring-1 ring-slate-200">
-              <input
-                type="checkbox"
-                checked={marketingOptIn}
-                onChange={(e) => setMarketingOptIn(e.target.checked)}
-                className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-              />
-              <span className="leading-snug">{MARKETING_TEXT}</span>
-            </label>
+              <label className="text-sm font-semibold text-slate-900">
+                E-Mail
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    writeCheckoutEmail(e.target.value);
+                  }}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  placeholder="name@beispiel.de"
+                  autoComplete="email"
+                />
+              </label>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 inline-flex cursor-pointer items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? 'Bitte warten…' : 'Konto anlegen'}
-            </button>
+              <label className="text-sm font-semibold text-slate-900">
+                Passwort
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                />
+              </label>
 
-            {msg && (
-              <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm text-slate-800 ring-1 ring-slate-200">
-                {msg}
-              </p>
-            )}
-          </form>
-        </section>
-      </main>
-    </BackgroundLayout>
+              <label className="text-sm font-semibold text-slate-900">
+                Passwort bestätigen
+                <input
+                  type="password"
+                  value={password2}
+                  onChange={(e) => setPassword2(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                />
+              </label>
+
+              <label className="text-sm font-semibold text-slate-900">
+                Telefon (freiwillig)
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  placeholder="+49 …"
+                  autoComplete="tel"
+                />
+              </label>
+
+              <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-white/70 px-3 py-2 text-base text-slate-800 ring-1 ring-slate-200">
+                <input
+                  type="checkbox"
+                  checked={marketingOptIn}
+                  onChange={(e) => setMarketingOptIn(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
+                />
+                <span className="leading-snug">{MARKETING_TEXT}</span>
+              </label>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-2 inline-flex cursor-pointer items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? 'Bitte warten…' : 'Konto anlegen'}
+              </button>
+
+              {msg && (
+                <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm text-slate-800 ring-1 ring-slate-200">
+                  {msg}
+                </p>
+              )}
+            </form>
+          </section>
+        </main>
+      </BackgroundLayout>
+    </RequireAuth>
   );
 }

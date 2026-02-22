@@ -13,7 +13,7 @@ type Props = {
  * - Diese Pfade (und Unterpfade) sind IM FELDTEST ohne Login erreichbar.
  * - Alle anderen Seiten werden bei fehlender Session auf /account?next=... umgeleitet.
  */
-const FIELDTEST_PUBLIC_PREFIXES = ['/themes', '/setup'];
+const FIELDTEST_PUBLIC_PREFIXES: string[] = [];
 
 function isPublicPath(pathname: string | null) {
   if (!pathname) return false;
@@ -39,7 +39,7 @@ export default function RequireAuth({ children }: Props) {
     async function check() {
       const { data, error } = await supabase.auth.getSession();
       const hasSession = !!data?.session && !error;
-
+      
       if (!alive) return;
 
       if (!hasSession) {
