@@ -26,7 +26,7 @@ useEffect(() => {
 if (!mounted) return null;
 
   return (
-    <BackgroundLayout>
+    <BackgroundLayout showLogout={false}>
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
         <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
           <h1 className="text-2xl font-semibold text-slate-900">
