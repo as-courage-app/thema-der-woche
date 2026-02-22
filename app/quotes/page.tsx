@@ -278,10 +278,12 @@ export default function QuotesPage() {
   }, [setup]);
 
   const totalPages = selectedThemes.length;
-  const clampedIndex = totalPages > 0 ? Math.min(pageIndex, totalPages - 1) : 0;
-  const current: EditionRow | null = totalPages > 0 ? selectedThemes[clampedIndex] : null;
-    const [showPodcast, setShowPodcast] = useState(false);
-    const [hydrated, setHydrated] = useState(false);
+const clampedIndex = totalPages > 0 ? Math.min(pageIndex, totalPages - 1) : 0;
+const current: EditionRow | null = totalPages > 0 ? selectedThemes[clampedIndex] : null;
+
+const [showPodcast, setShowPodcast] = useState(false);
+const [podcastNotice, setPodcastNotice] = useState<string | null>(null);
+const [hydrated, setHydrated] = useState(false);
 
 useEffect(() => {
   setHydrated(true);
@@ -411,6 +413,22 @@ useEffect(() => {
             </div>
 
             {/* Navigation */}
+
+            {podcastNotice ? (
+  <div className="mt-3 inline-block max-w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+    <div className="flex items-start justify-between gap-3">
+      <span>{podcastNotice}</span>
+      <button
+        type="button"
+        onClick={() => setPodcastNotice(null)}
+        className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+) : null}
+
             <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3">
               <button
                 type="button"
@@ -443,12 +461,13 @@ useEffect(() => {
 <button
   type="button"
   onClick={() => {
+    setPodcastNotice(null);
     if (!podcastAllowed) {
-      window.alert('Podcast nur in Variante C verfügbar.');
+      setPodcastNotice('Podcast nur in Variante C verfügbar.');
       return;
     }
     if (!podcastReady) {
-      window.alert('Podcastfolge in Bearbeitung und aktuell nicht verfügbar.');
+      setPodcastNotice('Podcastfolge in Bearbeitung und aktuell nicht verfügbar.');
       return;
     }
     setShowPodcast((s) => !s);
