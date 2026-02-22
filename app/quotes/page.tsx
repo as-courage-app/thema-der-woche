@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import edition1 from '../data/edition1.json';
 import Link from 'next/link';
+import PodcastMiniPlayer from '../../components/PodcastMiniPlayer';
+import { podcastEpisodes } from '../../lib/podcastEpisodes';
 
 const LS_SETUP = 'as-courage.themeSetup.v1';
 
@@ -278,6 +280,27 @@ export default function QuotesPage() {
   const totalPages = selectedThemes.length;
   const clampedIndex = totalPages > 0 ? Math.min(pageIndex, totalPages - 1) : 0;
   const current: EditionRow | null = totalPages > 0 ? selectedThemes[clampedIndex] : null;
+    const [showPodcast, setShowPodcast] = useState(false);
+    const [hydrated, setHydrated] = useState(false);
+
+useEffect(() => {
+  setHydrated(true);
+}, []);
+
+  const currentThemeNumber = useMemo(() => {
+    const id = current?.id ?? '';
+    const m = id.match(/-(\d{1,2})-/);
+    return m ? Number(m[1]) : null;
+  }, [current?.id]);
+
+  const currentEpisode = useMemo(() => {
+    if (!currentThemeNumber) return null;
+    return podcastEpisodes.find((ep) => ep.themeNumber === currentThemeNumber) ?? null;
+  }, [currentThemeNumber]);
+
+  const licenseTier: LicenseTier | undefined = setup?.selectedLicenseTier ?? setup?.licenseTier;
+  const podcastAllowed = licenseTier === 'C';
+  const podcastReady = !!currentEpisode && currentThemeNumber !== null && currentThemeNumber <= 4;
   
   const weekMondayDate = useMemo(() => {
   const base = parseIsoDate(setup?.startMonday);
@@ -307,14 +330,16 @@ export default function QuotesPage() {
   const canNext = clampedIndex < totalPages - 1;
 
   function goPrev() {
-    setPageIndex((p) => Math.max(0, p - 1));
-    setImgFallbackToDemo(false);
-  }
+  setShowPodcast(false);
+  setPageIndex((p) => Math.max(0, p - 1));
+  setImgFallbackToDemo(false);
+}
 
   function goNext() {
-    setPageIndex((p) => Math.min(Math.max(0, totalPages - 1), p + 1));
-    setImgFallbackToDemo(false);
-  }
+  setShowPodcast(false);
+  setPageIndex((p) => Math.min(Math.max(0, totalPages - 1), p + 1));
+  setImgFallbackToDemo(false);
+}
 
   const imageSrc = useMemo(() => {
     if (!current) return '/images/demo.jpg';
@@ -415,6 +440,28 @@ export default function QuotesPage() {
                 Weiter
               </button>
 
+<button
+  type="button"
+  onClick={() => {
+  if (!podcastAllowed) return;
+  if (!podcastReady) {
+    window.alert('Podcastfolge in Bearbeitung und aktuell nicht verfügbar.');
+    return;
+  }
+  setShowPodcast((s) => !s);
+}}
+  disabled={!podcastAllowed}
+  
+  className={[
+    'rounded-xl px-4 py-2 text-sm border',
+    podcastAllowed && podcastReady
+  ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
+  : 'border-slate-200 bg-white text-slate-400 cursor-pointer',
+  ].join(' ')}
+>
+  🎧 Podcast
+</button>
+
               <div className="ml-auto text-sm text-slate-700">
                 {totalPages > 0 ? (
                   <>
@@ -432,6 +479,10 @@ export default function QuotesPage() {
               </div>
             </div>
           </div>
+
+          {showPodcast && podcastAllowed && currentEpisode ? (
+  <PodcastMiniPlayer src={currentEpisode.audioSrc} title={currentEpisode.title} />
+) : null}
 
           {/* Split-Bereich */}
           <div className="flex-1 min-h-0 overflow-auto lg:overflow-hidden px-5 pb-5 sm:px-7 sm:pb-7">
