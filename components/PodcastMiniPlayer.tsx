@@ -71,7 +71,9 @@ export default function PodcastMiniPlayer({ src, title }: Props) {
 
   return (
     <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="text-sm font-semibold text-slate-900">{title ?? 'Podcast'}</div>
+      <div className="text-sm font-semibold text-slate-900">
+        🎧 {title ?? 'Podcast'}
+      </div>
 
       <audio ref={audioRef} src={src} preload="metadata" />
 
