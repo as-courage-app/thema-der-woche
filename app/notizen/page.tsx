@@ -25,7 +25,7 @@ function formatDateDEshort(d: Date) {
   const dd = pad2(d.getDate());
   const mm = pad2(d.getMonth() + 1);
   const yy = pad2(d.getFullYear() % 100);
-  return `${dd}.${mm}.${yy}`; // 02.03.26
+  return `${dd}.${mm}.${yy}`;
 }
 
 function addDays(base: Date, days: number) {
@@ -38,30 +38,14 @@ function NotizenContent() {
   const searchParams = useSearchParams();
   const themeIdFromUrl = searchParams.get('themeId');
 
-  const [note, setNote] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const [note, setNote] = useState('');
   const [temaLabel, setTemaLabel] = useState('Thema');
   const [quote, setQuote] = useState('Zitat folgt…');
-  const [questions, setQuestions] =
-    useState<Record<DayKey, string>>(DEFAULT_QUESTIONS);
+  const [questions, setQuestions] = useState<Record<DayKey, string>>(DEFAULT_QUESTIONS);
 
-  const LS_NOTE_KEY = 'as-courage.notes.v1';
-
-  // Notiz lokal laden
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(LS_NOTE_KEY);
-      if (v) setNote(v);
-    } catch { }
-  }, []);
-
-  // Notiz lokal speichern
-  useEffect(() => {
-    try {
-      localStorage.setItem(LS_NOTE_KEY, note);
-    } catch { }
-  }, [note]);
+  const LS_NOTE_KEY_BASE = 'as-courage.notes.v1';
 
   const { activeThemeId, weekStart } = useMemo(() => {
     try {
@@ -88,9 +72,7 @@ function NotizenContent() {
         const idx = themeIds.findIndex((id) => String(id) === String(active));
         if (idx >= 0) {
           const start = new Date(startMondayStr + 'T00:00:00');
-          if (!Number.isNaN(start.getTime())) {
-            ws = addDays(start, idx * 7);
-          }
+          if (!Number.isNaN(start.getTime())) ws = addDays(start, idx * 7);
         }
       }
 
@@ -100,19 +82,16 @@ function NotizenContent() {
     }
   }, [themeIdFromUrl]);
 
+  // Notizen themenbezogen speichern (aber kompatibel laden)
+  const noteStorageKey = useMemo(() => {
+    return activeThemeId ? `${LS_NOTE_KEY_BASE}.${String(activeThemeId)}` : LS_NOTE_KEY_BASE;
+  }, [activeThemeId]);
+
   const dayLabels = useMemo(() => {
     const days: DayKey[] = ['Mo', 'Di', 'Mi', 'Do', 'Fr'];
     const labels: Record<DayKey, string> = { Mo: 'Mo', Di: 'Di', Mi: 'Mi', Do: 'Do', Fr: 'Fr' };
 
-    if (!weekStart) {
-      // trotzdem Komma, damit die Textstarts bündig werden
-      labels.Mo = 'Mo';
-      labels.Di = 'Di';
-      labels.Mi = 'Mi';
-      labels.Do = 'Do';
-      labels.Fr = 'Fr';
-      return labels;
-    }
+    if (!weekStart) return labels;
 
     days.forEach((k, i) => {
       const d = addDays(weekStart, i);
@@ -122,16 +101,39 @@ function NotizenContent() {
     return labels;
   }, [weekStart]);
 
+  // Notiz laden (erst themenspezifisch, sonst Fallback)
+  useEffect(() => {
+    try {
+      const v1 = localStorage.getItem(noteStorageKey);
+      if (v1) {
+        setNote(v1);
+        return;
+      }
+      const legacy = localStorage.getItem(LS_NOTE_KEY_BASE);
+      if (legacy) {
+        setNote(legacy);
+        localStorage.setItem(noteStorageKey, legacy);
+      }
+    } catch {
+      // still
+    }
+  }, [noteStorageKey]);
+
+  // Notiz speichern
+  useEffect(() => {
+    try {
+      localStorage.setItem(noteStorageKey, note);
+    } catch {
+      // still
+    }
+  }, [note, noteStorageKey]);
+
   // Thema / Zitat / Fragen laden
   useEffect(() => {
     try {
       const themeIdOrNr = activeThemeId;
 
-      const themes: any[] =
-        (edition1 as any)?.themes ??
-        (edition1 as any)?.data ??
-        (edition1 as any) ??
-        [];
+      const themes: any[] = (edition1 as any)?.themes ?? (edition1 as any)?.data ?? (edition1 as any) ?? [];
 
       const found: any =
         themes.find((t) => t?.id === themeIdOrNr) ||
@@ -144,17 +146,9 @@ function NotizenContent() {
       if (!found) return;
 
       const label =
-        String(
-          found?.title ??
-          found?.name ??
-          found?.thema ??
-          found?.label ??
-          found?.id ??
-          'Thema'
-        ) || 'Thema';
+        String(found?.title ?? found?.name ?? found?.thema ?? found?.label ?? found?.id ?? 'Thema') || 'Thema';
 
-      const zitat =
-        found?.quote ?? found?.zitat ?? found?.Zitat ?? 'Zitat folgt…';
+      const zitat = found?.quote ?? found?.zitat ?? found?.Zitat ?? 'Zitat folgt…';
 
       const q =
         found?.questions ??
@@ -173,16 +167,11 @@ function NotizenContent() {
         nextQuestions.Do = q[3] ?? nextQuestions.Do;
         nextQuestions.Fr = q[4] ?? nextQuestions.Fr;
       } else if (q && typeof q === 'object') {
-        nextQuestions.Mo =
-          (q as any).Mo ?? (q as any).mo ?? (q as any).monday ?? nextQuestions.Mo;
-        nextQuestions.Di =
-          (q as any).Di ?? (q as any).di ?? (q as any).tuesday ?? nextQuestions.Di;
-        nextQuestions.Mi =
-          (q as any).Mi ?? (q as any).mi ?? (q as any).wednesday ?? nextQuestions.Mi;
-        nextQuestions.Do =
-          (q as any).Do ?? (q as any).do ?? (q as any).thursday ?? nextQuestions.Do;
-        nextQuestions.Fr =
-          (q as any).Fr ?? (q as any).fr ?? (q as any).friday ?? nextQuestions.Fr;
+        nextQuestions.Mo = (q as any).Mo ?? (q as any).mo ?? (q as any).monday ?? nextQuestions.Mo;
+        nextQuestions.Di = (q as any).Di ?? (q as any).di ?? (q as any).tuesday ?? nextQuestions.Di;
+        nextQuestions.Mi = (q as any).Mi ?? (q as any).mi ?? (q as any).wednesday ?? nextQuestions.Mi;
+        nextQuestions.Do = (q as any).Do ?? (q as any).do ?? (q as any).thursday ?? nextQuestions.Do;
+        nextQuestions.Fr = (q as any).Fr ?? (q as any).fr ?? (q as any).friday ?? nextQuestions.Fr;
       }
 
       setTemaLabel(label);
@@ -196,8 +185,11 @@ function NotizenContent() {
   function onClear() {
     setNote('');
     try {
-      localStorage.removeItem(LS_NOTE_KEY);
-    } catch { }
+      localStorage.removeItem(noteStorageKey);
+      localStorage.removeItem(LS_NOTE_KEY_BASE);
+    } catch {
+      // still
+    }
     textareaRef.current?.focus();
   }
 
@@ -216,9 +208,7 @@ function NotizenContent() {
       `---\n` +
       `Projekt von Andreas Sedlag, Kompetenztrainer und systemischer Coach | www.thema-der-woche.com | mailto: (t.b.d.)\n`;
 
-    const safeName = String(temaLabel)
-      .replace(/\s+/g, '_')
-      .replace(/[^\w\-äöüÄÖÜß]/g, '');
+    const safeName = String(temaLabel).replace(/\s+/g, '_').replace(/[^\w\-äöüÄÖÜß]/g, '');
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
@@ -234,13 +224,23 @@ function NotizenContent() {
     window.print();
   }
 
+  const PrintFooter = (
+    <div className="print-footer">
+      <span>Projekt von Andreas Sedlag, Kompetenztrainer und systemischer Coach | </span>
+      <a href="https://www.thema-der-woche.com">www.thema-der-woche.com</a>
+      <span> | </span>
+      <a href="mailto:t.b.d.">mailto: (t.b.d.)</a>
+      <span className="pagehint"> | Seitenzahl: </span>
+    </div>
+  );
+
   return (
     <>
       <style>{`
         @media print {
           @page {
             size: A4;
-            margin: 12mm 12mm 18mm 12mm; /* unten Platz für Footer */
+            margin: 10mm 12mm 12mm 12mm;
           }
 
           html, body {
@@ -250,89 +250,116 @@ function NotizenContent() {
           }
 
           body { background-image: none !important; }
-.print-page-bg { display: none !important; }
+          .print-page-bg { display: none !important; }
+
           * {
             box-shadow: none !important;
             filter: none !important;
             backdrop-filter: none !important;
           }
 
-          /* Buttons/Links/Navi im Inhalt ausblenden */
-          button, nav, .screen-only {
-            display: none !important;
-          }
+          button, nav, .screen-only { display: none !important; }
+          .print-only { display: block !important; }
 
-          /* Layout im Druck immer zweispaltig für Thema/Zitat vs Tagesimpulse */
-          .two-col {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 12px !important;
-          }
+          /* Druck-Trick: Thead/Tfoot wiederholen sich -> kein Overlay, sauberer Abstand je Seite */
+          table.print-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+          thead { display: table-header-group; }
+          tfoot { display: table-footer-group; }
 
-          /* Print-Notizen: als Fließtext druckbar (mehrere Seiten möglich) */
-          .print-note-box {
-            white-space: pre-wrap;
-            overflow: visible !important;
-          }
+          .print-top-spacer { height: 18mm; } /* Platz für dein Logo (pro Seite) */
 
           .print-footer {
-            display: block !important;
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 6mm;
             font-size: 10px;
+            line-height: 1.2;
             color: #334155;
             text-align: center;
+            padding: 2mm 0;
           }
 
-          /* Hinweis: Chrome liefert hier keine zuverlässigen Page-Counter in HTML */
-          .print-footer .pagehint {
-            margin-left: 6px;
-            opacity: 0.9;
-          }
+          .print-footer .pagehint { margin-left: 6px; opacity: 0.9; }
+
+          /* Notizen druckbar */
+          .print-note { white-space: pre-wrap; }
         }
 
-        /* Print-Footer am Screen verstecken */
-        .print-footer {
-  display: block !important;
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 6mm;
-  font-size: 10px;
-  color: #334155;
-  text-align: center;
-  background: white;
-  z-index: 9999;
-  padding: 2mm 4mm;
-}
+        .print-only { display: none; }
       `}</style>
 
       <BackgroundLayout>
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4">
-          {/* Header + Buttons */}
-          <div className="screen-only rounded-2xl bg-white/85 p-5 shadow-xl backdrop-blur-md">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="mb-3">
-                  <Link
-                    href="/quotes"
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm transition hover:bg-slate-50"
-                  >
-                    ← Zurück zu den Tagesimpulsen
-                  </Link>
-                </div>
+        {/* PRINT ONLY */}
+        <div className="print-only mx-auto w-full max-w-5xl px-4 py-4">
+          <table className="print-table">
+            <thead>
+              <tr>
+                <td>
+                  <div className="print-top-spacer" />
+                </td>
+              </tr>
+            </thead>
 
-                <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-                  Notizen
-                </h1>
-                <p className="mt-1 text-sm text-slate-700">
-                  Zu deinem aktuellen Thema – speichern, löschen oder drucken.
-                </p>
-              </div>
+            <tfoot>
+              <tr>
+                <td>{PrintFooter}</td>
+              </tr>
+            </tfoot>
 
-              <div className="flex flex-wrap gap-2">
+            <tbody>
+              <tr>
+                <td>
+                  <div className="rounded-2xl bg-white p-5">
+                    {/* oben: Thema + Zitat nebeneinander */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-xl border border-slate-200 bg-white p-4">
+                        <div className="text-sm font-semibold text-slate-900">Thema der Woche</div>
+                        <div className="mt-1 text-lg font-semibold text-slate-900">{temaLabel}</div>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-white p-4">
+                        <div className="text-sm font-semibold text-slate-900">Zitat</div>
+                        <div className="mt-1 whitespace-pre-wrap text-sm text-slate-900">{quote}</div>
+                      </div>
+                    </div>
+
+                    {/* darunter: Tagesimpulse volle Breite */}
+                    <h2 className="mt-4 text-lg font-semibold text-slate-900">{`Thema der Woche – ${temaLabel}`}</h2>
+
+                    <div className="mt-3 rounded-2xl border-2 border-slate-900/70 bg-white p-4">
+                      <ul className="space-y-1.5 text-sm text-slate-900">
+                        {(['Mo', 'Di', 'Mi', 'Do', 'Fr'] as DayKey[]).map((k) => (
+                          <li key={k} className="grid grid-cols-[120px_1fr] gap-3 leading-snug">
+                            <span className="whitespace-nowrap">{dayLabels[k]}</span>
+                            <span>{questions[k]}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Notizen als Fließtext */}
+                    <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="text-base font-medium text-slate-900">Persönliche Notizen</div>
+                      <div className="print-note mt-2 text-sm text-slate-900">{note?.trim() ? note : '—'}</div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* SCREEN ONLY */}
+        <div className="screen-only mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4">
+          <div className="rounded-2xl bg-white/85 p-5 shadow-xl backdrop-blur-md">
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                href="/quotes"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm transition hover:bg-slate-50"
+              >
+                ← Zurück zu den Tagesimpulsen
+              </Link>
+
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Notizen</h1>
+
+              <div className="flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
                   onClick={onSaveDownload}
@@ -356,64 +383,37 @@ function NotizenContent() {
                 </button>
               </div>
             </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-lg text-slate-900">
+              <span className="font-medium">Zitat:</span> <span className="whitespace-pre-wrap">{quote}</span>
+            </div>
           </div>
 
-          {/* Inhalt */}
-          <div className="rounded-2xl bg-white/85 p-5 shadow-xl backdrop-blur-md print:bg-white print:shadow-none print:backdrop-blur-none print:p-5 print:rounded-2xl">
-            <h2 className="text-2xl font-semibold text-slate-900">{`Thema der Woche – ${temaLabel}`}</h2>
+          <div className="rounded-2xl bg-white/85 p-5 shadow-xl backdrop-blur-md">
+            <h2 className="text-lg font-semibold text-slate-900">{`Thema der Woche – ${temaLabel}`}</h2>
 
-            {/* Thema/Zitat + Tagesimpulse nebeneinander (Screen & Print) */}
-            <div className="two-col mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <div className="text-sm font-medium text-slate-900">Thema</div>
-                <div className="mt-1 text-base font-semibold text-slate-900">
-                  {temaLabel}
-                </div>
-
-                <div className="mt-4 text-sm font-medium text-slate-900">Zitat</div>
-                <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                  {quote}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <div className="text-sm font-medium text-slate-900">Tagesimpulse</div>
-                <ul className="mt-2 space-y-2 text-sm text-slate-800">
-                  {(['Mo', 'Di', 'Mi', 'Do', 'Fr'] as DayKey[]).map((k) => (
-                    <li key={k} className="grid grid-cols-[110px_1fr] gap-2">
-                      <span className="font-semibold whitespace-nowrap">{dayLabels[k]}</span>
-                      <span>{questions[k]}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="mt-3 rounded-2xl border-2 border-slate-900/70 bg-white p-4">
+              <ul className="space-y-1.5 text-sm text-slate-900">
+                {(['Mo', 'Di', 'Mi', 'Do', 'Fr'] as DayKey[]).map((k) => (
+                  <li key={k} className="grid grid-cols-[120px_1fr] gap-3 leading-snug">
+                    <span className="whitespace-nowrap">{dayLabels[k]}</span>
+                    <span>{questions[k]}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Notizen: Screen = textarea, Print = Fließtext (damit kurze Notizen 1 Seite bleiben) */}
-            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-              <div className="text-sm font-medium text-slate-900">Persönliche Notizen</div>
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="text-base font-medium text-slate-900">Persönliche Notizen</div>
 
               <textarea
                 ref={textareaRef}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Schreibe hier deine Notizen…"
-                className="screen-only mt-2 min-h-[240px] w-full rounded-xl border border-slate-300 bg-white p-3 text-base text-slate-900 outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20"
+                className="mt-2 min-h-[320px] w-full rounded-2xl border border-slate-300 bg-white p-4 text-base text-slate-900 outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20"
               />
-
-              <div className="print-note-box mt-2 hidden rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900 print:block">
-                {note?.trim() ? note : '—'}
-              </div>
             </div>
-          </div>
-
-          {/* Footer nur im Druck (mit Links). Seitenzahlen: bitte in Chrome „Kopf- und Fußzeilen“ aktivieren */}
-          <div className="print-footer">
-            <span>Projekt von Andreas Sedlag, Kompetenztrainer und systemischer Coach | </span>
-            <a href="https://www.thema-der-woche.com">www.thema-der-woche.com</a>
-            <span> | </span>
-            <a href="mailto:t.b.d.">mailto: (t.b.d.)</a>
-            <span className="pagehint"> | Seitenzahl: </span>
           </div>
         </div>
       </BackgroundLayout>
