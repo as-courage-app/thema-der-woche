@@ -1,0 +1,1 @@
+export const SELECTED_PLAN_KEY = 'as-courage.selectedPlan.v1';
