@@ -6,6 +6,7 @@ import BackgroundLayout from '../../components/BackgroundLayout';
 import Link from 'next/link';
 import { getAppMode, FREE_WEEKS_COUNT } from '@/lib/appMode';
 import RequireAuth from '@/components/RequireAuth';
+import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
 
 const SETUP_KEY = 'as-courage.themeSetup.v1';
 
@@ -49,9 +50,24 @@ export default function SetupPage() {
   const [weeksCount, setWeeksCount] = useState<number>(4);
   const [startMonday, setStartMonday] = useState<string>(nextMondayISO());
   const [error, setError] = useState<string | null>(null);
+  const [lockedPlan, setLockedPlan] = useState<'A' | 'B' | 'C' | null>(null);
 
   // ✅ Lizenz-Auswahl (nur als Auswahl gespeichert)
   const [selectedLicenseTier, setSelectedLicenseTier] = useState<LicenseTier>('A');
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SELECTED_PLAN_KEY);
+      if (raw === 'A' || raw === 'B' || raw === 'C') {
+        setLockedPlan(raw);
+        setSelectedLicenseTier(raw);
+      } else {
+        setLockedPlan(null);
+      }
+    } catch {
+      setLockedPlan(null);
+    }
+  }, []);
 
   // ✅ iCal (nur wenn C)
   const [icalEnabled, setIcalEnabled] = useState<boolean>(false);
@@ -152,12 +168,6 @@ export default function SetupPage() {
                 Setup – Thema der Woche <span className="text-base font-normal tracking-wide">(Edition 1)</span>
               </h1>
 
-              <Link
-                href="/"
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              >
-                Startseite
-              </Link>
             </div>
             <p className="mt-2 text-sm text-slate-800">
               Wähle Anzahl Wochen, Start-Montag und deine Variante. Danach geht’s zur Themenübersicht.
@@ -175,30 +185,45 @@ export default function SetupPage() {
                   <button
                     key={t}
                     type="button"
+                    disabled={lockedPlan !== null && lockedPlan !== t}
                     onClick={() => {
+                      if (lockedPlan !== null && lockedPlan !== t) return;
                       setSelectedLicenseTier(t);
                       setError(null);
                     }}
                     className={[
                       'rounded-xl border px-3 py-3 text-left text-sm transition',
-                      selectedLicenseTier === t
-                        ? 'border-slate-900 bg-slate-900 text-white'
-                        : 'border-slate-200 bg-white hover:bg-slate-50',
+                      lockedPlan !== null && lockedPlan !== t
+                        ? 'border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed'
+                        : selectedLicenseTier === t
+                          ? 'border-slate-900 bg-slate-900 text-white cursor-pointer'
+                          : 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer',
                     ].join(' ')}
                   >
                     <div
                       className={
                         selectedLicenseTier === t
                           ? 'font-semibold text-white'
-                          : 'font-semibold text-slate-900'
+                          : lockedPlan !== null && lockedPlan !== t
+                            ? 'font-semibold text-slate-400'
+                            : 'font-semibold text-slate-900'
                       }
                     >
                       Variante {t}
                     </div>
-                    <div className={selectedLicenseTier === t ? 'text-white/90 text-xs' : 'text-slate-800 text-xs'}>
+
+                    <div
+                      className={
+                        selectedLicenseTier === t
+                          ? 'text-white/90 text-xs'
+                          : lockedPlan !== null && lockedPlan !== t
+                            ? 'text-slate-400 text-xs'
+                            : 'text-slate-800 text-xs'
+                      }
+                    >
                       {t === 'A' && 'Einzellizenz für 12 Monate · ohne iCal'}
-                      {t === 'B' && 'Einzellizenz dauerhaft · ohne iCal'}
-                      {t === 'C' && 'Einzellizenz dauerhaft · mit Teamkalender/iCal'}
+                      {t === 'B' && 'Einzellizenz dauerhaft, mit speicherbarer Notizfunktion · ohne iCal'}
+                      {t === 'C' && 'Einzellizenz dauerhaft mit speicherbarer Notizfunktion und Teamkalender/iCal'}
                     </div>
                   </button>
                 ))}

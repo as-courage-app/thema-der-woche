@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import LogoutButton from "./LogoutButton";
-import Link from "next/link";
+import InfoButton from './InfoButton';
 
 type BackgroundLayoutProps = {
   children: React.ReactNode;
@@ -12,7 +12,8 @@ type BackgroundLayoutProps = {
 
   /**
    * Optional: aktives Theme aus /quotes (oder anderen Seiten).
-   * Wenn gesetzt, wird /notizen?themeId=... verwendet.
+   * Hinweis: Der Notizen-Button wird NICHT mehr im BackgroundLayout gerendert,
+   * sondern wird auf der Quotes-Seite neben dem Podcast-Button platziert.
    */
   activeThemeId?: string;
 };
@@ -20,8 +21,11 @@ type BackgroundLayoutProps = {
 export default function BackgroundLayout({
   children,
   showLogout = true,
-  activeThemeId,
+  activeThemeId: _activeThemeId,
 }: BackgroundLayoutProps) {
+  // bleibt als Prop bestehen (kompatibel), wird aber hier nicht mehr genutzt
+  void _activeThemeId;
+
   const [hasSession, setHasSession] = useState(false);
 
   useEffect(() => {
@@ -42,10 +46,6 @@ export default function BackgroundLayout({
       sub?.subscription?.unsubscribe();
     };
   }, []);
-
-  const notizenHref = activeThemeId
-    ? `/notizen?themeId=${encodeURIComponent(activeThemeId)}`
-    : "/notizen";
 
   return (
     <div className="relative w-full min-h-[100dvh] overflow-x-hidden">
@@ -81,22 +81,17 @@ export default function BackgroundLayout({
           />
         </div>
 
-        {showLogout && hasSession ? (
-          <div className="mt-2 flex flex-col items-end gap-2 pointer-events-auto">
-            <LogoutButton className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50" />
+        <div className="mt-2 flex flex-col items-end gap-2 pointer-events-auto">
+          <InfoButton className="cursor-pointer rounded-xl bg-[#F29420] text-white w-11 h-11 flex items-center justify-center text-2xl leading-none shadow-md ring-1 ring-orange-200 transition hover:-translate-y-0.5 hover:bg-[#E4891E] hover:shadow-xl hover:ring-orange-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F29420]" />
 
-            <Link
-              href={notizenHref}
-              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50"
-            >
-              Notizen
-            </Link>
-          </div>
-        ) : null}
+          {showLogout && hasSession ? (
+            <LogoutButton className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50" />
+          ) : null}
+        </div>
       </div>
 
       {/* Content */}
-      <main className="relative z-10 flex w-full justify-center px-4 pt-20 pb-6 sm:px-[62px] sm:py-[70px]">
+      <main className="relative z-10 flex w-full justify-center px-4 pt-28 pb-6 sm:px-[62px] sm:py-[70px]">
         {children}
       </main>
     </div>

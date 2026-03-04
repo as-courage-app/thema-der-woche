@@ -26,7 +26,7 @@ export default function LogoutButton({ className }: Props) {
       return;
     }
 
-    router.push('/start');
+    router.push('/account');
     router.refresh();
   }
 
