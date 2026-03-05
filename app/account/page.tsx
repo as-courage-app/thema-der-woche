@@ -9,7 +9,7 @@ import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
 
 type Mode = 'login' | 'signup';
 
-const SELECTED_PLAN_KEY = 'as-courage.selectedPlan.v1';
+const CONSENT_KEY = 'as-courage.consent.v1';
 const CHECKOUT_EMAIL_KEY = 'as-courage.checkoutEmail.v1';
 
 type ConsentState = {
