@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '@/components/BackgroundLayout';
 import { supabase } from '@/lib/supabaseClient';
+import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
 
 type Mode = 'login' | 'signup';
 
 const CONSENT_KEY = 'as-courage.consent.v1';
-const SELECTED_PLAN_KEY = 'as-courage.selectedPlan.v1';
 const CHECKOUT_EMAIL_KEY = 'as-courage.checkoutEmail.v1';
 
 type ConsentState = {
@@ -519,8 +519,8 @@ export default function AccountPage() {
                   type="button"
                   onClick={() => setMode('login')}
                   className={`cursor-pointer rounded-xl px-3 py-2 text-sm font-semibold transition ${mode === 'login'
-                      ? 'bg-slate-900 text-white shadow-md'
-                      : 'bg-white/90 text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400'
+                    ? 'bg-slate-900 text-white shadow-md'
+                    : 'bg-white/90 text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400'
                     } focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900`}
                 >
                   Anmelden
