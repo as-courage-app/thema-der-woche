@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import { getAppMode, FREE_ALLOWED_THEMES, FREE_WEEKS_COUNT } from '@/lib/appMode';
 import RequireAuth from '@/components/RequireAuth';
+import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
 
 // Datei muss liegen unter: app/data/edition1.json
 import edition1 from '../data/edition1.json';
@@ -113,6 +114,47 @@ export default function ThemesPage() {
   const router = useRouter();
 
   const [appMode, setAppMode] = useState<'free' | 'full' | null>(null);
+
+  const SETUP_KEY = 'as-courage.themeSetup.v1';
+
+  const [isPlanC, setIsPlanC] = useState(false);
+  const [icalPref, setIcalPref] = useState(false);
+
+  // Plan + iCal-Vorliebe laden
+  useEffect(() => {
+  let planC = false;
+
+  try {
+    planC = localStorage.getItem(SELECTED_PLAN_KEY) === 'C';
+  } catch {
+    planC = false;
+  }
+
+  try {
+    const raw = localStorage.getItem(SETUP_KEY);
+    if (raw) {
+      const s = JSON.parse(raw) as { icalEnabled?: boolean; selectedLicenseTier?: 'A' | 'B' | 'C' };
+      if (s.selectedLicenseTier === 'C') planC = true; // Fallback aus Setup
+      setIcalPref(Boolean(s.icalEnabled));
+    }
+  } catch {
+    // ignorieren
+  }
+
+  setIsPlanC(planC);
+}, []);
+
+  // iCal-Vorliebe speichern (nur wenn Plan C, sonst immer false)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SETUP_KEY);
+      const prev = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+      const next = { ...prev, icalEnabled: isPlanC ? icalPref : false };
+      localStorage.setItem(SETUP_KEY, JSON.stringify(next));
+    } catch {
+      // ignorieren
+    }
+  }, [isPlanC, icalPref]);
 
   useEffect(() => {
     setAppMode(getAppMode());
@@ -306,12 +348,30 @@ export default function ThemesPage() {
                   </h1>
 
                   <div className="flex gap-2">
-                    <Link
-                      href="/setup"
-                      className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                    >
-                      Neues Setup
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-3">
+
+                      <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 cursor-pointer"
+                          checked={isPlanC ? icalPref : false}
+                          disabled={!isPlanC}
+                          onChange={(e) => setIcalPref(e.target.checked)}
+                        />
+                        <span>
+                          iCal aktivieren (nur in Variante C möglich)
+                          <span className="block text-[11px] text-slate-500">
+                            Download später bei „Zitate &amp; Tagesimpulse“
+                          </span>
+                        </span>
+                      </label>
+
+                      {!isPlanC && (
+                        <Link href="/account" className="text-xs font-semibold underline text-slate-700 hover:text-slate-900">
+                          Upgrade auf Variante C
+                        </Link>
+                      )}
+                    </div>
 
                   </div>
                 </div>

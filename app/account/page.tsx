@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '@/components/BackgroundLayout';
 import { supabase } from '@/lib/supabaseClient';
 import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
 
-type Mode = 'login' | 'signup';
-
 const CONSENT_KEY = 'as-courage.consent.v1';
 const CHECKOUT_EMAIL_KEY = 'as-courage.checkoutEmail.v1';
+const REMEMBER_ME_KEY = 'as-courage.rememberMe.v1';
 
 type ConsentState = {
   acceptTerms: boolean;
@@ -72,6 +71,24 @@ function writeCheckoutEmail(v: string) {
   }
 }
 
+function readRememberMe(): boolean {
+  try {
+    const raw = localStorage.getItem(REMEMBER_ME_KEY);
+    if (raw === null) return true; // Default: an
+    return raw === '1';
+  } catch {
+    return true;
+  }
+}
+
+function writeRememberMe(v: boolean) {
+  try {
+    localStorage.setItem(REMEMBER_ME_KEY, v ? '1' : '0');
+  } catch {
+    // ignore
+  }
+}
+
 export default function AccountPage() {
   const router = useRouter();
 
@@ -81,7 +98,6 @@ export default function AccountPage() {
   // message im Login-Bereich
   const [message, setMessage] = useState<string | null>(null);
 
-  const [mode, setMode] = useState<Mode>('login'); // Start: Login (Konto wird über /konto angelegt)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -95,8 +111,13 @@ export default function AccountPage() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
 
+  // “Angemeldet bleiben” (UI-Option)
+  const [rememberMe, setRememberMe] = useState(true);
+
   // Auth
   const [authedEmail, setAuthedEmail] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const navAuthed = mounted && !!authedEmail;
 
   const consentOk = useMemo(() => acceptTerms && acceptPrivacy, [acceptTerms, acceptPrivacy]);
   const checkoutDisabled = !consentOk;
@@ -106,7 +127,7 @@ export default function AccountPage() {
   const cardEnabled = 'cursor-pointer hover:-translate-y-0.5 hover:shadow-xl hover:ring-slate-400';
   const cardDisabled = 'cursor-not-allowed opacity-60';
 
-  // 1) Consent + Plan + Checkout-Email laden
+  // 1) Consent + Plan + Checkout-Email + RememberMe laden
   useEffect(() => {
     const c = readConsent();
     setAcceptTerms(c.acceptTerms);
@@ -117,12 +138,23 @@ export default function AccountPage() {
 
     const checkoutMail = readCheckoutEmail();
     if (checkoutMail) setEmail(checkoutMail);
+
+    setRememberMe(readRememberMe());
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   // 2) Consent speichern
   useEffect(() => {
     writeConsent({ acceptTerms, acceptPrivacy });
   }, [acceptTerms, acceptPrivacy]);
+
+  // 2b) RememberMe speichern
+  useEffect(() => {
+    writeRememberMe(rememberMe);
+  }, [rememberMe]);
 
   // 3) Auth Status initial + live
   useEffect(() => {
@@ -166,7 +198,7 @@ export default function AccountPage() {
       writeCheckoutEmail(qEmail);
     }
 
-    // Notice von /konto anzeigen (dein Punkt 7)
+    // Notice von /konto anzeigen
     if (notice === 'confirm-email') {
       const m = noticeEmail || readCheckoutEmail() || '';
       if (m) {
@@ -221,7 +253,7 @@ export default function AccountPage() {
     return true;
   }
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: FormEvent) {
     e.preventDefault();
     setMessage(null);
 
@@ -248,7 +280,7 @@ export default function AccountPage() {
       }
 
       setMessage('Erfolgreich angemeldet.');
-      // Buttons erscheinen automatisch über authedEmail
+      // Buttons oben rechts werden automatisch aktiv über authedEmail
     } finally {
       setLoading(false);
     }
@@ -353,42 +385,44 @@ export default function AccountPage() {
       )}
 
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
-        <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
-          {/* Feldtest-Buttons (oben rechts) – wieder sichtbar */}
+        <section suppressHydrationWarning className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
+          {/* Navigation (oben rechts) */}
           <div className="mb-4 flex items-start justify-end gap-2">
-            {authedEmail ? (
-              <Link
-                href="/themes"
-                className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-              >
-                Themen
-              </Link>
-            ) : (
-              <span
-                className="rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 opacity-50 cursor-not-allowed"
-                aria-disabled="true"
-                title="Bitte erst anmelden"
-              >
-                Themen
-              </span>
-            )}
+            <Link
+              href="/themes"
+              aria-disabled={!navAuthed}
+              tabIndex={navAuthed ? 0 : -1}
+              onClick={(e) => {
+                if (!navAuthed) e.preventDefault();
+              }}
+              className={[
+                'rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900',
+                navAuthed
+                  ? 'cursor-pointer hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400'
+                  : 'cursor-not-allowed opacity-50',
+              ].join(' ')}
+              title={navAuthed ? undefined : 'Bitte erst anmelden'}
+            >
+              Themen
+            </Link>
 
-            {authedEmail ? (
-              <Link
-                href="/setup"
-                className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-              >
-                Setup
-              </Link>
-            ) : (
-              <span
-                className="rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 opacity-50 cursor-not-allowed"
-                aria-disabled="true"
-                title="Bitte erst anmelden"
-              >
-                Setup
-              </span>
-            )}
+            <Link
+              href="/setup"
+              aria-disabled={!navAuthed}
+              tabIndex={navAuthed ? 0 : -1}
+              onClick={(e) => {
+                if (!navAuthed) e.preventDefault();
+              }}
+              className={[
+                'rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900',
+                navAuthed
+                  ? 'cursor-pointer hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400'
+                  : 'cursor-not-allowed opacity-50',
+              ].join(' ')}
+              title={navAuthed ? undefined : 'Bitte erst anmelden'}
+            >
+              Setup
+            </Link>
 
             <Link
               href="/version"
@@ -530,21 +564,57 @@ export default function AccountPage() {
 
           {/* Login-Bereich */}
           <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-slate-900">Anmelden</h2>
 
-              {/* Mode bleibt, aber Signup ist praktisch über /konto */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMode('login')}
-                  className={`cursor-pointer rounded-xl px-3 py-2 text-sm font-semibold transition ${mode === 'login'
-                    ? 'bg-slate-900 text-white shadow-md'
-                    : 'bg-white/90 text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400'
-                    } focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900`}
-                >
-                  Anmelden
-                </button>
+              <div className="flex flex-wrap items-center justify-end gap-3">
+
+              </div>
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                  <input
+                    id="remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-4 w-4 cursor-pointer rounded border-slate-300"
+                  />
+                  <span className="select-none font-semibold text-slate-900">Angemeldet bleiben</span>
+                </label>
+
+                {authedEmail ? (
+                  <Link
+                    href="/themes"
+                    className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  >
+                    Themen
+                  </Link>
+                ) : (
+                  <span
+                    className="rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 opacity-50 cursor-not-allowed"
+                    aria-disabled="true"
+                    title="Bitte erst anmelden"
+                  >
+                    Themen
+                  </span>
+                )}
+
+                {authedEmail ? (
+                  <Link
+                    href="/setup"
+                    className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  >
+                    Setup
+                  </Link>
+                ) : (
+                  <span
+                    className="rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 opacity-50 cursor-not-allowed"
+                    aria-disabled="true"
+                    title="Bitte erst anmelden"
+                  >
+                    Setup
+                  </span>
+                )}
               </div>
             </div>
 
@@ -606,26 +676,14 @@ export default function AccountPage() {
 
             {message && <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-800">{message}</p>}
 
-            {/* Nach Login: Buttons (dein Punkt 12) */}
+            {/* (3) Doppelung vermeiden: Unten keine Themen/Setup-Buttons mehr */}
             {authed && (
               <div className="mt-3 rounded-2xl bg-white/70 p-4 ring-1 ring-slate-200">
                 <div className="text-sm text-slate-700">
                   Angemeldet als: <span className="font-semibold text-slate-900">{authedEmail}</span>
                 </div>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link
-                    href="/themes"
-                    className="inline-flex cursor-pointer rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                  >
-                    Themen
-                  </Link>
-                  <Link
-                    href="/setup"
-                    className="inline-flex cursor-pointer rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                  >
-                    Setup
-                  </Link>
+                <div className="mt-2 text-xs text-slate-600">
+                  Themen und Setup findest du oben rechts.
                 </div>
               </div>
             )}
