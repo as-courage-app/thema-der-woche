@@ -76,23 +76,31 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
             {/* Inhalt (scrollt bei Bedarf) */}
             <div className="p-5 max-h-[70vh] overflow-auto">
               <div className="text-sm text-slate-700">
-                Platzhalter: Hier kommt später dein Hinweistext zur Nutzung der App hinein.
+                <p className="font-semibold text-slate-900">Anwendungsbeispiel (5 Minuten)</p>
+                <br />
+                Montag im Team-Meeting: Die Teamleitung zeigt das Wochenthema, liest den Tagesimpuls vor und lädt zu 1 – 2 Minuten Nachdenken oder Murmeln ein. Dann geben Freiwillige eine Antwort ohne Bewertungen der Zuhörenden. Ergebnis: gemeinsame Orientierung, mehr Zuhören, weniger Missverständnisse.
+
               </div>
 
               <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-700 max-h-[40vh] overflow-auto">
-                <p className="font-semibold text-slate-900">Hinweise (Platzhalter)</p>
+                <p className="font-semibold text-slate-900">So funktioniert es</p>
                 <ul className="mt-2 list-disc pl-5">
-                  <li>Kurzer Hinweis 1 …</li>
-                  <li>Kurzer Hinweis 2 …</li>
-                  <li>Kurzer Hinweis 3 …</li>
-                  <li>Kurzer Hinweis 4 …</li>
-                  <li>Kurzer Hinweis 5 …</li>
-                  <li>Kurzer Hinweis 6 …</li>
-                  <li>Kurzer Hinweis 7 …</li>
-                  <li>Kurzer Hinweis 8 …</li>
-                  <li>Kurzer Hinweis 9 …</li>
-                  <li>Kurzer Hinweis 10 …</li>
-                  <li>Wenn der Text länger wird, bleibt dieses Feld begrenzt und scrollt.</li>
+                  <li>Anzahl der Wochen festlegen</li>
+                  <li>Wochenthemen in der Anzahl auswählen</li>
+                  <li>Auswahl manuell oder per Zufall</li>
+                  <li>Reihenfolge kann geändert werden</li>
+                  <li>Empfehlung: 4 Wochen auswählen</li>
+                  <li>Start-Montag festlegen</li>
+                  <li>pro Wochentag eine Frage</li>
+                  <li>freiwilig niedrigschwellig, ohne Bewertung</li>
+                  <li>eigene Notizen anlegen, speichern und drucken (in Variante B und C)</li>
+                  <li>optional iCal als Teamkalender (nur Variante C verfügbar) laden</li>
+                  <br />
+                  <li>Als Gesprächseinstieg</li>
+                  <li>Check-In am Anfang im Team-Meeting</li>
+                  <li>30 Sek. Stille aushalten</li>
+                  <li>freiwillige Antworten unkommentiert lassen</li>
+                  <li>mehr Zuhören = weniger Missverständnisse</li>
                 </ul>
               </div>
 
