@@ -410,11 +410,11 @@ export default function QuotesPage() {
                     <button
                       type="button"
                       onClick={() => router.push('/themes')}
-                      className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer"
+                      className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
                     >
-                      Themen ändern
+                      zurück zur Themenauswahl
                     </button>
-                    
+
                   </div>
 
                 </div>
@@ -492,11 +492,27 @@ export default function QuotesPage() {
                 </button>
 
                 <Link
+                  href={current?.id ? `/infografik?themeId=${encodeURIComponent(current.id)}` : '/infografik'}
+                  className="rounded-xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+                  title="Infografik öffnen"
+                >
+                  <span aria-hidden="true" className="text-base leading-none">🖼️</span> Infografik
+                </Link>
+
+                <Link
+                  href={current?.id ? `/details?themeId=${encodeURIComponent(current.id)}` : '/details'}
+                  className="rounded-xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+                  title="Details öffnen"
+                >
+                  <span aria-hidden="true" className="text-base leading-none">❗</span> Details
+                </Link>
+
+                <Link
                   href={current?.id ? `/notizen?themeId=${encodeURIComponent(current.id)}` : '/notizen'}
-                  className="rounded-xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer"
+                  className="rounded-xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
                   title="Notizen öffnen"
                 >
-                  📝 Notizen
+                  <span aria-hidden="true" className="text-base leading-none">📝</span> Notizen
                 </Link>
 
                 <div className="ml-auto text-sm text-slate-700">
