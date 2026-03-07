@@ -439,7 +439,7 @@ export default function AccountPage() {
               className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
               aria-label="Zur Info"
             >
-              Info
+              zurück
             </Link>
           </div>
 
