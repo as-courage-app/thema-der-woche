@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { readCurrentUserPlan } from '@/lib/userPlan';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import edition1 from '../data/edition1.json';
@@ -243,6 +243,8 @@ function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]
 
 export default function QuotesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const themeIdFromUrl = searchParams.get('themeId');
 
   const [setup, setSetup] = useState<SetupState | null>(null);
   const [currentUserPlan, setCurrentUserPlan] = useState<'A' | 'B' | 'C' | null>(null);
@@ -274,7 +276,8 @@ export default function QuotesPage() {
       for (const id of ids) initialDays[id] = 0;
       setActiveDay(initialDays);
 
-      setPageIndex(0);
+      const initialIndex = themeIdFromUrl ? ids.findIndex((id) => id === themeIdFromUrl) : -1;
+      setPageIndex(initialIndex >= 0 ? initialIndex : 0);
       setImgFallbackToDemo(false);
     }
 

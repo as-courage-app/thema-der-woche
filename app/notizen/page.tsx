@@ -351,10 +351,10 @@ function NotizenContent() {
           <div className="rounded-2xl bg-white/85 p-5 shadow-xl backdrop-blur-md">
             <div className="flex items-center justify-between gap-3">
               <Link
-                href="/quotes"
+                href={themeIdFromUrl ? `/quotes?themeId=${encodeURIComponent(themeIdFromUrl)}` : '/quotes'}
                 className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm transition hover:bg-slate-50"
               >
-                ← Zurück zu den Tagesimpulsen
+                zurück
               </Link>
 
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Notizen</h1>
