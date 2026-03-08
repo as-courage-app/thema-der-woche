@@ -411,7 +411,7 @@ export default function QuotesPage() {
                     <button
                       type="button"
                       onClick={() => router.push('/themes')}
-                      className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+                      className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
                     >
                       zurück zur Themenauswahl
                     </button>
@@ -444,13 +444,13 @@ export default function QuotesPage() {
                   onClick={goPrev}
                   disabled={!canPrev}
                   className={[
-                    'rounded-xl px-4 py-2 text-sm border',
+                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition-all',
                     canPrev
-                      ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
+                      ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer'
                       : 'border-slate-200 bg-white text-slate-400 cursor-not-allowed',
                   ].join(' ')}
                 >
-                  Zurück
+                  zurück
                 </button>
 
                 <button
@@ -458,13 +458,13 @@ export default function QuotesPage() {
                   onClick={goNext}
                   disabled={!canNext}
                   className={[
-                    'rounded-xl px-4 py-2 text-sm border',
+                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition-all',
                     canNext
-                      ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
-                      : 'border-slate-200 bg-white opacity-40 cursor-not-allowed',
+                      ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer'
+                      : 'border-slate-200 bg-white text-slate-400 cursor-not-allowed',
                   ].join(' ')}
                 >
-                  Weiter
+                  weiter
                 </button>
 
                 <button
@@ -483,10 +483,10 @@ export default function QuotesPage() {
                   }}
                   disabled={false}
                   className={[
-                    'rounded-xl px-4 py-2 text-sm border',
+                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition-all',
                     podcastAllowed && podcastReady
-                      ? 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
-                      : 'border-slate-200 bg-white text-slate-400 cursor-pointer',
+                      ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer'
+                      : 'border-slate-200 bg-white text-slate-500 cursor-pointer',
                   ].join(' ')}
                 >
                   🎧 Podcast
@@ -494,7 +494,7 @@ export default function QuotesPage() {
 
                 <Link
                   href={current?.id ? `/infografik?themeId=${encodeURIComponent(current.id)}` : '/infografik'}
-                  className="rounded-xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
                   title="Infografik öffnen"
                 >
                   <span aria-hidden="true" className="text-base leading-none">🖼️</span> Infografik
@@ -502,7 +502,7 @@ export default function QuotesPage() {
 
                 <Link
                   href={current?.id ? `/details?themeId=${encodeURIComponent(current.id)}` : '/details'}
-                  className="rounded-xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
                   title="Details öffnen"
                 >
                   <span aria-hidden="true" className="text-base leading-none">❗</span> Details
@@ -510,7 +510,7 @@ export default function QuotesPage() {
 
                 <Link
                   href={current?.id ? `/notizen?themeId=${encodeURIComponent(current.id)}` : '/notizen'}
-                  className="rounded-xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
                   title="Notizen öffnen"
                 >
                   <span aria-hidden="true" className="text-base leading-none">📝</span> Notizen

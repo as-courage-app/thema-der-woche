@@ -23,13 +23,6 @@ export default function DetailsViewer({
             <h2 className="text-lg font-semibold">Kurzversion</h2>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setActiveView('none')}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
-          >
-            zurück zur Vorschau
-          </button>
         </div>
 
         <iframe
@@ -49,13 +42,6 @@ export default function DetailsViewer({
             <h2 className="text-lg font-semibold">Langversion</h2>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setActiveView('none')}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
-          >
-            zurück zur Vorschau
-          </button>
         </div>
 
         <iframe
@@ -96,4 +82,4 @@ export default function DetailsViewer({
       </button>
     </section>
   );
-}
+} 

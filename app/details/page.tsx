@@ -14,7 +14,7 @@ export default async function InfografikPage({ searchParams }: InfografikPagePro
 
   const themeNumber = (rawThemeId.split('-')[1] ?? '1').padStart(2, '0');
   const themeSlugMap: Record<string, string> = {
-    '01': 'anerkennung',
+    '01': 'anerkennung-1',
     '02': 'belastung',
     '03': 'diskriminierung',
     '04': 'ehrlichkeit',
@@ -24,8 +24,8 @@ export default async function InfografikPage({ searchParams }: InfografikPagePro
     '08': 'fehlerkultur',
     '09': 'flexibilitaet',
     '10': 'fluktuation',
-    '11': 'thema-11',
-    '12': 'thema-12',
+    '11': 'fuehrung-1',
+    '12': 'gerechtigkeit',
     '13': 'thema-13',
     '14': 'thema-14',
     '15': 'thema-15',
@@ -73,27 +73,25 @@ export default async function InfografikPage({ searchParams }: InfografikPagePro
       <main className="mx-auto max-w-none px-4 py-8">
 
         <div className="mt-6 flex items-center justify-between rounded-2xl bg-white/90 px-4 py-3 shadow-sm">
-          <h1 className="text-2xl font-bold">
-            Details – {rawThemeId || 'unbekannt'}
-          </h1>
-
           <div className="flex items-center gap-2">
-            
-
             <Link
               href={backHref}
-              className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+              className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
             >
               zurück
             </Link>
           </div>
+
+          <h1 className="ml-4 text-2xl font-bold">
+            Details – {rawThemeId || 'unbekannt'}
+          </h1>
         </div>
 
         <DetailsViewer
-  standardSrc={standardSrc}
-  detailSrc={detailSrc}
-  themeNumber={themeNumber}
-/>
+          standardSrc={standardSrc}
+          detailSrc={detailSrc}
+          themeNumber={themeNumber}
+        />
       </main>
     </BackgroundLayout>
   );

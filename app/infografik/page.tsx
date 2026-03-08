@@ -35,14 +35,14 @@ export default async function InfografikPage({ searchParams }: InfografikPagePro
             <a
               href={standardSrc}
               download
-              className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+              className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
             >
-              Download
+              download
             </a>
 
             <Link
               href={backHref}
-              className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-100 hover:border-slate-400 hover:shadow-md transition-all"
+              className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
             >
               zurück
             </Link>
