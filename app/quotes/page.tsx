@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { readCurrentUserPlan } from '@/lib/userPlan';
 import BackgroundLayout from '../../components/BackgroundLayout';
 import edition1 from '../data/edition1.json';
@@ -243,9 +243,6 @@ function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]
 
 export default function QuotesPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const themeIdFromUrl = searchParams.get('themeId');
-
   const [setup, setSetup] = useState<SetupState | null>(null);
   const [currentUserPlan, setCurrentUserPlan] = useState<'A' | 'B' | 'C' | null>(null);
   const [activeDay, setActiveDay] = useState<Record<string, number>>({});
@@ -258,6 +255,7 @@ export default function QuotesPage() {
     let alive = true;
 
     async function loadPageData() {
+      const themeIdFromUrl = new URLSearchParams(window.location.search).get('themeId');
       const s = readSetup();
       const plan = await readCurrentUserPlan();
 
