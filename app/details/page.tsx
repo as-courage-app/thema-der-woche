@@ -88,7 +88,7 @@ export default async function DetailsPage({ searchParams }: DetailsPageProps) {
     '26': 'nachhaltigkeit',
     '27': 'pausen',
     '28': 'proritaeten',
-    '29': 'qualitaet',
+    '29': 'qualitaet-1',
     '30': 'regeln-1',
     '31': 'selbstfuehrung',
     '32': 'selbstwirksamkleit',
