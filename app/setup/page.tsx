@@ -140,6 +140,7 @@ export default function SetupPage() {
       JSON.stringify({
         ...payload,
         weeksCount: weeksCountSafe,
+        selectedLicenseTier: lockedPlan ?? selectedLicenseTier,
       })
     );
 

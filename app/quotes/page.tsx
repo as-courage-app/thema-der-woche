@@ -11,6 +11,7 @@ import PodcastMiniPlayer from '../../components/PodcastMiniPlayer';
 import { podcastEpisodes } from '../../lib/podcastEpisodes';
 import RequireAuth from '@/components/RequireAuth';
 import MediathekMenu from './MediathekMenu';
+import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
 
 const LS_SETUP = 'as-courage.themeSetup.v1';
 
@@ -321,8 +322,14 @@ export default function QuotesPage() {
     return podcastEpisodes.find((ep) => ep.themeNumber === currentThemeNumber) ?? null;
   }, [currentThemeNumber]);
 
-  const licenseTier: LicenseTier | undefined = setup?.selectedLicenseTier ?? setup?.licenseTier;
-  const podcastAllowed = licenseTier === 'C';
+  const selectedPlanRaw =
+    typeof window !== 'undefined' ? localStorage.getItem(SELECTED_PLAN_KEY) : null;
+
+  const licenseTier: LicenseTier | undefined =
+    selectedPlanRaw === 'A' || selectedPlanRaw === 'B' || selectedPlanRaw === 'C'
+      ? selectedPlanRaw
+      : setup?.selectedLicenseTier ?? setup?.licenseTier;
+  const podcastAllowed = licenseTier === 'B' || licenseTier === 'C';
   const podcastReady =
     !!currentEpisode && currentThemeNumber !== null;
 
@@ -476,7 +483,7 @@ export default function QuotesPage() {
                   onPodcastClick={() => {
                     setPodcastNotice(null);
                     if (!podcastAllowed) {
-                      setPodcastNotice('Podcast nur in Variante C verfügbar.');
+                      setPodcastNotice('Mediathek ist nur in Variante B oder C verfügbar.');
                       return;
                     }
                     if (!podcastReady) {
