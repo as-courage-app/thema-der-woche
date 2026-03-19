@@ -394,14 +394,28 @@ export default function ThemesPage() {
                         </span>
                       </label>
 
-                      {!isPlanC && (
-                        <Link href="/account" className="text-xs font-semibold underline text-slate-700 hover:text-slate-900">
-                          Upgrade auf Variante C
-                        </Link>
-                      )}
                     </div>
 
                   </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <div className="text-base text-slate-700">
+                    Aktuelle Variante:{' '}
+                    <span className="font-semibold text-slate-900">
+                      {currentUserPlan ? `Variante ${currentUserPlan}` : 'wird geladen'}
+                    </span>
+                  </div>
+
+                  {!isPlanC && (
+                    <Link
+                      href="/account"
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[#F29420] px-4 py-2 text-sm text-slate-900 shadow-md transition hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-xl"
+                      title="Zum Upgrade"
+                    >
+                      zum upgrade
+                    </Link>
+                  )}
                 </div>
 
                 <p className="mt-2 text-sm text-black">
