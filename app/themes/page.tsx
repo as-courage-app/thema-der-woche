@@ -120,6 +120,7 @@ export default function ThemesPage() {
   const [isPlanC, setIsPlanC] = useState(false);
   const [currentUserPlan, setCurrentUserPlan] = useState<'A' | 'B' | 'C' | null>(null);
   const [icalPref, setIcalPref] = useState(false);
+  const [icalNotice, setIcalNotice] = useState<string | null>(null);
 
   // Plan + iCal-Vorliebe laden
   useEffect(() => {
@@ -375,27 +376,60 @@ export default function ThemesPage() {
                     Themenauswahl <span className="text-base font-normal tracking-wide">(Edition 1)</span>
                   </h1>
 
+
                   <div className="flex gap-2">
                     <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex flex-col gap-2">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          className="text-left"
+                          onClick={() => {
+                            if (!isPlanC) {
+                              setIcalNotice((prev) =>
+                                prev ? null : 'iCal ist nur in Variante C möglich.',
+                              );
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (!isPlanC && (e.key === 'Enter' || e.key === ' ')) {
+                              e.preventDefault();
+                              setIcalNotice((prev) =>
+                                prev ? null : 'iCal ist nur in Variante C möglich.',
+                              );
+                            }
+                          }}
+                        >
+                          <div className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 cursor-pointer"
+                              checked={isPlanC ? icalPref : false}
+                              aria-disabled={!isPlanC}
+                              onChange={(e) => {
+                                if (!isPlanC) {
+                                  return;
+                                }
+                                setIcalPref(e.target.checked);
+                                setIcalNotice(null);
+                              }}
+                            />
+                            <span>
+                              iCal aktivieren (nur in Variante C möglich)
+                              <span className="block text-[11px] text-slate-500">
+                                Download später bei „Zitate &amp; Tagesimpulse“
+                              </span>
+                            </span>
+                          </div>
+                        </div>
 
-                      <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 cursor-pointer"
-                          checked={isPlanC ? icalPref : false}
-                          disabled={!isPlanC}
-                          onChange={(e) => setIcalPref(e.target.checked)}
-                        />
-                        <span>
-                          iCal aktivieren (nur in Variante C möglich)
-                          <span className="block text-[11px] text-slate-500">
-                            Download später bei „Zitate &amp; Tagesimpulse“
-                          </span>
-                        </span>
-                      </label>
-
+                        {icalNotice && (
+                          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                            {icalNotice}
+                          </div>
+                        )}
+                      </div>
                     </div>
-
                   </div>
                 </div>
 

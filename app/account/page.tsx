@@ -450,7 +450,7 @@ export default function AccountPage() {
         return;
       }
 
-      setMessage('E-Mail zum Zurücksetzen wurde versendet. Bitte prüfe dein Postfach und auch den Spam-Ordner.');
+      setTopNotice('E-Mail zum Zurücksetzen wurde versendet. Bitte prüfe dein Postfach und auch den Spam-Ordner.');
     } finally {
       setLoading(false);
     }
@@ -579,9 +579,12 @@ export default function AccountPage() {
             Thema der Woche <span className="text-slate-600">(Edition 1)</span>
           </h1>
 
-          <p className="mt-2 text-base text-slate-700">
-            Auswahlmöglichkeit unter drei Lizenz-Varianten
-          </p>
+          {(!acceptTerms || !acceptPrivacy) && (
+            <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+              Die Auswahl der Varianten ist erst nach Bestätigung von AGB und
+              Datenschutzhinweisen möglich.
+            </p>
+          )}
 
           {topNotice && (
             <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200">

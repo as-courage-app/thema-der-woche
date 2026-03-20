@@ -305,6 +305,8 @@ export default function QuotesPage() {
 
   const [showPodcast, setShowPodcast] = useState(false);
   const [podcastNotice, setPodcastNotice] = useState<string | null>(null);
+  const [detailsNotice, setDetailsNotice] = useState<string | null>(null);
+  const [notesNotice, setNotesNotice] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -329,7 +331,10 @@ export default function QuotesPage() {
     selectedPlanRaw === 'A' || selectedPlanRaw === 'B' || selectedPlanRaw === 'C'
       ? selectedPlanRaw
       : setup?.selectedLicenseTier ?? setup?.licenseTier;
-  const podcastAllowed = licenseTier === 'B' || licenseTier === 'C';
+  const podcastAllowed =
+    currentUserPlan === 'B' ||
+    currentUserPlan === 'C' ||
+    (!currentUserPlan && (licenseTier === 'B' || licenseTier === 'C'));
   const podcastReady =
     !!currentEpisode && currentThemeNumber !== null;
 
@@ -400,6 +405,13 @@ export default function QuotesPage() {
                       (Edition 1)
                     </span>
                   </h1>
+
+                  <div className="text-base text-slate-700">
+                    Aktuelle Variante:{' '}
+                    <span className="font-semibold text-slate-900">
+                      {currentUserPlan ? `Variante ${currentUserPlan}` : 'wird geladen'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
@@ -444,18 +456,52 @@ export default function QuotesPage() {
 
               {/* Navigation */}
 
-              {podcastNotice ? (
-                <div className="mt-3 inline-block max-w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  <div className="flex items-start justify-between gap-3">
-                    <span>{podcastNotice}</span>
-                    <button
-                      type="button"
-                      onClick={() => setPodcastNotice(null)}
-                      className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
-                    >
-                      OK
-                    </button>
-                  </div>
+              {podcastNotice || detailsNotice || notesNotice ? (
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {podcastNotice ? (
+                    <div className="inline-block max-w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                      <div className="flex items-start justify-between gap-3">
+                        <span>{podcastNotice}</span>
+                        <button
+                          type="button"
+                          onClick={() => setPodcastNotice(null)}
+                          className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {detailsNotice ? (
+                    <div className="inline-block max-w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                      <div className="flex items-start justify-between gap-3">
+                        <span>{detailsNotice}</span>
+                        <button
+                          type="button"
+                          onClick={() => setDetailsNotice(null)}
+                          className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {notesNotice ? (
+                    <div className="inline-block max-w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                      <div className="flex items-start justify-between gap-3">
+                        <span>{notesNotice}</span>
+                        <button
+                          type="button"
+                          onClick={() => setNotesNotice(null)}
+                          className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -493,29 +539,68 @@ export default function QuotesPage() {
                   podcastAllowed={podcastAllowed}
                   podcastReady={podcastReady}
                   onPodcastClick={() => {
-                    setPodcastNotice(null);
                     if (!podcastAllowed) {
-                      setPodcastNotice('Mediathek ist nur in Variante B oder C verfügbar.');
+                      setPodcastNotice((prev) =>
+                        prev === 'Mediathek nur in Variante B oder C verfügbar.'
+                          ? null
+                          : 'Mediathek nur in Variante B oder C verfügbar.',
+                      );
                       return;
                     }
                     if (!podcastReady) {
-                      setPodcastNotice('Podcastfolge in Bearbeitung und aktuell nicht verfügbar.');
+                      setPodcastNotice((prev) =>
+                        prev === 'Podcastfolge in Bearbeitung und aktuell nicht verfügbar.'
+                          ? null
+                          : 'Podcastfolge in Bearbeitung und aktuell nicht verfügbar.',
+                      );
                       return;
                     }
+                    setPodcastNotice(null);
                     setShowPodcast((s) => !s);
                   }}
                 />
 
-                <DetailsMenu themeId={current?.id} />
+                <DetailsMenu
+                  themeId={current?.id}
+                  currentUserPlan={currentUserPlan}
+                  onBlockedClick={(message) => {
+                    setDetailsNotice((prev) => (prev ? null : message));
+                  }}
+                />
 
 
-                <Link
-                  href={current?.id ? `/notizen?themeId=${encodeURIComponent(current.id)}` : '/notizen'}
-                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
-                  title="Notizen öffnen"
-                >
-                  <span aria-hidden="true" className="text-base leading-none">📝</span> Notizen
-                </Link>
+                {currentUserPlan === 'B' || currentUserPlan === 'C' ? (
+                  <Link
+                    href={
+                      current?.id ? `/notizen?themeId=${encodeURIComponent(current.id)}` : '/notizen'
+                    }
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
+                    title="Notizen öffnen"
+                  >
+                    <span aria-hidden="true" className="text-base leading-none">
+                      📝
+                    </span>{' '}
+                    Notizen
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNotesNotice((prev) =>
+                        prev === 'Notizen nur in Variante B oder C verfügbar.'
+                          ? null
+                          : 'Notizen nur in Variante B oder C verfügbar.',
+                      );
+                    }}
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
+                    title="Notizen öffnen"
+                  >
+                    <span aria-hidden="true" className="text-base leading-none">
+                      📝
+                    </span>{' '}
+                    Notizen
+                  </button>
+                )}
 
                 <div className="ml-auto text-sm text-slate-700">
                   {totalPages > 0 ? (
