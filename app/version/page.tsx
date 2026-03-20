@@ -16,10 +16,10 @@ export default function VersionPage() {
       // bewusst leer
     }
     if (next === 'free') {
-  window.location.href = 'https://thema-der-woche-freeware.vercel.app/version';
-} else {
-  router.push('/account');
-}
+      window.location.href = 'https://thema-der-woche-kostenlos.vercel.app/version';
+    } else {
+      router.push('/account');
+    }
   }
   const [mounted, setMounted] = useState(false);
 
