@@ -134,7 +134,7 @@ export default function VersionPage() {
 
               <div className="mt-3 text-sm text-slate-700">
                 <div className="font-semibold text-slate-900">Funktionsumfang:</div>
-                <ul className="mt-2 list-disc space-y-2 pl-5">
+                <ul className="mt-1 list-disc pl-5">
                   <li>alle 41 Wochenthemen sichtbar</li>
                   <li>4 von 41 Wochenthemen zur Auswahl</li>
                   <li>4 von 41 Zitaten und Bildern sichtbar</li>
@@ -148,7 +148,8 @@ export default function VersionPage() {
                   <li>Details mit 4 Infografiken + Vertiefungen</li>
                   <li>Team-/Kalenderfunktionen (iCal)</li>
                   <li>Notizfunktion mit Druckausgabe</li><br />
-                  <div className="text-base font-semibold text-slate-900">frei zum dauerhaften testen</div><br />
+                  <div className="text-base font-semibold text-slate-700">frei zum dauerhaften Testen<br />
+                  (keine Anmeldung erforderlich)</div><br />
                   <div className="text-base font-semibold text-slate-900">ein Upgrade zur Vollversion ist jederzeit möglich</div>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
@@ -171,9 +172,9 @@ export default function VersionPage() {
                 </div>
               </div>
 
-              <div className="mt-3 text-sm text-slate-900">
-                <div className="font-semibold text-slate-900">Funktionsumfang:</div>
-                <ul className="mt-2 list-disc space-y-2 pl-5">
+              <div className="mt-3 text-sm text-slate-700">
+                <div className="font-semibold text-slate-900">Funktionsumfang (Vollversion):</div>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
                   <li>alle 41 Wochenthemen</li>
                   <li>alle 41 Bilder und Zitate</li>
                   <li>alle 205 Tagesimpulse</li>
