@@ -124,7 +124,7 @@ export default function VersionPage() {
             <button
               type="button"
               onClick={() => choose('free')}
-              className="block h-full cursor-pointer rounded-2xl border-2 border-slate-300 bg-white px-4 py-4 text-left shadow-md transition duration-200 hover:-translate-y-1 hover:border-slate-500 hover:bg-slate-50 hover:shadow-xl hover:ring-4 hover:ring-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-300"
+              className="flex h-full flex-col justify-start cursor-pointer rounded-2xl border-2 border-slate-300 bg-white px-4 py-4 text-left shadow-md transition duration-200 hover:-translate-y-1 hover:border-slate-500 hover:bg-slate-50 hover:shadow-xl hover:ring-4 hover:ring-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-300"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -147,7 +147,9 @@ export default function VersionPage() {
                   <li>Mediathek mit 4 Videos+Podcastfolgen</li>
                   <li>Details mit 4 Infografiken + Vertiefungen</li>
                   <li>Team-/Kalenderfunktionen (iCal)</li>
-                  <li>Notizfunktion mit Druckausgabe</li>
+                  <li>Notizfunktion mit Druckausgabe</li><br />
+                  <div className="text-base font-semibold text-slate-900">frei zum dauerhaften testen</div><br />
+                  <div className="text-base font-semibold text-slate-900">ein Upgrade zur Vollversion ist jederzeit möglich</div>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
@@ -160,7 +162,7 @@ export default function VersionPage() {
             <button
               type="button"
               onClick={() => choose('full')}
-              className="block h-full cursor-pointer rounded-2xl border-2 border-slate-300 bg-white px-4 py-4 text-left shadow-md transition duration-200 hover:-translate-y-1 hover:border-slate-500 hover:bg-slate-50 hover:shadow-xl hover:ring-4 hover:ring-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-300"
+              className="flex h-full flex-col justify-start cursor-pointer rounded-2xl border-2 border-slate-300 bg-white px-4 py-4 text-left shadow-md transition duration-200 hover:-translate-y-1 hover:border-slate-500 hover:bg-slate-50 hover:shadow-xl hover:ring-4 hover:ring-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-300"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -169,7 +171,7 @@ export default function VersionPage() {
                 </div>
               </div>
 
-              <div className="mt-3 text-sm text-slate-700">
+              <div className="mt-3 text-sm text-slate-900">
                 <div className="font-semibold text-slate-900">Funktionsumfang:</div>
                 <ul className="mt-2 list-disc space-y-2 pl-5">
                   <li>alle 41 Wochenthemen</li>
@@ -179,7 +181,7 @@ export default function VersionPage() {
                   <li>Reihenfolge aller Themen veränderbar</li>
                   <li>Startdatum festlegbar (Wochenstart jeweils am Montag)</li>
                   <li>Bereits genutzte Wochen-Themen werden gekennzeichnet</li>
-                  <li>Gekennzeichnete Themen sind wiederverwendbar</li>
+                  <li>Gekennzeichnete Themen sind wiederverwendbar</li><br />
                   <div className="font-semibold text-slate-900">je nach Lizenz:</div>
                   <li>Mediathek mit 41 Videos+Podcastfolgen</li>
                   <li>Details mit 41 Infografiken + Vertiefungen</li>
