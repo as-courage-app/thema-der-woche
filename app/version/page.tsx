@@ -134,17 +134,18 @@ export default function VersionPage() {
 
               <div className="mt-3 text-sm text-slate-700">
                 <div className="font-semibold text-slate-900">Funktionsumfang:</div>
-                <ul className="mt-1 list-disc pl-5">
+                <ul className="mt-2 list-disc space-y-2 pl-5">
                   <li>alle 41 Wochenthemen sichtbar</li>
                   <li>4 von 41 Wochenthemen zur Auswahl</li>
                   <li>4 von 41 Zitaten und Bildern sichtbar</li>
-                  <li>4 von 41 Podcastfolgen hörbar</li>
                   <li>max. 2 Themen gleichzeitig auswählbar</li>
                   <li>Reihenfolge der Themen veränderbar</li>
                   <li>Kennzeichnung der genutzten Themen</li>
                   <li>alle 4 Themen wiederverwendbar</li>
                   <li>Startdatum festlegbar (jeweils montags)</li>
                   <li>20 Tagesimpulse (Mo–Fr) anwählbar</li>
+                  <li>Mediathek mit 4 Videos+Podcastfolgen</li>
+                  <li>Details mit 4 Infografiken + Vertiefungen</li>
                   <li>Team-/Kalenderfunktionen (iCal)</li>
                   <li>Notizfunktion mit Druckausgabe</li>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
@@ -169,16 +170,20 @@ export default function VersionPage() {
               </div>
 
               <div className="mt-3 text-sm text-slate-700">
-                <div className="font-semibold text-slate-900">Funktionsumfang (Vollversion):</div>
-                <ul className="mt-2 list-disc space-y-1 pl-5">
-                  <li>Alle Inhalte: 41 Wochen-Themen, Bilder, Zitate und 205 Tagesimpulse</li>
-                  <li>41 Podcastfolgen hörbar</li>
-                  <li>Freie Themenwahl manuell oder per Zufall</li>
+                <div className="font-semibold text-slate-900">Funktionsumfang:</div>
+                <ul className="mt-2 list-disc space-y-2 pl-5">
+                  <li>alle 41 Wochenthemen</li>
+                  <li>alle 41 Bilder und Zitate</li>
+                  <li>alle 205 Tagesimpulse</li>
+                  <li>freie Themenwahl manuell oder per Zufall</li>
                   <li>Reihenfolge aller Themen veränderbar</li>
                   <li>Startdatum festlegbar (Wochenstart jeweils am Montag)</li>
                   <li>Bereits genutzte Wochen-Themen werden gekennzeichnet</li>
                   <li>Gekennzeichnete Themen sind wiederverwendbar</li>
-                  <li>Team-/Kalenderfunktionen (iCal) je nach Lizenz</li>
+                  <div className="font-semibold text-slate-900">je nach Lizenz:</div>
+                  <li>Mediathek mit 41 Videos+Podcastfolgen</li>
+                  <li>Details mit 41 Infografiken + Vertiefungen</li>
+                  <li>Team-/Kalenderfunktionen (iCal)</li>
                   <li>Notizfunktion mit Druckausgabe</li>
                 </ul>
               </div>
