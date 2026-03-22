@@ -48,13 +48,13 @@ export default function VersionPage() {
             </a>
           </div>
 
-          <div className="mt-2 text-sm text-slate-700">Browserbasierte App (ohne Installation) für PC · Android · Apple - und analog als Tischaufsteller</div>
+          <div className="mt-2 text-sm text-slate-700">Browserbasierte App (ohne Installation) für PC · Android · Apple - und analog als Tischaufsteller und Kartenset</div>
 
           {/* Hinweis (temporär) */}
           <div className="mt-4 rounded-2xl border border-slate-200 bg-white/85 p-4 text-sm text-slate-700 shadow-sm backdrop-blur">
             <div className="text-lg font-semibold text-slate-900">Herzlich willkommen beim Thema der Woche</div>
             <p className="mt-3 text-base text-slate-700">
-              <span className="font-semibold">Ein Thema pro Woche. Ein Impuls pro Tag. Mehr Miteinander.</span>
+              <span className="font-semibold">Ein Thema pro Woche. Eine Impulsfrage pro Tag. Mehr Miteinander und Verständnis.</span>
             </p>
 
             <p className="mt-2 text-base text-slate-700">
@@ -149,7 +149,7 @@ export default function VersionPage() {
                   <li>Team-/Kalenderfunktionen (iCal)</li>
                   <li>Notizfunktion mit Druckausgabe</li><br />
                   <div className="text-base font-semibold text-slate-700">frei zum dauerhaften Testen<br />
-                  (keine Anmeldung erforderlich)</div><br />
+                    (keine Anmeldung erforderlich)</div><br />
                   <div className="text-base font-semibold text-slate-900">ein Upgrade zur Vollversion ist jederzeit möglich</div>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
                   <li className="invisible" aria-hidden="true">Platzhalter</li>
