@@ -89,6 +89,25 @@ function nextMondayISO(from = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function parseIsoDate(iso?: string | null): Date | null {
+  if (!iso) return null;
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function formatDE(date: Date): string {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
 function prettifyId(id: string): string {
   const cleaned = id.replace(/^ed\d+-\d+-/i, '').replace(/-/g, ' ').trim();
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
@@ -358,10 +377,21 @@ export default function ThemesPage() {
     router.push(NEXT_ROUTE);
   }
 
-  const selectedTitles = useMemo(() => {
-    const map = new Map(sortedThemes.map((t) => [t.id, displayTitle(t)]));
-    return selectedThemes.map((id) => map.get(id) ?? prettifyId(id));
-  }, [selectedThemes, sortedThemes]);
+  const selectedScheduleRows = useMemo(() => {
+    const titleMap = new Map(sortedThemes.map((t) => [t.id, displayTitle(t)]));
+    const baseDate = parseIsoDate(startMonday);
+
+    return selectedThemes.map((id, index) => {
+      const monday = baseDate ? addDays(baseDate, index * 7) : null;
+      const friday = monday ? addDays(monday, 4) : null;
+
+      return {
+        id,
+        title: titleMap.get(id) ?? prettifyId(id),
+        dateRange: monday && friday ? `${formatDE(monday)} – ${formatDE(friday)}` : '',
+      };
+    });
+  }, [selectedThemes, sortedThemes, startMonday]);
 
   return (
     <RequireAuth>
@@ -703,44 +733,59 @@ export default function ThemesPage() {
                   Noch nichts ausgewählt.
                 </div>
               ) : (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedThemes.map((id, i) => {
-                    const theme = (edition1 as any[]).find((x: any) => x.id === id);
-                    const title = theme ? displayTitle(theme) : id;
+                <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                  <div className="grid grid-cols-[minmax(170px,220px)_1fr] border-b border-slate-200 bg-slate-50">
+                    <div className="px-3 py-2 text-sm font-semibold text-slate-900">Datum</div>
+                    <div className="px-3 py-2 text-sm font-semibold text-slate-900">Thema</div>
+                  </div>
 
-                    return (
-                      <span
-                        key={`${id}-${i}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs"
-                        title="Auswahl"
-                      >
-                        <span>{title}</span>
+                  <div className="divide-y divide-slate-200">
+                    {selectedScheduleRows.map((item, i) => {
+                      const isFirst = i === 0;
+                      const isLast = i === selectedScheduleRows.length - 1;
 
-                        <button
-                          type="button"
-                          onClick={() => moveSelectedTheme(i, -1)}
-                          disabled={i === 0}
-                          className="rounded-md border border-slate-200 px-1.5 py-0.5 text-xs disabled:opacity-40"
-                          title="Hoch"
-                          aria-label="Thema nach oben schieben"
+                      return (
+                        <div
+                          key={`${item.id}-${i}`}
+                          className="grid grid-cols-[minmax(170px,220px)_1fr] items-stretch"
                         >
-                          ↑
-                        </button>
+                          <div className="border-r border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800">
+                            {item.dateRange}
+                          </div>
 
-                        <button
-                          type="button"
-                          onClick={() => moveSelectedTheme(i, 1)}
-                          disabled={i === selectedThemes.length - 1}
-                          className="rounded-md border border-slate-200 px-1.5 py-0.5 text-xs disabled:opacity-40"
-                          title="Runter"
-                          aria-label="Thema nach unten schieben"
-                        >
-                          ↓
-                        </button>
-                      </span>
-                    );
-                  })}
+                          <div className="flex items-center justify-between gap-3 px-3 py-3">
+                            <div className="min-w-0 text-sm font-medium text-slate-900">
+                              <span className="block truncate">{item.title}</span>
+                            </div>
 
+                            <div className="flex shrink-0 items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => moveSelectedTheme(i, -1)}
+                                disabled={isFirst}
+                                className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg border border-[#F29420] bg-[#F29420] px-2 py-1 text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                                title="Hoch"
+                                aria-label="Thema nach oben schieben"
+                              >
+                                ▲
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => moveSelectedTheme(i, 1)}
+                                disabled={isLast}
+                                className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg border border-[#F29420] bg-[#F29420] px-2 py-1 text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                                title="Runter"
+                                aria-label="Thema nach unten schieben"
+                              >
+                                ▼
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
