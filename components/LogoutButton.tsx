@@ -7,9 +7,7 @@ type Props = {
   className?: string;
 };
 
-export default function LogoutButton({ className: _className }: Props) {
-  void _className;
-
+export default function LogoutButton({ className = '' }: Props) {
   const [isBusy, setIsBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -29,13 +27,22 @@ export default function LogoutButton({ className: _className }: Props) {
     window.location.assign('/account');
   }
 
+  const buttonClasses = [
+    'fixed z-[70] flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-black text-white shadow-md ring-1 ring-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl hover:ring-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-60',
+    className,
+  ].join(' ');
+
   return (
-    <div className="flex items-center gap-2">
+    <>
       <button
         type="button"
         onClick={handleLogout}
         disabled={isBusy}
-        className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-black text-white shadow-md ring-1 ring-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl hover:ring-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-60"
+        className={buttonClasses}
+        style={{
+          top: 'calc(env(safe-area-inset-top, 0px) + 9rem)',
+          right: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
+        }}
         aria-label="Abmelden"
         title="Abmelden"
       >
@@ -58,6 +65,6 @@ export default function LogoutButton({ className: _className }: Props) {
       </button>
 
       {errorMsg ? <span className="text-xs text-red-600">{errorMsg}</span> : null}
-    </div>
+    </>
   );
 }

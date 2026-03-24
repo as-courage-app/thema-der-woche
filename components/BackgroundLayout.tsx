@@ -81,11 +81,11 @@ export default function BackgroundLayout({
           />
         </div>
 
-        <div className="mt-2 flex flex-col items-end gap-2 pointer-events-auto">
+        <div className="mt-2 flex flex-col items-end gap-4 pointer-events-auto">
           <InfoButton className="cursor-pointer rounded-xl bg-[#F29420] text-white w-11 h-11 flex items-center justify-center text-2xl leading-none shadow-md ring-1 ring-orange-200 transition hover:-translate-y-0.5 hover:bg-[#E4891E] hover:shadow-xl hover:ring-orange-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F29420]" />
 
           {showLogout && hasSession ? (
-            <LogoutButton className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50" />
+            <LogoutButton />
           ) : null}
         </div>
       </div>
