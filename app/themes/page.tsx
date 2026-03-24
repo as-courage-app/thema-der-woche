@@ -749,7 +749,7 @@ export default function ThemesPage() {
                           key={`${item.id}-${i}`}
                           className="grid grid-cols-[minmax(170px,220px)_1fr] items-stretch"
                         >
-                          <div className="border-r border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800">
+                          <div className="flex items-center border-r border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800">
                             {item.dateRange}
                           </div>
 
