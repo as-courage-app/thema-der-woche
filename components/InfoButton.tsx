@@ -514,7 +514,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
           Weiter
         </span>
         <p className="mt-1">
-          Mit dem Weiter-Button auf der Seite <span className="font-semibold text-slate-900">Themenauswahl</span>{' '} 
+          Mit dem Weiter-Button auf der Seite <span className="font-semibold text-slate-900">Themenauswahl</span>{' '}
           springst du auf die Seite <span className="font-semibold text-slate-900"> Zitate & Tagesimpulse</span>{' '}. <br />
           <br />
           <span className="inline-flex items-center rounded-lg bg-white px-3 py-1 text-sm font-semibold text-slate-900 border border-slate-300">
@@ -589,12 +589,25 @@ const RAW_INFO_ITEMS: InfoItem[] = [
 
 export default function InfoButton({ className = '' }: InfoButtonProps) {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const infoItems = useMemo(() => {
     return [...RAW_INFO_ITEMS].sort((a, b) =>
       a.title.localeCompare(b.title, 'de', { sensitivity: 'base' })
     );
   }, []);
+
+  const filteredExampleItems = infoItems.filter(
+    (item) =>
+      item.title === 'Anwendungsbeispiele' &&
+      item.title.toLowerCase().includes(searchTerm.trim().toLowerCase())
+  );
+
+  const filteredFunctionItems = infoItems.filter(
+    (item) =>
+      item.title !== 'Anwendungsbeispiele' &&
+      item.title.toLowerCase().includes(searchTerm.trim().toLowerCase())
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -679,8 +692,8 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
             </div>
 
             <div className="max-h-[75vh] overflow-y-auto p-5">
-              <div className="rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-                <p className="font-semibold text-slate-900">Kurzer Hinweis</p>
+              <div className="rounded-xl bg-[#F29420] p-4 text-sm leading-6 text-slate-900">
+                <p className="text-lg font-semibold text-slate-900">Kurzer Hinweis</p>
                 <p className="mt-2">
                   Tippe oder klicke auf einen Begriff, um die passende Erklärung zu öffnen.
                   Die Liste ist alphabetisch sortiert. Der Text in den Klammern weist auf die Seite hin,
@@ -689,42 +702,52 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
                 </p>
               </div>
 
-              <>
-                {infoItems
-                  .filter((item) => item.title === 'Anwendungsbeispiele')
-                  .map((item) => (
-                    <div key={item.title} className="mt-4">
-                      <details className="rounded-xl border border-slate-200 bg-white">
-                        <summary className="cursor-pointer rounded-xl px-4 py-3 font-semibold text-slate-900">
-                          {item.summary ?? item.title}
-                        </summary>
-                        <div className="px-4 pb-4 text-sm leading-6 text-slate-700">
-                          {item.body}
-                        </div>
-                      </details>
-                    </div>
-                  ))}
+              <div className="mt-4">
+                <label htmlFor="info-search" className="block text-sm font-medium text-slate-800">
+                  Infosuche
+                </label>
+                <input
+                  id="info-search"
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Begriff eingeben, zum Beispiel Notizen oder iCal"
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+                />
+              </div>
 
-                <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-                  <p className="font-semibold text-slate-900">Funktionen der App</p>
+              <>
+                {filteredExampleItems.map((item) => (
+                  <div key={item.title} className="mt-4">
+                    <details className="rounded-xl border border-slate-200 bg-white">
+                      <summary className="cursor-pointer rounded-xl px-4 py-3 font-semibold text-slate-900">
+                        {item.summary ?? item.title}
+                      </summary>
+                      <div className="px-4 pb-4 text-sm leading-6 text-slate-700">
+                        {item.body}
+                      </div>
+                    </details>
+                  </div>
+                ))}
+
+                <div className="mt-5 rounded-xl bg-[#F29420] p-4 text-sm leading-6 text-slate-900">
+                  <p className="text-lg font-semibold text-slate-900">Funktionen der App</p>
                 </div>
 
                 <div className="mt-4 space-y-3">
-                  {infoItems
-                    .filter((item) => item.title !== 'Anwendungsbeispiele')
-                    .map((item) => (
-                      <details
-                        key={item.title}
-                        className="rounded-xl border border-slate-200 bg-white"
-                      >
-                        <summary className="cursor-pointer rounded-xl px-4 py-3 font-semibold text-slate-900">
-                          {item.title}
-                        </summary>
-                        <div className="px-4 pb-4 text-sm leading-6 text-slate-700">
-                          {item.body}
-                        </div>
-                      </details>
-                    ))}
+                  {filteredFunctionItems.map((item) => (
+                    <details
+                      key={item.title}
+                      className="rounded-xl border border-slate-200 bg-white"
+                    >
+                      <summary className="cursor-pointer rounded-xl px-4 py-3 font-semibold text-slate-900">
+                        {item.title}
+                      </summary>
+                      <div className="px-4 pb-4 text-sm leading-6 text-slate-700">
+                        {item.body}
+                      </div>
+                    </details>
+                  ))}
                 </div>
               </>
 

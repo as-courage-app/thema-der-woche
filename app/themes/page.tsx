@@ -408,6 +408,14 @@ export default function ThemesPage() {
 
 
                   <div className="flex gap-2">
+                    <Link
+                      href="https://thema-der-woche-kostenlos.vercel.app/version"
+                      className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-xl cursor-pointer"
+                      title="Zur Begrüßungsseite"
+                    >
+                      zurück
+                    </Link>
+
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="flex flex-col gap-2">
                         <div
@@ -537,30 +545,74 @@ export default function ThemesPage() {
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                   <label className="block text-sm font-medium text-slate-800">Anzahl Wochen</label>
 
-                  <input
-                    type="number"
-                    min={1}
-                    max={41}
-                    value={weeksCount}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-
-                      if (raw === '') {
-                        setWeeksCount(1);
-                        setSelectedThemes((prev) => prev.slice(0, 1));
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = Math.max(1, weeksCount - 1);
+                        setWeeksCount(next);
+                        setSelectedThemes((prev) => prev.slice(0, next));
                         setError(null);
-                        return;
-                      }
+                      }}
+                      disabled={weeksCount <= 1}
+                      className={[
+                        'inline-flex h-11 w-11 items-center justify-center rounded-xl border text-lg font-semibold shadow-sm transition',
+                        weeksCount > 1
+                          ? 'border-slate-300 bg-white text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-xl cursor-pointer'
+                          : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed',
+                      ].join(' ')}
+                      aria-label="Eine Woche weniger"
+                      title="Eine Woche weniger"
+                    >
+                      −
+                    </button>
 
-                      const n = Math.floor(Number(raw));
-                      const next = Number.isFinite(n) ? Math.min(upperWeeks, Math.max(1, n)) : 1;
+                    <input
+                      type="number"
+                      min={1}
+                      max={41}
+                      value={weeksCount}
+                      onChange={(e) => {
+                        const raw = e.target.value;
 
-                      setWeeksCount(next);
-                      setSelectedThemes((prev) => prev.slice(0, next));
-                      setError(null);
-                    }}
-                    className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                  />
+                        if (raw === '') {
+                          setWeeksCount(1);
+                          setSelectedThemes((prev) => prev.slice(0, 1));
+                          setError(null);
+                          return;
+                        }
+
+                        const n = Math.floor(Number(raw));
+                        const next = Number.isFinite(n) ? Math.min(upperWeeks, Math.max(1, n)) : 1;
+
+                        setWeeksCount(next);
+                        setSelectedThemes((prev) => prev.slice(0, next));
+                        setError(null);
+                      }}
+                      className="h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-center text-sm outline-none focus:border-slate-400"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = Math.min(upperWeeks, weeksCount + 1);
+                        setWeeksCount(next);
+                        setSelectedThemes((prev) => prev.slice(0, next));
+                        setError(null);
+                      }}
+                      disabled={weeksCount >= upperWeeks}
+                      className={[
+                        'inline-flex h-11 w-11 items-center justify-center rounded-xl border text-lg font-semibold shadow-sm transition',
+                        weeksCount < upperWeeks
+                          ? 'border-slate-300 bg-white text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-xl cursor-pointer'
+                          : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed',
+                      ].join(' ')}
+                      aria-label="Eine Woche mehr"
+                      title="Eine Woche mehr"
+                    >
+                      +
+                    </button>
+                  </div>
 
                   <p className="mt-1 text-xs text-slate-600">Pro Woche: Mo–Fr (5 Tagesimpulse).</p>
                 </div>
