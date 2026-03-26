@@ -188,7 +188,6 @@ export default function ThemesPage() {
 
   const isFree = appMode === 'free' && currentUserPlan === null;
   const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
-  const debugModeText = `DEBUG | appMode=${appMode ?? 'null'} | isFree=${String(isFree)} | upperWeeks=${upperWeeks}`;
 
   const sortedThemes = useMemo(() => {
     return [...THEMES].sort((x, y) => sortDE(displayTitle(x), displayTitle(y)));
@@ -616,7 +615,6 @@ export default function ThemesPage() {
                   </div>
 
                   <p className="mt-1 text-xs text-slate-600">Pro Woche: Mo–Fr (5 Tagesimpulse).</p>
-                  <p className="mt-1 text-xs text-red-600">{debugModeText}</p>
                 </div>
 
                 {/* Start */}

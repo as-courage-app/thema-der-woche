@@ -20,6 +20,54 @@ type ConsentState = {
   acceptPrivacy: boolean;
 };
 
+const PLAN_DETAILS: Record<
+  PlanTier,
+  {
+    price: string;
+    tag: string;
+    duration: string;
+    features: string[];
+    extraNote?: string;
+  }
+> = {
+  A: {
+    price: '19,99 €',
+    tag: 'Start',
+    duration: '12 Monate ab Anmeldung',
+    features: ['41 Wochenthemen', '41 Bilder & Zitate', '205 Tagesimpulse'],
+  },
+  B: {
+    price: '39,99 €',
+    tag: 'Dauerhaft',
+    duration: 'ohne zeitliche Beschränkung',
+    features: [
+      '41 Wochenthemen',
+      '41 Bilder & Zitate',
+      '205 Tagesimpulse',
+      '41 Podcast-Folgen',
+      '41 Videos',
+      'Notizfunktion',
+    ],
+  },
+  C: {
+    price: '59,99 €',
+    tag: 'Komplett',
+    duration: 'ohne zeitliche Beschränkung',
+    features: [
+      '41 Wochenthemen',
+      '41 Bilder & Zitate',
+      '205 Tagesimpulse',
+      'Teamkalender iCal',
+      '41 Podcast-Folgen',
+      '41 Videos',
+      '41 Infografiken',
+      '41 Details in Kurz-/Langform',
+      'Notizfunktion',
+    ],
+    extraNote: 'Teamkalender/iCal-Funktion zum Download',
+  },
+};
+
 function readConsent(): ConsentState {
   try {
     const raw = localStorage.getItem(CONSENT_KEY);
@@ -135,10 +183,18 @@ export default function AccountPage() {
   const planCardsVisibleAsActive = authed && (viewMode === 'plan-select' || currentUserPlan !== null);
 
   const cardBase =
-    'group flex h-full flex-col rounded-2xl bg-white p-5 text-left shadow-md ring-1 ring-slate-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900';
+    'group flex h-full flex-col rounded-[24px] border p-5 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900';
 
-  const cardEnabled = 'cursor-pointer hover:-translate-y-0.5 hover:shadow-xl hover:ring-slate-400';
-  const cardDisabled = 'cursor-not-allowed opacity-50';
+  const cardEnabled = 'cursor-pointer hover:-translate-y-0.5 hover:shadow-xl';
+  const cardDisabled = 'cursor-not-allowed opacity-55';
+
+  const panelClass = 'rounded-[28px] bg-white/92 p-5 shadow-sm ring-1 ring-slate-200 md:p-6';
+  const fieldClass =
+    'mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900';
+  const darkButtonClass =
+    'inline-flex min-h-[46px] cursor-pointer items-center justify-center rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60';
+  const softButtonClass =
+    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400';
 
   useEffect(() => {
     const consent = readConsent();
@@ -395,7 +451,7 @@ export default function AccountPage() {
     try {
       const origin = window.location?.origin ?? '';
 
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password: registerPassword,
         options: {
@@ -545,21 +601,87 @@ export default function AccountPage() {
     }
   }
 
+  function renderPlanCard(plan: PlanTier) {
+    const details = PLAN_DETAILS[plan];
+    const enabled = isPlanActionAllowed(plan);
+    const isActive = currentUserPlan === plan;
+    const isUpgrade = !!currentUserPlan && planRank(plan) > planRank(currentUserPlan);
+
+    return (
+      <button
+        key={plan}
+        type="button"
+        onClick={() => startCheckout(plan)}
+        disabled={!enabled}
+        className={`${cardBase} ${enabled ? cardEnabled : ''} ${isActive
+            ? 'border-orange-300 bg-orange-50/95 shadow-lg ring-2 ring-orange-200'
+            : !enabled
+              ? 'border-slate-200 bg-slate-50/70 opacity-55'
+              : 'border-slate-200 bg-white'
+          }`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200">
+              {details.tag}
+            </span>
+
+            <h3 className="mt-3 text-xl font-semibold text-slate-900">{planButtonLabel(plan)}</h3>
+            <p className="mt-1 text-sm text-slate-600">browserbasierte Einzellizenz</p>
+          </div>
+
+          <div className="text-right">
+            <div className="text-xl font-bold text-slate-900">{details.price}</div>
+            <div className="mt-1 text-xs text-slate-600">{details.duration}</div>
+          </div>
+        </div>
+
+        <ul className="mt-5 space-y-2 text-sm text-slate-700">
+          {details.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2">
+              <span className="mt-0.5 text-base leading-none text-[#F29420]">•</span>
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+
+        {details.extraNote && (
+          <p className="mt-4 rounded-2xl bg-white/90 px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+            {details.extraNote}
+          </p>
+        )}
+
+        {isActive && (
+          <p className="mt-4 text-xs font-semibold text-emerald-700">aktuell aktiv</p>
+        )}
+
+        {isUpgrade && enabled && (
+          <p className="mt-4 text-xs font-semibold text-slate-700">Upgrade jetzt direkt möglich</p>
+        )}
+
+        {!planCardsVisibleAsActive && (
+          <p className="mt-4 text-xs text-slate-500">Nach der Anmeldung auswählbar</p>
+        )}
+
+        {selectedPlan === plan && !currentUserPlan && (
+          <p className="mt-4 text-xs font-semibold text-slate-700">zuletzt ausgewählt</p>
+        )}
+      </button>
+    );
+  }
+
   return (
     <BackgroundLayout>
-      <main className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-6">
-        <section className="rounded-2xl bg-white/85 p-6 shadow-xl backdrop-blur-md">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6">
+        <section className="rounded-[30px] bg-white/85 p-4 shadow-xl backdrop-blur-md md:p-6">
           <div className="mb-4 flex items-start justify-end gap-2">
             {canOpenThemes ? (
-              <Link
-                href="/themes"
-                className="rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-              >
+              <Link href="/themes" className={softButtonClass}>
                 Themenauswahl
               </Link>
             ) : (
               <span
-                className="rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 opacity-50 cursor-not-allowed"
+                className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 opacity-50 shadow-md ring-1 ring-slate-200"
                 aria-disabled="true"
                 title="Bitte erst anmelden"
               >
@@ -569,294 +691,173 @@ export default function AccountPage() {
 
             <Link
               href="https://thema-der-woche-kostenlos.vercel.app/version"
-              className="cursor-pointer rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+              className={softButtonClass}
             >
               zurück
             </Link>
           </div>
 
-          <h1 className="text-2xl font-semibold text-slate-900">
-            Thema der Woche <span className="text-slate-600">(Edition 1)</span>
-          </h1>
+          <section className="overflow-hidden rounded-[30px] bg-gradient-to-br from-white via-orange-50/70 to-slate-50 ring-1 ring-slate-200">
+            <div className="grid gap-6 p-6 md:grid-cols-[1.08fr_0.92fr] md:items-center md:p-8">
+              <div>
+                <div className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-[#A35B06] ring-1 ring-orange-200">
+                  Edition 1 · browserbasierte Einzellizenz
+                </div>
 
-          {(!acceptTerms || !acceptPrivacy) && (
-            <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-              Die Auswahl der Varianten ist erst nach Bestätigung von AGB und
-              Datenschutzhinweisen möglich.
-            </p>
-          )}
+                <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 md:text-5xl">
+                  Schön, dass du da bist.
+                </h1>
+
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-700 md:text-lg">
+                  Thema der Woche unterstützt dich und dein Team mit klaren Fragen, guten Gedanken
+                  und alltagstauglichen Impulsen. Melde dich an und wähle anschließend die Variante,
+                  die zu dir passt.
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-700">
+                  <span className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+                    41 Wochenthemen
+                  </span>
+                  <span className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+                    205 Tagesimpulse
+                  </span>
+                  <span className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+                    Podcast, Videos und mehr
+                  </span>
+                </div>
+
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white/90 p-3 shadow-sm ring-1 ring-slate-200">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Schritt 1
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">Konto nutzen oder anlegen</div>
+                  </div>
+
+                  <div className="rounded-2xl bg-white/90 p-3 shadow-sm ring-1 ring-slate-200">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Schritt 2
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">Variante auswählen</div>
+                  </div>
+
+                  <div className="rounded-2xl bg-white/90 p-3 shadow-sm ring-1 ring-slate-200">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Schritt 3
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">Direkt loslegen</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="overflow-hidden rounded-[30px] bg-white shadow-xl ring-1 ring-slate-200">
+                  <img
+                    src="https://thema-der-woche-kostenlos.vercel.app/version-aufsteller.jpg"
+                    alt="Thema der Woche als Tischaufsteller"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
 
           {topNotice && (
-            <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <div className="mt-5 rounded-[24px] bg-white p-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200">
               {topNotice}
             </div>
           )}
 
           {message && (
-            <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <div className="mt-4 rounded-[24px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm">
               {message}
             </div>
           )}
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <button
-              type="button"
-              onClick={() => startCheckout('A')}
-              disabled={!isPlanActionAllowed('A')}
-              className={`${cardBase} ${isPlanActionAllowed('A') ? cardEnabled : cardDisabled}`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-lg font-semibold text-slate-900">{planButtonLabel('A')}</span>
-                <span className="text-lg font-bold text-slate-900">19,99 €</span>
-              </div>
-
-              <div className="mt-2 text-sm text-slate-700">browserbasierte Einzellizenz</div>
-
-              <ul className="mt-3 list-disc pl-5 text-sm text-slate-700">
-                <li>12 Mon. ab Anmeldung</li>
-                <li>41 Wochenthemen</li>
-                <li>41 Bilder &amp; Zitate</li>
-                <li>205 Tagesimpulse</li>
-              </ul>
-
-              {currentUserPlan === 'A' && (
-                <p className="mt-3 text-xs font-semibold text-emerald-700">aktuell aktiv</p>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => startCheckout('B')}
-              disabled={!isPlanActionAllowed('B')}
-              className={`${cardBase} ${isPlanActionAllowed('B') ? cardEnabled : cardDisabled}`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-lg font-semibold text-slate-900">{planButtonLabel('B')}</span>
-                <span className="text-lg font-bold text-slate-900">39,99 €</span>
-              </div>
-
-              <div className="mt-2 text-sm text-slate-700">browserbasierte Einzellizenz</div>
-
-              <ul className="mt-3 list-disc pl-5 text-sm text-slate-700">
-                <li>dauerhaft ohne zeitliche Beschränkung</li>
-                <li>41 Wochenthemen</li>
-                <li>41 Bilder &amp; Zitate</li>
-                <li>205 Tagesimpulse</li>
-                <li>41 Podcast-Folgen</li>
-                <li>41 Videos</li>
-                <li>Notizfunktion</li>
-              </ul>
-
-              {currentUserPlan === 'B' && (
-                <p className="mt-3 text-xs font-semibold text-emerald-700">aktuell aktiv</p>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => startCheckout('C')}
-              disabled={!isPlanActionAllowed('C')}
-              className={`${cardBase} ${isPlanActionAllowed('C') ? cardEnabled : cardDisabled}`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-lg font-semibold text-slate-900">{planButtonLabel('C')}</span>
-                <span className="text-lg font-bold text-slate-900">59,99 €</span>
-              </div>
-
-              <div className="mt-2 text-sm text-slate-700">browserbasierte Einzellizenz</div>
-
-              <ul className="mt-3 list-disc pl-5 text-sm text-slate-700">
-                <li>dauerhaft ohne zeitliche Beschränkung</li>
-                <li>41 Wochenthemen</li>
-                <li>41 Bilder &amp; Zitate</li>
-                <li>205 Tagesimpulse</li>
-                <li>Teamkalender iCal</li>
-                <li>41 Podcast-Folgen</li>
-                <li>41 Videos</li>
-                <li>41 Infografiken</li>
-                <li>41 Details in Kurz-/Langform</li>
-                <li>Notizfunktion</li>
-              </ul>
-
-              <p className="mt-3 text-xs font-semibold text-emerald-700">Teamkalender/iCal-Funktion zum Download</p>
-
-              {currentUserPlan === 'C' && (
-                <p className="mt-3 text-xs font-semibold text-emerald-700">aktuell aktiv</p>
-              )}
-            </button>
-          </div>
-
-          {!planCardsVisibleAsActive && (
-            <p className="mt-4 text-sm text-slate-600">
-              Die Varianten sind sichtbar, aber zunächst deaktiviert. Nach bestätigter Anmeldung werden sie auswählbar.
-            </p>
-          )}
-
-          {planCardsVisibleAsActive && !consentOk && (
-            <div className="mt-5 max-w-2xl rounded-2xl bg-slate-50 p-4 text-sm text-slate-900 ring-1 ring-slate-200">
-              <p className="font-semibold text-slate-900">
-                Bitte bestätige vor dem Bezahlvorgang einmal AGB und Datenschutzhinweise.
-              </p>
-
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={acceptTerms}
-                    onChange={(e) => setAcceptTerms(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                  />
-                  <span>
-                    Ich akzeptiere die{' '}
-                    <Link href="/agb" className="underline hover:no-underline">
-                      AGB
-                    </Link>
-                    .
-                  </span>
-                </label>
-
-                <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={acceptPrivacy}
-                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                  />
-                  <span>
-                    <Link href="/datenschutz" className="underline hover:no-underline">
-                      Datenschutzhinweise
-                    </Link>{' '}
-                    gelesen.
-                  </span>
-                </label>
-              </div>
-
-              <div className="mt-3 text-sm text-slate-700">
-                <Link href="/impressum" className="font-semibold underline hover:text-slate-900">
-                  Impressum
-                </Link>
-              </div>
-            </div>
-          )}
-
-          <hr className="my-6 border-slate-200/70" />
-
-          {!authed && viewMode !== 'reset-password' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold text-slate-900">Anmelden</h2>
-
-                <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                  <input
-                    id="remember-me"
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 cursor-pointer rounded border-slate-300"
-                  />
-                  <span className="select-none font-semibold text-slate-900">Angemeldet bleiben</span>
-                </label>
-              </div>
-
-              {viewMode === 'confirmed-login' && (
-                <p className="text-sm text-slate-700">
-                  Deine E-Mail-Adresse ist bestätigt. Bitte melde dich jetzt mit deinem eben gesetzten Passwort an.
-                </p>
-              )}
-
-              <form onSubmit={handleLogin} className="flex flex-col gap-3">
-                <label className="text-sm font-semibold text-slate-900">
-                  E-Mail
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      writeCheckoutEmail(e.target.value);
-                    }}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                    placeholder="name@beispiel.de"
-                    autoComplete="email"
-                  />
-                </label>
-
-                <label className="text-sm font-semibold text-slate-900">
-                  Passwort
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                    placeholder="••••••••"
-                    autoComplete="current-password"
-                  />
-                </label>
-
-                <div className="-mt-1 flex items-center justify-between">
-                  <span className="text-xs text-slate-600" />
-
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    disabled={loading}
-                    className="cursor-pointer text-sm font-semibold text-slate-700 underline hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Passwort vergessen?
-                  </button>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {loading
-                    ? 'Bitte warten…'
-                    : topNotice && viewMode !== 'register'
-                      ? topNotice
-                      : 'Anmelden'}
-                </button>
-              </form>
-
-              {viewMode !== 'register' && (
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm text-slate-700">Noch kein Konto?</span>
-
-                  <button
-                    type="button"
-                    onClick={handleShowRegister}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl"
-                  >
-                    Konto anlegen
-                  </button>
-                </div>
-              )}
-
-              {viewMode === 'register' && (
-                <section className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+          <div className="mt-6 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <section className={panelClass}>
+              {viewMode === 'reset-password' && !authed ? (
+                <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="text-base font-semibold text-slate-900">Konto anlegen</h3>
+                    <div>
+                      <h2 className="text-xl font-semibold text-slate-900">Neues Passwort setzen</h2>
+                      <p className="mt-1 text-sm text-slate-700">
+                        Vergib jetzt ein neues Passwort für dein Konto.
+                      </p>
+                    </div>
 
                     <button
                       type="button"
-                      onClick={handleCancelRegister}
-                      className="text-sm font-semibold text-slate-700 underline hover:text-slate-900"
+                      onClick={() => {
+                        setViewMode('login');
+                        setTopNotice(null);
+                        setMessage(null);
+                      }}
+                      className="cursor-pointer text-sm font-semibold text-slate-700 underline hover:text-slate-900"
                     >
-                      schließen
+                      zurück zur Anmeldung
                     </button>
                   </div>
 
-                  <p className="mt-2 text-sm text-slate-700">
-                    Lege jetzt dein Konto an. Danach bestätigst du deine E-Mail-Adresse über die Mail von Supabase.
-                  </p>
+                  <form onSubmit={handleResetPassword} className="flex flex-col gap-3">
+                    <label className="text-sm font-semibold text-slate-900">
+                      Neues Passwort
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className={fieldClass}
+                        placeholder="mindestens 8 Zeichen"
+                        autoComplete="new-password"
+                      />
+                    </label>
 
-                  {message && (
-                    <div className="mt-3 rounded-2xl bg-amber-50 p-4 text-sm text-slate-900 shadow-sm ring-1 ring-amber-200">
-                      {message}
+                    <label className="text-sm font-semibold text-slate-900">
+                      Neues Passwort wiederholen
+                      <input
+                        type="password"
+                        value={newPasswordRepeat}
+                        onChange={(e) => setNewPasswordRepeat(e.target.value)}
+                        className={fieldClass}
+                        placeholder="Passwort wiederholen"
+                        autoComplete="new-password"
+                      />
+                    </label>
+
+                    <button type="submit" disabled={loading} className={darkButtonClass}>
+                      {loading ? 'Bitte warten…' : 'Neues Passwort speichern'}
+                    </button>
+                  </form>
+                </div>
+              ) : !authed ? (
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-semibold text-slate-900">Zugang zu deiner Vollversion</h2>
+                      <p className="mt-1 text-sm text-slate-700">
+                        Melde dich an oder lege ein neues Konto an.
+                      </p>
+                    </div>
+
+                    <label className="flex cursor-pointer items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                      <input
+                        id="remember-me"
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="h-4 w-4 cursor-pointer rounded border-slate-300"
+                      />
+                      <span className="select-none font-semibold text-slate-900">Angemeldet bleiben</span>
+                    </label>
+                  </div>
+
+                  {viewMode === 'confirmed-login' && (
+                    <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 ring-1 ring-emerald-200">
+                      Deine E-Mail-Adresse ist bestätigt. Bitte melde dich jetzt an.
                     </div>
                   )}
 
-                  <form onSubmit={handleRegister} className="mt-4 flex flex-col gap-3">
+                  <form onSubmit={handleLogin} className="flex flex-col gap-3">
                     <label className="text-sm font-semibold text-slate-900">
                       E-Mail
                       <input
@@ -866,7 +867,7 @@ export default function AccountPage() {
                           setEmail(e.target.value);
                           writeCheckoutEmail(e.target.value);
                         }}
-                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                        className={fieldClass}
                         placeholder="name@beispiel.de"
                         autoComplete="email"
                       />
@@ -876,156 +877,329 @@ export default function AccountPage() {
                       Passwort
                       <input
                         type="password"
-                        value={registerPassword}
-                        onChange={(e) => setRegisterPassword(e.target.value)}
-                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                        placeholder="mindestens 8 Zeichen"
-                        autoComplete="new-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={fieldClass}
+                        placeholder="••••••••"
+                        autoComplete="current-password"
                       />
                     </label>
 
-                    <label className="text-sm font-semibold text-slate-900">
-                      Passwort wiederholen
-                      <input
-                        type="password"
-                        value={registerPasswordRepeat}
-                        onChange={(e) => setRegisterPasswordRepeat(e.target.value)}
-                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                        placeholder="Passwort wiederholen"
-                        autoComplete="new-password"
-                      />
-                    </label>
-
-                    <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                        <input
-                          type="checkbox"
-                          checked={acceptTerms}
-                          onChange={(e) => setAcceptTerms(e.target.checked)}
-                          className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                        />
-                        <span>
-                          Ich akzeptiere die{' '}
-                          <Link href="/agb" className="underline hover:no-underline">
-                            AGB
-                          </Link>
-                          .
-                        </span>
-                      </label>
-
-                      <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                        <input
-                          type="checkbox"
-                          checked={acceptPrivacy}
-                          onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                          className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                        />
-                        <span>
-                          <Link href="/datenschutz" className="underline hover:no-underline">
-                            Datenschutzhinweise
-                          </Link>{' '}
-                          gelesen.
-                        </span>
-                      </label>
+                    <div className="-mt-1 flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                        className="cursor-pointer text-sm font-semibold text-slate-700 underline hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Passwort vergessen?
+                      </button>
                     </div>
 
-                    <div className="text-sm text-slate-700">
-                      <Link href="/impressum" className="font-semibold underline hover:text-slate-900">
-                        Impressum
-                      </Link>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {loading ? 'Bitte warten…' : 'Konto anlegen'}
+                    <button type="submit" disabled={loading} className={darkButtonClass}>
+                      {loading ? 'Bitte warten…' : 'Anmelden'}
                     </button>
                   </form>
-                </section>
-              )}
-            </div>
-          )}
 
-          {viewMode === 'reset-password' && !authed && (
-            <section className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold text-slate-900">Neues Passwort setzen</h2>
+                  {viewMode !== 'register' && (
+                    <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
+                      <span className="text-sm text-slate-700">Noch kein Konto?</span>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewMode('login');
-                    setTopNotice(null);
-                    setMessage(null);
-                  }}
-                  className="text-sm font-semibold text-slate-700 underline hover:text-slate-900"
-                >
-                  zurück zur Anmeldung
-                </button>
-              </div>
+                      <button type="button" onClick={handleShowRegister} className={softButtonClass}>
+                        Konto anlegen
+                      </button>
+                    </div>
+                  )}
 
-              <form onSubmit={handleResetPassword} className="flex flex-col gap-3">
-                <label className="text-sm font-semibold text-slate-900">
-                  Neues Passwort
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                    placeholder="mindestens 8 Zeichen"
-                    autoComplete="new-password"
-                  />
-                </label>
+                  {viewMode === 'register' && (
+                    <section className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-semibold text-slate-900">Konto anlegen</h3>
+                          <p className="mt-1 text-sm text-slate-700">
+                            Danach bestätigst du deine E-Mail-Adresse über die Mail von Supabase.
+                          </p>
+                        </div>
 
-                <label className="text-sm font-semibold text-slate-900">
-                  Neues Passwort wiederholen
-                  <input
-                    type="password"
-                    value={newPasswordRepeat}
-                    onChange={(e) => setNewPasswordRepeat(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                    placeholder="Passwort wiederholen"
-                    autoComplete="new-password"
-                  />
-                </label>
+                        <button
+                          type="button"
+                          onClick={handleCancelRegister}
+                          className="cursor-pointer text-sm font-semibold text-slate-700 underline hover:text-slate-900"
+                        >
+                          schließen
+                        </button>
+                      </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {loading ? 'Bitte warten…' : 'Neues Passwort speichern'}
-                </button>
-              </form>
-            </section>
-          )}
+                      <form onSubmit={handleRegister} className="mt-4 flex flex-col gap-3">
+                        <label className="text-sm font-semibold text-slate-900">
+                          E-Mail
+                          <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              writeCheckoutEmail(e.target.value);
+                            }}
+                            className={fieldClass}
+                            placeholder="name@beispiel.de"
+                            autoComplete="email"
+                          />
+                        </label>
 
-          {authed && (
-            <section className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
-              <div className="text-sm text-slate-700">
-                Angemeldet als: <span className="font-semibold text-slate-900">{authedEmail}</span>
-              </div>
+                        <label className="text-sm font-semibold text-slate-900">
+                          Passwort
+                          <input
+                            type="password"
+                            value={registerPassword}
+                            onChange={(e) => setRegisterPassword(e.target.value)}
+                            className={fieldClass}
+                            placeholder="mindestens 8 Zeichen"
+                            autoComplete="new-password"
+                          />
+                        </label>
 
-              <div className="mt-2 text-sm text-slate-700">
-                Aktuelle Variante:{' '}
-                <span className="font-semibold text-slate-900">
-                  {currentUserPlan ? `Variante ${currentUserPlan}` : 'noch keine'}
-                </span>
-              </div>
+                        <label className="text-sm font-semibold text-slate-900">
+                          Passwort wiederholen
+                          <input
+                            type="password"
+                            value={registerPasswordRepeat}
+                            onChange={(e) => setRegisterPasswordRepeat(e.target.value)}
+                            className={fieldClass}
+                            placeholder="Passwort wiederholen"
+                            autoComplete="new-password"
+                          />
+                        </label>
 
-              {currentUserPlan ? (
-                <div className="mt-2 text-xs text-slate-600">
-                  Für ein Upgrade kannst du oben eine höhere Variante auswählen.
+                        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                            <input
+                              type="checkbox"
+                              checked={acceptTerms}
+                              onChange={(e) => setAcceptTerms(e.target.checked)}
+                              className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
+                            />
+                            <span>
+                              Ich akzeptiere die{' '}
+                              <Link href="/agb" className="underline hover:no-underline">
+                                AGB
+                              </Link>
+                              .
+                            </span>
+                          </label>
+
+                          <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                            <input
+                              type="checkbox"
+                              checked={acceptPrivacy}
+                              onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                              className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
+                            />
+                            <span>
+                              <Link href="/datenschutz" className="underline hover:no-underline">
+                                Datenschutzhinweise
+                              </Link>{' '}
+                              gelesen.
+                            </span>
+                          </label>
+                        </div>
+
+                        <div className="text-sm text-slate-700">
+                          <Link href="/impressum" className="font-semibold underline hover:text-slate-900">
+                            Impressum
+                          </Link>
+                        </div>
+
+                        <button type="submit" disabled={loading} className={darkButtonClass}>
+                          {loading ? 'Bitte warten…' : 'Konto anlegen'}
+                        </button>
+                      </form>
+                    </section>
+                  )}
                 </div>
               ) : (
-                <div className="mt-2 text-xs text-slate-600">
-                  Bitte wähle jetzt oben deine Variante A, B oder C.
+                <div className="flex h-full flex-col gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900">Dein Konto</h2>
+                    <p className="mt-1 text-sm text-slate-700">
+                      Schön, dass du angemeldet bist. Von hier aus geht es direkt weiter.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div className="text-sm text-slate-700">
+                      Angemeldet als:{' '}
+                      <span className="font-semibold text-slate-900">{authedEmail}</span>
+                    </div>
+
+                    <div className="mt-2 text-sm text-slate-700">
+                      Aktuelle Variante:{' '}
+                      <span className="font-semibold text-slate-900">
+                        {currentUserPlan ? `Variante ${currentUserPlan}` : 'noch keine'}
+                      </span>
+                    </div>
+
+                    {currentUserPlan ? (
+                      <div className="mt-2 text-xs text-slate-600">
+                        Für ein Upgrade kannst du rechts eine höhere Variante auswählen.
+                      </div>
+                    ) : (
+                      <div className="mt-2 text-xs text-slate-600">
+                        Wähle jetzt rechts deine Variante A, B oder C.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[24px] bg-white p-4 ring-1 ring-slate-200">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Zugang
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-slate-900">
+                        {canOpenThemes ? 'Themenauswahl freigeschaltet' : 'Warten auf Variantenauswahl'}
+                      </div>
+                    </div>
+
+                    <div className="rounded-[24px] bg-white p-4 ring-1 ring-slate-200">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Upgrade
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-slate-900">
+                        Jederzeit direkt hier möglich
+                      </div>
+                    </div>
+                  </div>
+
+                  {canOpenThemes && (
+                    <div className="pt-1">
+                      <Link href="/themes" className={darkButtonClass}>
+                        Zur Themenauswahl
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
-          )}
+
+            <section className={panelClass}>
+              <div className="flex flex-col gap-5">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Wähle die passende Variante</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    Du kannst mit Variante A starten oder direkt eine dauerhafte Vollversion wählen.
+                    Nach der Anmeldung werden die passenden Auswahlmöglichkeiten für dich freigeschaltet.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div className="text-sm font-semibold text-slate-900">Flexibel starten</div>
+                    <p className="mt-1 text-sm text-slate-700">
+                      Variante A eignet sich gut für einen klaren Einstieg über 12 Monate.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div className="text-sm font-semibold text-slate-900">Dauerhaft nutzen</div>
+                    <p className="mt-1 text-sm text-slate-700">
+                      Varianten B und C bleiben ohne zeitliche Begrenzung verfügbar.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div className="text-sm font-semibold text-slate-900">Upgrade jederzeit</div>
+                    <p className="mt-1 text-sm text-slate-700">
+                      Bereits vorhandene Konten können später direkt auf eine höhere Variante wechseln.
+                    </p>
+                  </div>
+                </div>
+
+                {!acceptTerms || !acceptPrivacy ? (
+                  <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+                    Die Auswahl der Varianten ist erst nach Bestätigung von AGB und
+                    Datenschutzhinweisen möglich.
+                  </div>
+                ) : (
+                  <div className="rounded-[24px] bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200">
+                    AGB und Datenschutzhinweise sind bestätigt. Du kannst die freigeschalteten Varianten auswählen.
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <section className="mt-5 rounded-[28px] bg-white/92 p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-900">Deine Varianten im Überblick</h2>
+                <p className="mt-1 text-sm text-slate-700">
+                  Sichtbar für alle, auswählbar nach bestätigter Anmeldung und mit bestätigten Hinweisen.
+                </p>
+              </div>
+
+              {selectedPlan && !currentUserPlan && (
+                <div className="text-sm font-semibold text-slate-700">
+                  Letzte Auswahl: Variante {selectedPlan}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-3">
+              {(['A', 'B', 'C'] as PlanTier[]).map((plan) => renderPlanCard(plan))}
+            </div>
+
+            {!planCardsVisibleAsActive && (
+              <p className="mt-4 text-sm text-slate-600">
+                Die Varianten sind sichtbar, aber zunächst deaktiviert. Nach bestätigter Anmeldung werden sie auswählbar.
+              </p>
+            )}
+
+            {planCardsVisibleAsActive && !consentOk && (
+              <div className="mt-5 max-w-3xl rounded-[24px] bg-slate-50 p-4 text-sm text-slate-900 ring-1 ring-slate-200">
+                <p className="font-semibold text-slate-900">
+                  Bitte bestätige vor dem Bezahlvorgang einmal AGB und Datenschutzhinweise.
+                </p>
+
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
+                    />
+                    <span>
+                      Ich akzeptiere die{' '}
+                      <Link href="/agb" className="underline hover:no-underline">
+                        AGB
+                      </Link>
+                      .
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={acceptPrivacy}
+                      onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
+                    />
+                    <span>
+                      <Link href="/datenschutz" className="underline hover:no-underline">
+                        Datenschutzhinweise
+                      </Link>{' '}
+                      gelesen.
+                    </span>
+                  </label>
+                </div>
+
+                <div className="mt-3 text-sm text-slate-700">
+                  <Link href="/impressum" className="font-semibold underline hover:text-slate-900">
+                    Impressum
+                  </Link>
+                </div>
+              </div>
+            )}
+          </section>
         </section>
       </main>
     </BackgroundLayout>
