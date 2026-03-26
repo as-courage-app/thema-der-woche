@@ -614,10 +614,10 @@ export default function AccountPage() {
         onClick={() => startCheckout(plan)}
         disabled={!enabled}
         className={`${cardBase} ${enabled ? cardEnabled : ''} ${isActive
-            ? 'border-orange-300 bg-orange-50/95 shadow-lg ring-2 ring-orange-200'
-            : !enabled
-              ? 'border-slate-200 bg-slate-50/70 opacity-55'
-              : 'border-slate-200 bg-white'
+          ? 'border-orange-300 bg-orange-50/95 shadow-lg ring-2 ring-orange-200'
+          : !enabled
+            ? 'border-slate-200 bg-slate-50/70 opacity-55'
+            : 'border-slate-200 bg-white'
           }`}
       >
         <div className="flex items-start justify-between gap-3">
@@ -731,7 +731,7 @@ export default function AccountPage() {
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Schritt 1
                     </div>
-                    <div className="mt-1 text-sm font-semibold text-slate-900">Konto nutzen oder anlegen</div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">Konto anmelden</div>
                   </div>
 
                   <div className="rounded-2xl bg-white/90 p-3 shadow-sm ring-1 ring-slate-200">
@@ -1025,7 +1025,7 @@ export default function AccountPage() {
                     </p>
                   </div>
 
-                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <div className="rounded-[24px] border border-orange-300 bg-orange-50/95 p-4 shadow-lg ring-2 ring-orange-200">
                     <div className="text-sm text-slate-700">
                       Angemeldet als:{' '}
                       <span className="font-semibold text-slate-900">{authedEmail}</span>
@@ -1040,38 +1040,27 @@ export default function AccountPage() {
 
                     {currentUserPlan ? (
                       <div className="mt-2 text-xs text-slate-600">
-                        Für ein Upgrade kannst du rechts eine höhere Variante auswählen.
+                        Für ein Upgrade kannst du unten eine höhere Variante auswählen.
                       </div>
                     ) : (
                       <div className="mt-2 text-xs text-slate-600">
-                        Wähle jetzt rechts deine Variante A, B oder C.
+                        Wähle jetzt unten deine Variante A, B oder C.
                       </div>
                     )}
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[24px] bg-white p-4 ring-1 ring-slate-200">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Zugang
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-slate-900">
-                        {canOpenThemes ? 'Themenauswahl freigeschaltet' : 'Warten auf Variantenauswahl'}
-                      </div>
+                  <div className="rounded-[24px] bg-white p-4 ring-1 ring-slate-200">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Zugang
                     </div>
-
-                    <div className="rounded-[24px] bg-white p-4 ring-1 ring-slate-200">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Upgrade
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-slate-900">
-                        Jederzeit direkt hier möglich
-                      </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">
+                      {canOpenThemes ? 'Themenauswahl mit allen Themen freigeschaltet' : 'Warten auf Variantenauswahl'}
                     </div>
                   </div>
 
                   {canOpenThemes && (
                     <div className="pt-1">
-                      <Link href="/themes" className={darkButtonClass}>
+                      <Link href="/themes" className={`${darkButtonClass} w-full`}>
                         Zur Themenauswahl
                       </Link>
                     </div>
@@ -1106,27 +1095,72 @@ export default function AccountPage() {
                   </div>
 
                   <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
-                    <div className="text-sm font-semibold text-slate-900">Upgrade jederzeit</div>
+                    <div className="text-sm font-semibold text-slate-900">Upgrade möglich</div>
                     <p className="mt-1 text-sm text-slate-700">
-                      Bereits vorhandene Konten können später direkt auf eine höhere Variante wechseln.
+                      Varianten A oder B können jederzeit auf eine höhere Variante upgraden.
                     </p>
                   </div>
                 </div>
 
                 {!acceptTerms || !acceptPrivacy ? (
                   <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-                    Die Auswahl der Varianten ist erst nach Bestätigung von AGB und
+                    Die Auswahl der Varianten ist nach Bestätigung von AGB und
                     Datenschutzhinweisen möglich.
                   </div>
                 ) : (
                   <div className="rounded-[24px] bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200">
-                    AGB und Datenschutzhinweise sind bestätigt. Du kannst die freigeschalteten Varianten auswählen.
+                    AGB und Datenschutzhinweise sind bestätigt. Du kannst jetzt die freigeschalteten Varianten auswählen. Danach erfolgt eine Weiterleitung zum Bezahldient stripe.com 
                   </div>
                 )}
               </div>
             </section>
           </div>
+          {planCardsVisibleAsActive && !consentOk && (
+            <div className="mt-5 w-full rounded-[24px] bg-slate-50 p-4 text-sm text-slate-900 ring-1 ring-slate-200">
+              <p className="font-semibold text-slate-900">
+                Bitte bestätige vor dem Bezahlvorgang einmal AGB und Datenschutzhinweise.
+              </p>
 
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
+                  />
+                  <span>
+                    Ich akzeptiere die{' '}
+                    <Link href="/agb" className="underline hover:no-underline">
+                      AGB
+                    </Link>
+                    .
+                  </span>
+                </label>
+
+                <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={acceptPrivacy}
+                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
+                  />
+                  <span>
+                    <Link href="/datenschutz" className="underline hover:no-underline">
+                      Datenschutzhinweise
+                    </Link>{' '}
+                    gelesen.
+                  </span>
+                </label>
+
+                <div className="flex items-center rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
+                  <Link href="/impressum" className="font-semibold underline hover:text-slate-900">
+                    Impressum
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
           <section className="mt-5 rounded-[28px] bg-white/92 p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -1153,52 +1187,6 @@ export default function AccountPage() {
               </p>
             )}
 
-            {planCardsVisibleAsActive && !consentOk && (
-              <div className="mt-5 max-w-3xl rounded-[24px] bg-slate-50 p-4 text-sm text-slate-900 ring-1 ring-slate-200">
-                <p className="font-semibold text-slate-900">
-                  Bitte bestätige vor dem Bezahlvorgang einmal AGB und Datenschutzhinweise.
-                </p>
-
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                    <input
-                      type="checkbox"
-                      checked={acceptTerms}
-                      onChange={(e) => setAcceptTerms(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                    />
-                    <span>
-                      Ich akzeptiere die{' '}
-                      <Link href="/agb" className="underline hover:no-underline">
-                        AGB
-                      </Link>
-                      .
-                    </span>
-                  </label>
-
-                  <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                    <input
-                      type="checkbox"
-                      checked={acceptPrivacy}
-                      onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                    />
-                    <span>
-                      <Link href="/datenschutz" className="underline hover:no-underline">
-                        Datenschutzhinweise
-                      </Link>{' '}
-                      gelesen.
-                    </span>
-                  </label>
-                </div>
-
-                <div className="mt-3 text-sm text-slate-700">
-                  <Link href="/impressum" className="font-semibold underline hover:text-slate-900">
-                    Impressum
-                  </Link>
-                </div>
-              </div>
-            )}
           </section>
         </section>
       </main>

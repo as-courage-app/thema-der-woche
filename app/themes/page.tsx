@@ -735,33 +735,40 @@ export default function ThemesPage() {
                               disabled || dimBecauseLimit ? 'cursor-not-allowed opacity-40' : '',
                             ].join(' ')}
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-16 overflow-hidden rounded-lg bg-slate-100">
-                                  <img
-                                    src={`/images/themes/${t.id}.jpg`}
-                                    alt=""
-                                    className="h-full w-full object-cover object-center"
-                                    onError={(e) => {
-                                      (e.currentTarget as HTMLImageElement).src = '/images/demo.jpg';
-                                    }}
-                                  />
-                                </div>
-
-                                <div className="font-medium">{displayTitle(t)}</div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex h-24 w-32 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                                <img
+                                  src={`/images/themes/${t.id}.jpg`}
+                                  alt=""
+                                  className="h-full w-auto object-contain"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).src = '/images/demo.jpg';
+                                  }}
+                                />
                               </div>
 
-                              <div className="flex gap-1">
-                                {isUsed && (
-                                  <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-800">
-                                    genutzt
-                                  </span>
-                                )}
-                                {isSelected && (
-                                  <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 text-xs text-white">
-                                    ✓
-                                  </span>
-                                )}
+                              <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
+                                <div className="flex flex-col">
+                                  <div className="text-base font-semibold leading-6 text-slate-900">
+                                    Thema {String(t.id).match(/-(\d{2})-/)?.[1] ?? ''}
+                                  </div>
+                                  <div className="text-base font-semibold leading-6 text-slate-900">
+                                    {displayTitle(t)}
+                                  </div>
+                                </div>
+
+                                <div className="flex shrink-0 gap-1">
+                                  {isUsed && (
+                                    <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-800">
+                                      genutzt
+                                    </span>
+                                  )}
+                                  {isSelected && (
+                                    <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 text-xs text-white">
+                                      ✓
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </button>
