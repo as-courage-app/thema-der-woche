@@ -12,6 +12,7 @@ import { podcastEpisodes } from '../../lib/podcastEpisodes';
 import RequireAuth from '@/components/RequireAuth';
 import MediathekMenu from './MediathekMenu';
 import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
+import { EmbeddedNotesHistoryCard } from '@/components/notes/NotesHistoryCard';
 
 const LS_SETUP = 'as-courage.themeSetup.v1';
 
@@ -307,6 +308,7 @@ export default function QuotesPage() {
   const [podcastNotice, setPodcastNotice] = useState<string | null>(null);
   const [detailsNotice, setDetailsNotice] = useState<string | null>(null);
   const [notesNotice, setNotesNotice] = useState<string | null>(null);
+  const [showEmbeddedNotes, setShowEmbeddedNotes] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -570,19 +572,19 @@ export default function QuotesPage() {
 
 
                 {currentUserPlan === 'B' || currentUserPlan === 'C' ? (
-                  <Link
-                    href={
-                      current?.id ? `/notizen?themeId=${encodeURIComponent(current.id)}` : '/notizen'
-                    }
+                  <button
+                    type="button"
+                    onClick={() => setShowEmbeddedNotes((prev) => !prev)}
                     className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
-                    title="Notizen öffnen"
+                    title={showEmbeddedNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
                   >
                     <span aria-hidden="true" className="text-base leading-none">
                       📝
                     </span>{' '}
-                    Notizen
-                  </Link>
+                    {showEmbeddedNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
+                  </button>
                 ) : (
+
                   <button
                     type="button"
                     onClick={() => {
@@ -719,6 +721,12 @@ export default function QuotesPage() {
                 </div>
               )}
             </div>
+
+            {showEmbeddedNotes && current?.id ? (
+              <div className="px-5 pb-5 sm:px-7 sm:pb-7">
+                <EmbeddedNotesHistoryCard themeId={current.id} />
+              </div>
+            ) : null}
 
             {/* Footer */}
           </div>

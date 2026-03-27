@@ -51,7 +51,7 @@ export default function BackgroundLayout({
     <div className="relative w-full min-h-[100dvh] overflow-x-hidden">
       {/* Hintergrundbild */}
       <div
-        className="pointer-events-none absolute inset-0 z-0"
+        className="pointer-events-none absolute inset-0 z-0 print:hidden"
         aria-hidden="true"
       >
         <Image
@@ -69,7 +69,7 @@ export default function BackgroundLayout({
       </div>
 
       {/* Logo + optional Logout */}
-      <div className="absolute top-3 right-3 z-50 w-[120px] max-w-[40vw] sm:top-4 sm:right-4 sm:w-[170px] md:w-[200px]">
+      <div className="absolute top-3 right-3 z-50 w-[120px] max-w-[40vw] print:hidden sm:top-4 sm:right-4 sm:w-[170px] md:w-[200px]">
         <div className="pointer-events-none" aria-hidden="true">
           <Image
             src="/images/logo.jpg"
@@ -91,7 +91,7 @@ export default function BackgroundLayout({
       </div>
 
       {/* Content */}
-      <main className="relative z-10 flex w-full justify-center px-4 pt-28 pb-6 sm:px-[62px] sm:py-[70px]">
+      <main className="relative z-10 flex w-full justify-center px-4 pt-28 pb-6 print:px-0 print:pt-0 print:pb-0 sm:px-[62px] sm:py-[70px]">
         {children}
       </main>
     </div>
