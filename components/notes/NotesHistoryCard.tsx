@@ -19,6 +19,7 @@ type ThemeData = {
 
 type NoteRun = {
     runId: string;
+    runNumber: number;
     themeId: string;
     themeLabel: string;
     quote: string;
@@ -29,6 +30,7 @@ type NoteRun = {
     createdAt: string;
     updatedAt: string;
     importedLegacy?: boolean;
+    deletedAt?: string;
 };
 
 type StoredNotesV2 = Record<string, NoteRun[]>;
@@ -288,11 +290,47 @@ function compareRunsOldestFirst(a: NoteRun, b: NoteRun): number {
     return 0;
 }
 
+function withStableRunNumbers(runs: NoteRun[]): NoteRun[] {
+    const ordered = [...runs].sort(compareRunsOldestFirst);
+
+    let nextRunNumber = Math.max(
+        0,
+        ...ordered.map((run) =>
+            typeof run.runNumber === 'number' && Number.isFinite(run.runNumber) && run.runNumber > 0
+                ? run.runNumber
+                : 0,
+        ),
+    );
+
+    const numbered = ordered.map((run) => {
+        if (
+            typeof run.runNumber === 'number' &&
+            Number.isFinite(run.runNumber) &&
+            run.runNumber > 0
+        ) {
+            return run;
+        }
+
+        nextRunNumber += 1;
+
+        return {
+            ...run,
+            runNumber: nextRunNumber,
+        };
+    });
+
+    return numbered.sort(compareRunsNewestFirst);
+}
+
 function normalizeRun(themeId: string, run: Partial<NoteRun>): NoteRun {
     const themeData = getThemeData(themeId);
 
     return {
         runId: asString(run.runId) ?? `${themeId}-${Date.now()}`,
+        runNumber:
+            typeof run.runNumber === 'number' && Number.isFinite(run.runNumber)
+                ? run.runNumber
+                : 0,
         themeId,
         themeLabel: asString(run.themeLabel) ?? themeData.themeLabel,
         quote: asString(run.quote) ?? themeData.quote,
@@ -303,6 +341,7 @@ function normalizeRun(themeId: string, run: Partial<NoteRun>): NoteRun {
         createdAt: asString(run.createdAt) ?? new Date().toISOString(),
         updatedAt: asString(run.updatedAt) ?? asString(run.createdAt) ?? new Date().toISOString(),
         importedLegacy: Boolean(run.importedLegacy),
+        deletedAt: asString(run.deletedAt) ?? undefined,
     };
 }
 
@@ -318,9 +357,9 @@ function loadStoredNotes(): StoredNotesV2 {
         for (const [themeId, runs] of Object.entries(parsed)) {
             if (!Array.isArray(runs)) continue;
 
-            result[themeId] = runs
-                .map((run) => normalizeRun(themeId, run))
-                .sort(compareRunsNewestFirst);
+            result[themeId] = withStableRunNumbers(
+                runs.map((run) => normalizeRun(themeId, run)),
+            );
         }
     }
 
@@ -345,6 +384,7 @@ function loadStoredNotes(): StoredNotesV2 {
 
         const legacyRun: NoteRun = {
             runId: `legacy-${themeId}`,
+            runNumber: existingRuns.length + 1,
             themeId,
             themeLabel: themeData.themeLabel,
             quote: themeData.quote,
@@ -357,7 +397,7 @@ function loadStoredNotes(): StoredNotesV2 {
             importedLegacy: true,
         };
 
-        result[themeId] = [...existingRuns, legacyRun].sort(compareRunsNewestFirst);
+        result[themeId] = withStableRunNumbers([...existingRuns, legacyRun]);
     }
 
     return result;
@@ -569,6 +609,15 @@ export function NotesHistoryCardContent({
 
             const newRun: NoteRun = {
                 runId: `${activeThemeId}-${currentWeekStartIso}`,
+                runNumber:
+                    Math.max(
+                        0,
+                        ...themeRuns.map((run) =>
+                            typeof run.runNumber === 'number' && Number.isFinite(run.runNumber)
+                                ? run.runNumber
+                                : 0,
+                        ),
+                    ) + 1,
                 themeId: activeThemeId,
                 themeLabel: currentThemeData.themeLabel,
                 quote: currentThemeData.quote,
@@ -615,10 +664,12 @@ export function NotesHistoryCardContent({
 
     const runNumbers = useMemo(() => {
         const map: Record<string, number> = {};
-        const ordered = [...displayRuns].sort(compareRunsOldestFirst);
 
-        ordered.forEach((run, index) => {
-            map[run.runId] = index + 1;
+        displayRuns.forEach((run) => {
+            map[run.runId] =
+                typeof run.runNumber === 'number' && Number.isFinite(run.runNumber) && run.runNumber > 0
+                    ? run.runNumber
+                    : 1;
         });
 
         return map;
@@ -677,20 +728,25 @@ export function NotesHistoryCardContent({
         if (!displayThemeId) return;
 
         const confirmed = window.confirm(
-            'Diese Notizen werden dauerhaft gelöscht (localStorage) und können nicht wiederhergestellt werden.',
+            'Dieser Durchlauf wird als gelöscht markiert und bleibt zur Nachvollziehbarkeit in der Historie sichtbar.',
         );
 
         if (!confirmed) return;
 
         setNotesByTheme((current) => {
             const runs = current[displayThemeId] ?? [];
-            const nextRuns = runs.filter((run) => run.runId !== runId);
+            const now = new Date().toISOString();
 
-            if (nextRuns.length === 0) {
-                const copy = { ...current };
-                delete copy[displayThemeId];
-                return copy;
-            }
+            const nextRuns = runs.map((run) =>
+                run.runId === runId
+                    ? {
+                        ...run,
+                        notes: '',
+                        updatedAt: now,
+                        deletedAt: now,
+                    }
+                    : run,
+            );
 
             return {
                 ...current,
@@ -843,53 +899,55 @@ export function NotesHistoryCardContent({
                             </div>
                         </div>
 
-                        <div className="mt-5 grid gap-5 lg:grid-cols-[1.15fr_0.95fr] lg:grid-rows-[auto_auto] lg:items-stretch print:grid-cols-1">
-                            {themeImageSrc ? (
-                                <div className="rounded-[28px] border border-slate-200 bg-white p-3 sm:p-4 lg:h-[440px]">
-                                    <div className="flex h-full items-center justify-center">
-                                        <img
-                                            src={themeImageSrc}
-                                            alt={displayThemeLabel}
-                                            className="block max-h-full max-w-full object-contain"
-                                            onError={() => {
-                                                setThemeImageIndex((current) => current + 1);
-                                            }}
-                                        />
+                        {!embedded ? (
+                            <div className="mt-5 grid gap-5 lg:grid-cols-[1.15fr_0.95fr] lg:grid-rows-[auto_auto] lg:items-stretch print:grid-cols-1">
+                                {themeImageSrc ? (
+                                    <div className="rounded-[28px] border border-slate-200 bg-white p-3 sm:p-4 lg:h-[440px]">
+                                        <div className="flex h-full items-center justify-center">
+                                            <img
+                                                src={themeImageSrc}
+                                                alt={displayThemeLabel}
+                                                className="block max-h-full max-w-full object-contain"
+                                                onError={() => {
+                                                    setThemeImageIndex((current) => current + 1);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : null}
+
+                                <div
+                                    className={`rounded-[28px] border border-slate-200 bg-slate-50 px-5 py-5 ${themeImageSrc ? 'lg:h-[440px]' : ''
+                                        }`}
+                                >
+                                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-base">
+                                        Fragen der Woche
+                                    </p>
+
+                                    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                                        {DAY_KEYS.map((dayKey, index) => (
+                                            <div
+                                                key={dayKey}
+                                                className={`grid grid-cols-[56px_1fr] gap-3 px-4 py-3 ${index !== DAY_KEYS.length - 1 ? 'border-b border-slate-200' : ''
+                                                    }`}
+                                            >
+                                                <p className="text-sm font-semibold text-slate-500">{dayKey}</p>
+                                                <p className="text-sm leading-6 text-slate-800">
+                                                    {displayThemeData.questions[dayKey]}
+                                                </p>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            ) : null}
 
-                            <div
-                                className={`rounded-[28px] border border-slate-200 bg-slate-50 px-5 py-5 ${themeImageSrc ? 'lg:h-[440px]' : ''
-                                    }`}
-                            >
-                                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-base">
-                                    Fragen der Woche
-                                </p>
-
-                                <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                                    {DAY_KEYS.map((dayKey, index) => (
-                                        <div
-                                            key={dayKey}
-                                            className={`grid grid-cols-[56px_1fr] gap-3 px-4 py-3 ${index !== DAY_KEYS.length - 1 ? 'border-b border-slate-200' : ''
-                                                }`}
-                                        >
-                                            <p className="text-sm font-semibold text-slate-500">{dayKey}</p>
-                                            <p className="text-sm leading-6 text-slate-800">
-                                                {displayThemeData.questions[dayKey]}
-                                            </p>
-                                        </div>
-                                    ))}
+                                <div className="rounded-[28px] border border-slate-200 bg-white px-5 py-5 lg:col-span-2">
+                                    <p className="text-base leading-8 text-slate-800 sm:text-lg">
+                                        <span className="font-semibold text-slate-500">Zitat - </span>
+                                        {displayThemeData.quote.replace(/\s*\n+\s*/g, ' ').trim()}
+                                    </p>
                                 </div>
                             </div>
-
-                            <div className="rounded-[28px] border border-slate-200 bg-white px-5 py-5 lg:col-span-2">
-                                <p className="text-base leading-8 text-slate-800 sm:text-lg">
-                                    <span className="font-semibold text-slate-500">Zitat - </span>
-                                    {displayThemeData.quote.replace(/\s*\n+\s*/g, ' ').trim()}
-                                </p>
-                            </div>
-                        </div>
+                        ) : null}
                     </div>
 
                     <div className="px-5 py-6 sm:px-7 sm:py-7">
@@ -940,23 +998,36 @@ export function NotesHistoryCardContent({
                                                         </p>
                                                     </div>
 
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => deleteRun(run.runId)}
-                                                        className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow-sm transition hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 hover:shadow-md"
-                                                    >
-                                                        Löschen
-                                                    </button>
+                                                    {run.deletedAt ? (
+                                                        <div className="inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 shadow-sm">
+                                                            gelöscht
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => deleteRun(run.runId)}
+                                                            className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow-sm transition hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 hover:shadow-md"
+                                                        >
+                                                            Löschen
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
 
                                             <div className="px-5 py-5 sm:px-6">
-                                                <textarea
-                                                    value={run.notes}
-                                                    onChange={(event) => updateRunNotes(run.runId, event.target.value)}
-                                                    placeholder="Hier ist Platz für Beobachtungen, Aussagen von Menschen, Gedanken, Beispiele oder persönliche Notizen zu genau diesem Durchlauf …"
-                                                    className="min-h-[220px] w-full resize-y rounded-[22px] border border-slate-300 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#F29420] focus:bg-white"
-                                                />
+                                                {run.deletedAt ? (
+                                                    <div className="rounded-[22px] border border-red-200 bg-red-50 px-4 py-4 text-sm leading-6 text-red-800">
+                                                        Notizenblock vom {runNumbers[run.runId] ?? 1}. Durchlauf vom {formatDateRange(run.weekStartIso, run.weekEndIso)} wurde am{' '}
+                                                        {run.deletedAt ? formatDateDEshort(new Date(run.deletedAt)) : 'unbekanntem Datum'} gelöscht.
+                                                    </div>
+                                                ) : (
+                                                    <textarea
+                                                        value={run.notes}
+                                                        onChange={(event) => updateRunNotes(run.runId, event.target.value)}
+                                                        placeholder="Hier ist Platz für Beobachtungen, Aussagen von Menschen, Gedanken, Beispiele oder persönliche Notizen zu genau diesem Durchlauf …"
+                                                        className="min-h-[220px] w-full resize-y rounded-[22px] border border-slate-300 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#F29420] focus:bg-white"
+                                                    />
+                                                )}
                                             </div>
                                         </section>
                                     );
