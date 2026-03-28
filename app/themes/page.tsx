@@ -4,11 +4,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BackgroundLayout from '../../components/BackgroundLayout';
-import { getAppMode, FREE_ALLOWED_THEMES, FREE_WEEKS_COUNT } from '@/lib/appMode';
 import RequireAuth from '@/components/RequireAuth';
 import { readCurrentUserPlan } from '@/lib/userPlan';
-
-// Datei muss liegen unter: app/data/edition1.json
 import edition1 from '../data/edition1.json';
 
 function moveItem<T>(arr: T[], from: number, to: number): T[] {
@@ -35,7 +32,6 @@ const LS = {
   selection: 'as-courage.selectedThemes.v1',
 };
 
-// Ordner heißt "quotes" → Route ist /quotes
 const NEXT_ROUTE = '/quotes';
 
 function sortDE(a: string, b: string) {
@@ -124,7 +120,6 @@ function normalizeStringArray(input: unknown): string[] {
     return input.filter((x): x is string => typeof x === 'string');
   }
   if (input && typeof input === 'object') {
-    // Reparatur: {"0":"id1","1":"id2"} -> ["id1","id2"]
     return Object.values(input as Record<string, unknown>).filter((x): x is string => typeof x === 'string');
   }
   return [];
@@ -132,8 +127,6 @@ function normalizeStringArray(input: unknown): string[] {
 
 export default function ThemesPage() {
   const router = useRouter();
-
-  const [appMode, setAppMode] = useState<'free' | 'full' | null>(null);
 
   const SETUP_KEY = 'as-courage.themeSetup.v1';
 
@@ -152,7 +145,8 @@ export default function ThemesPage() {
   const [selectionLoaded, setSelectionLoaded] = useState(false);
   const [usedThemes, setUsedThemes] = useState<string[]>([]);
 
-  // Plan + iCal-Vorliebe laden
+  const upperWeeks = 41;
+
   useEffect(() => {
     let alive = true;
 
@@ -191,18 +185,10 @@ export default function ThemesPage() {
     };
   }, []);
 
-  useEffect(() => {
-    setAppMode(getAppMode());
-  }, []);
-
-  const isFree = appMode === 'free' && currentUserPlan === null;
-  const upperWeeks = isFree ? FREE_WEEKS_COUNT : 41;
-
   const sortedThemes = useMemo(() => {
     return [...THEMES].sort((x, y) => sortDE(displayTitle(x), displayTitle(y)));
   }, []);
 
-  // iCal-Vorliebe + Datumsbasis in SETUP_KEY speichern
   useEffect(() => {
     if (!setupLoaded) return;
     try {
@@ -231,14 +217,13 @@ export default function ThemesPage() {
       try {
         writeLS(LS.selection, next);
       } catch {
-        // egal, dann bleibt es nur im UI
+        // egal
       }
 
       return next;
     });
   }
 
-  // Initial laden + alte/kaputte LS-Strukturen reparieren
   useEffect(() => {
     const possibleKeys = [LS.setup, 'as-courage.themeSetup', 'themeSetup', 'setup', 'as-courage.setup.v1'];
 
@@ -279,9 +264,8 @@ export default function ThemesPage() {
     setSelectedThemes(selArr.slice(0, Math.min(selArr.length, upperWeeks)));
     setSelectionLoaded(true);
     setSetupLoaded(true);
-  }, [upperWeeks]);
+  }, []);
 
-  // selection persistieren
   useEffect(() => {
     if (!selectionLoaded) return;
     writeLS(LS.selection, selectedThemes);
@@ -291,6 +275,8 @@ export default function ThemesPage() {
   const usedSet = useMemo(() => new Set(usedThemes), [usedThemes]);
 
   const canSelectMore = selectedThemes.length < weeksCount;
+  const selectionComplete = weeksCount > 0 && selectedThemes.length >= weeksCount;
+  const showThemesList = !selectionComplete;
 
   function toggleTheme(id: string) {
     setError(null);
@@ -316,10 +302,7 @@ export default function ThemesPage() {
   function pickRandomThemes() {
     setError(null);
 
-    const pool = sortedThemes
-      .map((t) => t.id)
-      .filter((id) => !isFree || FREE_ALLOWED_THEMES.has(id));
-
+    const pool = sortedThemes.map((t) => t.id);
     const n = Math.min(weeksCount, pool.length);
     const copy = [...pool];
 
@@ -395,19 +378,19 @@ export default function ThemesPage() {
     <RequireAuth>
       <BackgroundLayout>
         <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl px-2 py-2 sm:px-4 sm:py-3 lg:px-6">
-          <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl bg-white/85 shadow-xl backdrop-blur-md">
+          <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#F29420] bg-white/85 shadow-xl backdrop-blur-md">
             <div className="shrink-0 p-4 sm:p-6 lg:p-7">
               <header>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
-                    <h1 className="text-xl font-semibold tracking-tight text-black sm:text-2xl">
-                      Themenauswahl <span className="text-sm font-normal tracking-wide sm:text-base">(Edition 1)</span>
+                    <h1 className="text-2xl font-semibold text-slate-900">
+                      Thema der Woche <span className="text-slate-600">(Edition 1)</span>
                     </h1>
 
                     <div className="mt-3 flex flex-wrap items-center gap-3">
-                      <div className="text-base text-slate-700">
-                        Aktuelle Variante:{' '}
-                        <span className="font-semibold text-slate-900">
+                      <div className="text-base text-slate-900">
+                        Aktuell:{' '}
+                        <span className="font-semibold text-[#F29420]">
                           {currentUserPlan ? `Variante ${currentUserPlan}` : 'wird geladen'}
                         </span>
                       </div>
@@ -450,10 +433,17 @@ export default function ThemesPage() {
                           }
                         }}
                       >
-                        <div className="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800">
+                        <div
+                          className={[
+                            'flex cursor-pointer items-start gap-2 rounded-xl px-3 py-2 text-xs text-slate-900',
+                            isPlanC && icalPref
+                              ? 'border border-[#F29420] bg-orange-100'
+                              : 'border border-orange-200 bg-orange-50',
+                          ].join(' ')}
+                        >
                           <input
                             type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer"
+                            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#F29420]"
                             checked={isPlanC ? icalPref : false}
                             aria-disabled={!isPlanC}
                             onChange={(e) => {
@@ -464,7 +454,7 @@ export default function ThemesPage() {
                           />
                           <span className="leading-5">
                             iCal aktivieren (nur in Variante C möglich)
-                            <span className="block text-[11px] text-slate-500">
+                            <span className="block text-[11px] text-slate-700">
                               Download später bei „Zitate &amp; Tagesimpulse“
                             </span>
                           </span>
@@ -482,7 +472,13 @@ export default function ThemesPage() {
               </header>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-auto px-4 pb-4 sm:px-6 sm:pb-6 lg:px-7 lg:pb-7">
+            <div
+              className={[
+                showThemesList
+                  ? 'min-h-0 flex-1 overflow-auto px-4 pb-4 sm:px-6 sm:pb-6 lg:px-7 lg:pb-7'
+                  : 'overflow-visible px-4 sm:px-6 lg:px-7',
+              ].join(' ')}
+            >
               <div className="grid gap-3 lg:grid-cols-3">
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-black sm:text-slate-800">
                   <label className="block text-sm font-medium text-slate-800">Anzahl Wochen (Empfehlung max. 4)</label>
@@ -596,8 +592,8 @@ export default function ThemesPage() {
                       className={[
                         'rounded-lg border px-3 py-2 text-sm transition',
                         mode === 'manual'
-                          ? 'border-slate-900 bg-slate-900 text-white'
-                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
+                          ? 'border-[#F29420] bg-[#F29420] text-white'
+                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50'
                       ].join(' ')}
                     >
                       Manuell
@@ -612,8 +608,8 @@ export default function ThemesPage() {
                       className={[
                         'rounded-lg border px-3 py-2 text-sm transition',
                         mode === 'random'
-                          ? 'border-slate-900 bg-slate-900 text-white'
-                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
+                          ? 'border-[#F29420] bg-[#F29420] text-white'
+                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50'
                       ].join(' ')}
                     >
                       Zufall
@@ -627,7 +623,7 @@ export default function ThemesPage() {
                   <button
                     type="button"
                     onClick={pickRandomThemes}
-                    className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white transition hover:opacity-90"
+                    className="inline-flex h-[48px] items-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-0 text-sm text-white transition hover:bg-[#E4891E]"
                   >
                     Zufallsauswahl erzeugen
                   </button>
@@ -636,29 +632,31 @@ export default function ThemesPage() {
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-black transition hover:bg-slate-50"
+                  className="inline-flex h-[48px] items-center rounded-xl border border-slate-300 bg-white px-4 py-0 text-sm text-black transition hover:bg-slate-50"
                 >
-                  Auswahl löschen
+                  Auswahl aufheben
                 </button>
 
                 <button
                   type="button"
                   onClick={clearUsedThemes}
-                  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 transition hover:bg-amber-100"
+                  className="inline-flex h-[48px] items-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-0 text-sm text-amber-900 transition hover:bg-amber-100"
                 >
                   genutzt löschen
                 </button>
 
-                <button
-                  type="button"
-                  onClick={onContinue}
-                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
-                >
-                  Weiter
-                </button>
+                {selectionComplete && (
+                  <button
+                    type="button"
+                    onClick={onContinue}
+                    className="inline-flex h-[48px] items-center rounded-xl border border-[#F29420] bg-[#F29420] px-5 py-0 text-sm font-medium text-white transition hover:bg-[#E4891E]"
+                  >
+                    Weiter
+                  </button>
+                )}
 
-                <div className="ml-auto text-sm text-black sm:text-slate-700">
-                  Ausgewählt: <span className="font-semibold">{selectedThemes.length}</span> / {weeksCount}
+                <div className="ml-auto inline-flex h-[48px] items-center rounded-xl border border-[#F29420] bg-white px-4 py-0 text-base font-semibold text-slate-900">
+                  Ausgewählt:&nbsp;<span className="font-semibold">{selectedThemes.length}</span>&nbsp;/&nbsp;{weeksCount}
                 </div>
               </div>
 
@@ -668,120 +666,118 @@ export default function ThemesPage() {
                 </div>
               )}
 
-              <div className="mt-4">
-                <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="text-sm text-slate-800">
-                    <div>
-                      <span className="font-semibold">Themen</span> (alphabetisch)
-                    </div>
-                    <div>Bereits genutzte Themen bleiben auswählbar – sie sind nur markiert. <br />
-                      Die Reihenfolge der Themen lässt sich ganz unten mit den Pfeiltasten beliebig verändern.</div>
-                    <p className="mt-2 text-sm text-black">
+              {showThemesList && (
+                <div className="mt-4">
+                  <div className="mb-3 rounded-2xl border border-[#F29420] bg-white p-4 text-base text-slate-700 shadow-sm">
+                    <p>
+                      Hier wählst du deine <span className="font-semibold text-slate-900">Themen</span> aus. Sobald die gewünschte{' '}
+                      <span className="font-semibold text-slate-900">Anzahl</span> erreicht ist, wird die Themenliste automatisch
+                      ausgeblendet. So erscheint <span className="font-semibold text-slate-900">„Deine Auswahl“</span> direkt im Blick.
+                    </p>
+
+                    <p className="mt-3">
+                      Dort siehst du <span className="font-semibold text-slate-900">Bild</span>,{' '}
+                      <span className="font-semibold text-slate-900">Titel</span> und{' '}
+                      <span className="font-semibold text-slate-900">Zeitraum</span> deiner gewählten Themen. Mit den{' '}
+                      <span className="font-semibold text-slate-900">Pfeiltasten</span> kannst du die Reihenfolge beliebig
+                      verändern. Bereits genutzte <span className="font-semibold text-slate-900">Themen</span> werden markiert und können immer wieder genutzt werden.
+                    </p>
+
+                    <p className="mt-3">
                       Wähle genau <span className="font-semibold text-slate-900">{weeksCount}</span> Thema/Themen aus.
                     </p>
                   </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-2 sm:p-3" aria-label="Themenliste">
+                    <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {sortedThemes.map((t) => {
+                        const isSelected = selectedSet.has(t.id);
+                        const isUsed = usedSet.has(t.id);
 
-                  <div className="text-xs text-slate-600 lg:max-w-xs">
-                    {mode === 'manual'
-                      ? canSelectMore
-                        ? 'Du kannst noch auswählen.'
-                        : 'Auswahl vollständig. Weitere Auswahl ist deaktiviert.'
-                      : 'In Zufall wird die Auswahl durch Ziehung gesetzt, ist aber weiterhin sichtbar.'}
-                  </div>
-                </div>
+                        const disabled = mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount;
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-2 sm:p-3" aria-label="Themenliste">
-                  <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {sortedThemes.map((t) => {
-                      const isAllowedInFree = !isFree || FREE_ALLOWED_THEMES.has(t.id);
-                      const isSelected = selectedSet.has(t.id);
-                      const isUsed = usedSet.has(t.id);
+                        const dimBecauseLimit =
+                          (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount) ||
+                          (mode === 'random' && selectedThemes.length > 0 && !isSelected);
 
-                      const disabled =
-                        !isAllowedInFree || (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount);
+                        return (
+                          <li key={t.id} className="min-w-0">
+                            <button
+                              type="button"
+                              disabled={disabled}
+                              onClick={() => {
+                                if (mode === 'random') return;
+                                toggleTheme(t.id);
+                              }}
+                              className={[
+                                'w-full min-w-0 rounded-xl border p-3 text-left transition',
+                                isSelected
+                                  ? 'border-[#F29420] bg-[#F29420] text-white'
+                                  : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
+                                disabled || dimBecauseLimit ? 'cursor-not-allowed opacity-40' : '',
+                              ].join(' ')}
+                            >
+                              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
+                                <div className="h-32 w-full overflow-hidden rounded-xl bg-slate-100 sm:h-24 sm:w-32 sm:shrink-0">
+                                  <img
+                                    src={`/images/themes/${t.id}.jpg`}
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLImageElement).src = '/images/demo.jpg';
+                                    }}
+                                  />
+                                </div>
 
-                      const dimBecauseLimit =
-                        (mode === 'manual' && !isSelected && selectedThemes.length >= weeksCount) ||
-                        (mode === 'random' && selectedThemes.length > 0 && !isSelected);
+                                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {isUsed && (
+                                      <span
+                                        className={[
+                                          'rounded-full px-2 py-0.5 text-xs',
+                                          isSelected
+                                            ? 'border border-white/25 bg-white/10 text-white'
+                                            : 'border border-amber-200 bg-amber-50 text-amber-800',
+                                        ].join(' ')}
+                                      >
+                                        genutzt
+                                      </span>
+                                    )}
 
-                      return (
-                        <li key={t.id} className="min-w-0">
-                          <button
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => {
-                              if (mode === 'random') return;
-                              toggleTheme(t.id);
-                            }}
-                            className={[
-                              'w-full min-w-0 rounded-xl border p-3 text-left transition',
-                              isSelected
-                                ? 'border-slate-900 bg-slate-900 text-white'
-                                : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
-                              disabled || dimBecauseLimit ? 'cursor-not-allowed opacity-40' : '',
-                            ].join(' ')}
-                          >
-                            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
-                              <div className="h-32 w-full overflow-hidden rounded-xl bg-slate-100 sm:h-24 sm:w-32 sm:shrink-0">
-                                <img
-                                  src={`/images/themes/${t.id}.jpg`}
-                                  alt=""
-                                  className="h-full w-full object-cover"
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).src = '/images/demo.jpg';
-                                  }}
-                                />
-                              </div>
+                                    {isSelected && (
+                                      <span className="rounded-full border border-white/25 bg-white/10 px-2 py-0.5 text-xs text-white">
+                                        ✓ ausgewählt
+                                      </span>
+                                    )}
+                                  </div>
 
-                              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  {isUsed && (
-                                    <span
+                                  <div className="min-w-0">
+                                    <div
                                       className={[
-                                        'rounded-full px-2 py-0.5 text-xs',
-                                        isSelected
-                                          ? 'border border-white/25 bg-white/10 text-white'
-                                          : 'border border-amber-200 bg-amber-50 text-amber-800',
+                                        'text-base font-semibold leading-6 break-words',
+                                        isSelected ? 'text-white' : 'text-slate-900',
                                       ].join(' ')}
                                     >
-                                      genutzt
-                                    </span>
-                                  )}
-
-                                  {isSelected && (
-                                    <span className="rounded-full border border-white/25 bg-white/10 px-2 py-0.5 text-xs text-white">
-                                      ✓ ausgewählt
-                                    </span>
-                                  )}
-                                </div>
-
-                                <div className="min-w-0">
-                                  <div
-                                    className={[
-                                      'text-base font-semibold leading-6 break-words',
-                                      isSelected ? 'text-white' : 'text-slate-900',
-                                    ].join(' ')}
-                                  >
-                                    Thema {String(t.id).match(/-(\d{2})-/)?.[1] ?? ''}
-                                  </div>
-                                  <div
-                                    className={[
-                                      'text-base font-semibold leading-6 break-words',
-                                      isSelected ? 'text-white' : 'text-slate-900',
-                                    ].join(' ')}
-                                  >
-                                    {displayTitle(t)}
+                                      Thema {String(t.id).match(/-(\d{2})-/)?.[1] ?? ''}
+                                    </div>
+                                    <div
+                                      className={[
+                                        'text-base font-semibold leading-6 break-words',
+                                        isSelected ? 'text-white' : 'text-slate-900',
+                                      ].join(' ')}
+                                    >
+                                      {displayTitle(t)}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-7">
@@ -808,16 +804,39 @@ export default function ThemesPage() {
 
                       return (
                         <div key={`${item.id}-${i}`} className="grid grid-cols-1 sm:grid-cols-[minmax(170px,220px)_1fr]">
-                          <div className="border-b border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800 sm:border-b-0 sm:border-r">
-                            <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 sm:hidden">Datum</span>
-                            {item.dateRange}
+                          <div className="flex items-center border-b border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800 sm:border-b-0 sm:border-r">
+                            <div>
+                              <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 sm:hidden">Datum</span>
+                              {item.dateRange}
+                            </div>
                           </div>
 
                           <div className="px-3 py-3">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                              <div className="min-w-0 text-sm font-medium text-slate-900">
+                              <div className="min-w-0 flex-1">
                                 <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 sm:hidden">Thema</span>
-                                <span className="block break-words">{item.title}</span>
+
+                                <div className="flex min-w-0 items-center gap-4">
+                                  <div className="h-24 w-32 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                                    <img
+                                      src={`/images/themes/${item.id}.jpg`}
+                                      alt=""
+                                      className="h-full w-full object-cover"
+                                      onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).src = '/images/demo.jpg';
+                                      }}
+                                    />
+                                  </div>
+
+                                  <div className="min-w-0">
+                                    <div className="text-base font-semibold leading-6 break-words text-slate-900">
+                                      Thema {String(item.id).match(/-(\d{2})-/)?.[1] ?? ''}
+                                    </div>
+                                    <div className="text-base font-semibold leading-6 break-words text-slate-900">
+                                      {item.title}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
 
                               <div className="flex shrink-0 items-center gap-2">

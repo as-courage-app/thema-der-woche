@@ -396,21 +396,18 @@ export default function QuotesPage() {
     <RequireAuth>
       <BackgroundLayout activeThemeId={current?.id}>
         <div className="mx-auto flex h-full min-h-[100svh] lg:min-h-0 max-w-6xl px-10 py-3">
-          <div className="w-full max-h-none rounded-none sm:rounded-2xl bg-white/98 sm:bg-white/85 shadow-none sm:shadow-xl backdrop-blur-md min-h-[100dvh] sm:min-h-0 overflow-visible flex flex-col">
+          <div className="w-full max-h-none rounded-none sm:rounded-2xl border-0 sm:border sm:border-[#F29420] bg-white/98 sm:bg-white/85 shadow-none sm:shadow-xl backdrop-blur-md min-h-[100dvh] sm:min-h-0 overflow-visible flex flex-col">
             {/* Kopf */}
             <div className="p-5 sm:p-7 shrink-0">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-                    Zitate &amp; Tagesimpulse{' '}
-                    <span className="text-base font-normal tracking-wide text-slate-600">
-                      (Edition 1)
-                    </span>
+                  <h1 className="text-2xl font-semibold text-slate-900">
+                    Thema der Woche <span className="text-slate-600">(Edition 1)</span>
                   </h1>
 
-                  <div className="text-base text-slate-700">
-                    Aktuelle Variante:{' '}
-                    <span className="font-semibold text-slate-900">
+                  <div className="mt-2 text-base text-slate-900">
+                    Aktuell:{' '}
+                    <span className="font-semibold text-[#F29420]">
                       {currentUserPlan ? `Variante ${currentUserPlan}` : 'wird geladen'}
                     </span>
                   </div>
@@ -436,7 +433,7 @@ export default function QuotesPage() {
                           const ics = buildIcsFromPlan(setup, selectedThemes);
                           downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
                         }}
-                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white hover:opacity-90"
+                        className="rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#E4891E]"
                         title="iCal-Datei herunterladen"
                       >
                         iCal herunterladen
