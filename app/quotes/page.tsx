@@ -446,7 +446,7 @@ export default function QuotesPage() {
                     <button
                       type="button"
                       onClick={() => router.push('/themes')}
-                      className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg cursor-pointer"
                     >
                       zurück zur Themenauswahl
                     </button>
@@ -513,9 +513,9 @@ export default function QuotesPage() {
                   onClick={goPrev}
                   disabled={!canPrev}
                   className={[
-                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition-all',
+                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition duration-200',
                     canPrev
-                      ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer'
+                      ? 'border-slate-900 bg-slate-900 text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-black hover:border-black hover:shadow-lg cursor-pointer'
                       : 'border-slate-200 bg-white text-slate-400 cursor-not-allowed',
                   ].join(' ')}
                 >
@@ -527,9 +527,9 @@ export default function QuotesPage() {
                   onClick={goNext}
                   disabled={!canNext}
                   className={[
-                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition-all',
+                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition duration-200',
                     canNext
-                      ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer'
+                      ? 'border-slate-900 bg-slate-900 text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-black hover:border-black hover:shadow-lg cursor-pointer'
                       : 'border-slate-200 bg-white text-slate-400 cursor-not-allowed',
                   ].join(' ')}
                 >
@@ -575,7 +575,7 @@ export default function QuotesPage() {
                   <button
                     type="button"
                     onClick={() => setShowEmbeddedNotes((prev) => !prev)}
-                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-lg cursor-pointer"
                     title={showEmbeddedNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
                   >
                     <span aria-hidden="true" className="text-base leading-none">
@@ -594,7 +594,7 @@ export default function QuotesPage() {
                           : 'Notizen nur in Variante B oder C verfügbar.',
                       );
                     }}
-                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-400 hover:shadow-md cursor-pointer"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-lg cursor-pointer"
                     title="Notizen öffnen"
                   >
                     <span aria-hidden="true" className="text-base leading-none">
@@ -674,11 +674,11 @@ export default function QuotesPage() {
                         </div>
 
                         <div
-                          className="mt-3 sticky top-0 z-10 rounded-xl p-4 shadow"
-                          style={{ backgroundColor: BRAND_ORANGE, color: '#ffffff' }}
+                          className="mt-3 sticky top-0 z-10 rounded-xl border-2 bg-slate-50 p-4 shadow-sm"
+                          style={{ borderColor: BRAND_ORANGE }}
                         >
-                          <div className="text-xs uppercase tracking-wide opacity-90">Wochenzitat</div>
-                          <div className="mt-1 text-lg font-semibold leading-relaxed">„{current.quote}“</div>
+                          <div className="text-sm font-semibold tracking-wide text-slate-900">Wochenzitat</div>
+                          <div className="mt-2 text-lg leading-relaxed text-slate-900">„{current.quote}“</div>
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-2">
@@ -693,10 +693,10 @@ export default function QuotesPage() {
                                 }))
                               }
                               className={[
-                                'rounded-full px-3 py-1.5 text-xs border',
+                                'rounded-full px-3 py-1.5 text-xs border shadow-sm transition duration-200 cursor-pointer',
                                 dayIndex === d.index
-                                  ? 'bg-slate-900 text-white border-slate-900'
-                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50',
+                                  ? 'bg-slate-900 text-white border-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-black hover:border-black hover:shadow-md'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-50 hover:border-slate-300 hover:shadow-md',
                               ].join(' ')}
                             >
                               <span className="flex flex-col items-center leading-tight">
@@ -707,7 +707,7 @@ export default function QuotesPage() {
                           ))}
                         </div>
 
-                        <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="mt-3 rounded-xl border-2 border-[#F29420] bg-slate-50 p-4">
                           <div className="text-sm font-medium text-slate-800">{WEEKDAYS[dayIndex].label}</div>
                           <div className="mt-1 text-sm text-slate-900 leading-relaxed">
                             {current.questions?.[dayIndex] ?? '—'}
