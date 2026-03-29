@@ -177,8 +177,9 @@ export default function AccountPage() {
   const [mounted, setMounted] = useState(false);
 
   const consentOk = useMemo(() => acceptTerms && acceptPrivacy, [acceptTerms, acceptPrivacy]);
-
   const authed = !!authedEmail;
+  const consentConfirmed = consentOk || authed;
+
   const canOpenThemes = mounted && authed && !!currentUserPlan;
   const planCardsVisibleAsActive = authed && (viewMode === 'plan-select' || currentUserPlan !== null);
 
@@ -193,6 +194,10 @@ export default function AccountPage() {
     'mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900';
   const darkButtonClass =
     'inline-flex min-h-[46px] cursor-pointer items-center justify-center rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60';
+  const orangeButtonClass =
+    'inline-flex min-h-[46px] cursor-pointer items-center justify-center rounded-2xl bg-[#F29420] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#E4891E] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60';
+  const greenButtonClass =
+    'inline-flex min-h-[46px] cursor-pointer items-center justify-center rounded-2xl bg-[#4EA72E] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#449327] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60';
   const softButtonClass =
     'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-md ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400';
 
@@ -340,7 +345,7 @@ export default function AccountPage() {
 
   function isPlanActionAllowed(plan: PlanTier): boolean {
     if (!planCardsVisibleAsActive) return false;
-    if (!consentOk) return false;
+    if (!consentConfirmed) return false;
 
     if (!currentUserPlan) return true;
 
@@ -566,7 +571,7 @@ export default function AccountPage() {
       return;
     }
 
-    if (!consentOk) {
+    if (!consentConfirmed) {
       setTopNotice('Bitte bestätige zuerst AGB und Datenschutzhinweise.');
       return;
     }
@@ -651,9 +656,7 @@ export default function AccountPage() {
           </p>
         )}
 
-        {isActive && (
-          <p className="mt-4 text-xs font-semibold text-emerald-700">aktuell aktiv</p>
-        )}
+        {isActive && <p className="mt-4 text-xs font-semibold text-emerald-700">aktuell aktiv</p>}
 
         {isUpgrade && enabled && (
           <p className="mt-4 text-xs font-semibold text-slate-700">Upgrade jetzt direkt möglich</p>
@@ -673,7 +676,7 @@ export default function AccountPage() {
   return (
     <BackgroundLayout>
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6">
-        <section className="rounded-[30px] bg-white/85 p-4 shadow-xl backdrop-blur-md md:p-6">
+        <section className="rounded-[30px] border border-[#F29420] bg-white/85 p-4 shadow-xl backdrop-blur-md md:p-6">
           <div className="mb-4 flex items-start justify-end gap-2">
             {canOpenThemes ? (
               <Link href="/themes" className={softButtonClass}>
@@ -689,15 +692,12 @@ export default function AccountPage() {
               </span>
             )}
 
-            <Link
-              href="https://thema-der-woche-kostenlos.vercel.app/version"
-              className={softButtonClass}
-            >
+            <Link href="https://thema-der-woche-kostenlos.vercel.app/version" className={softButtonClass}>
               zurück
             </Link>
           </div>
 
-          <section className="overflow-hidden rounded-[30px] bg-gradient-to-br from-white via-orange-50/70 to-slate-50 ring-1 ring-slate-200">
+          <section className="overflow-hidden rounded-[30px] border border-[#F29420] bg-gradient-to-br from-white via-orange-50/70 to-slate-50 ring-1 ring-orange-200">
             <div className="grid gap-6 p-6 md:grid-cols-[1.08fr_0.92fr] md:items-center md:p-8">
               <div>
                 <div className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-[#A35B06] ring-1 ring-orange-200">
@@ -709,42 +709,35 @@ export default function AccountPage() {
                 </h1>
 
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-700 md:text-lg">
-                  Thema der Woche unterstützt dich und dein Team mit klaren Fragen, guten Gedanken
-                  und alltagstauglichen Impulsen. Melde dich an und wähle anschließend die Variante,
-                  die zu dir passt.
+                  Thema der Woche unterstützt dich und dein Team mit klaren Fragen, guten Gedanken und
+                  alltagstauglichen Impulsen. Melde dich an und wähle anschließend die Variante, die zu dir passt.
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-700">
-                  <span className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+                  <span className="rounded-2xl border border-orange-200 bg-white px-3 py-2 shadow-sm">
                     41 Wochenthemen
                   </span>
-                  <span className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+                  <span className="rounded-2xl border border-orange-200 bg-white px-3 py-2 shadow-sm">
                     205 Tagesimpulse
                   </span>
-                  <span className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+                  <span className="rounded-2xl border border-orange-200 bg-white px-3 py-2 shadow-sm">
                     Podcast, Videos und mehr
                   </span>
                 </div>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-white/90 p-3 shadow-sm ring-1 ring-slate-200">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Schritt 1
-                    </div>
+                  <div className="rounded-2xl border border-orange-200 bg-white/90 p-3 shadow-sm">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Schritt 1</div>
                     <div className="mt-1 text-sm font-semibold text-slate-900">Konto anmelden</div>
                   </div>
 
-                  <div className="rounded-2xl bg-white/90 p-3 shadow-sm ring-1 ring-slate-200">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Schritt 2
-                    </div>
+                  <div className="rounded-2xl border border-orange-200 bg-white/90 p-3 shadow-sm">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Schritt 2</div>
                     <div className="mt-1 text-sm font-semibold text-slate-900">Variante auswählen</div>
                   </div>
 
-                  <div className="rounded-2xl bg-white/90 p-3 shadow-sm ring-1 ring-slate-200">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Schritt 3
-                    </div>
+                  <div className="rounded-2xl border border-orange-200 bg-white/90 p-3 shadow-sm">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Schritt 3</div>
                     <div className="mt-1 text-sm font-semibold text-slate-900">Direkt loslegen</div>
                   </div>
                 </div>
@@ -775,15 +768,13 @@ export default function AccountPage() {
           )}
 
           <div className="mt-6 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <section className={panelClass}>
+            <section className={`${panelClass} border border-[#F29420]`}>
               {viewMode === 'reset-password' && !authed ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-xl font-semibold text-slate-900">Neues Passwort setzen</h2>
-                      <p className="mt-1 text-sm text-slate-700">
-                        Vergib jetzt ein neues Passwort für dein Konto.
-                      </p>
+                      <p className="mt-1 text-sm text-slate-700">Vergib jetzt ein neues Passwort für dein Konto.</p>
                     </div>
 
                     <button
@@ -834,9 +825,7 @@ export default function AccountPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h2 className="text-xl font-semibold text-slate-900">Zugang zu deiner Vollversion</h2>
-                      <p className="mt-1 text-sm text-slate-700">
-                        Melde dich an oder lege ein neues Konto an.
-                      </p>
+                      <p className="mt-1 text-sm text-slate-700">Melde dich an oder lege ein neues Konto an.</p>
                     </div>
 
                     <label className="flex cursor-pointer items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
@@ -896,7 +885,7 @@ export default function AccountPage() {
                       </button>
                     </div>
 
-                    <button type="submit" disabled={loading} className={darkButtonClass}>
+                    <button type="submit" disabled={loading} className={orangeButtonClass}>
                       {loading ? 'Bitte warten…' : 'Anmelden'}
                     </button>
                   </form>
@@ -1009,7 +998,7 @@ export default function AccountPage() {
                           </Link>
                         </div>
 
-                        <button type="submit" disabled={loading} className={darkButtonClass}>
+                        <button type="submit" disabled={loading} className={orangeButtonClass}>
                           {loading ? 'Bitte warten…' : 'Konto anlegen'}
                         </button>
                       </form>
@@ -1027,8 +1016,7 @@ export default function AccountPage() {
 
                   <div className="rounded-[24px] border border-orange-300 bg-orange-50/95 p-4 shadow-lg ring-2 ring-orange-200">
                     <div className="text-sm text-slate-700">
-                      Angemeldet als:{' '}
-                      <span className="font-semibold text-slate-900">{authedEmail}</span>
+                      Angemeldet als: <span className="font-semibold text-slate-900">{authedEmail}</span>
                     </div>
 
                     <div className="mt-2 text-sm text-slate-700">
@@ -1043,16 +1031,12 @@ export default function AccountPage() {
                         Für ein Upgrade kannst du unten eine höhere Variante auswählen.
                       </div>
                     ) : (
-                      <div className="mt-2 text-xs text-slate-600">
-                        Wähle jetzt unten deine Variante A, B oder C.
-                      </div>
+                      <div className="mt-2 text-xs text-slate-600">Wähle jetzt unten deine Variante A, B oder C.</div>
                     )}
                   </div>
 
                   <div className="rounded-[24px] bg-white p-4 ring-1 ring-slate-200">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Zugang
-                    </div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Zugang</div>
                     <div className="mt-1 text-sm font-semibold text-slate-900">
                       {canOpenThemes ? 'Themenauswahl mit allen Themen freigeschaltet' : 'Warten auf Variantenauswahl'}
                     </div>
@@ -1060,7 +1044,7 @@ export default function AccountPage() {
 
                   {canOpenThemes && (
                     <div className="pt-1">
-                      <Link href="/themes" className={`${darkButtonClass} w-full`}>
+                      <Link href="/themes" className={`${greenButtonClass} w-full`}>
                         Zur Themenauswahl
                       </Link>
                     </div>
@@ -1069,32 +1053,32 @@ export default function AccountPage() {
               )}
             </section>
 
-            <section className={panelClass}>
+            <section className={`${panelClass} border border-[#F29420]`}>
               <div className="flex flex-col gap-5">
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900">Wähle die passende Variante</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-700">
-                    Du kannst mit Variante A starten oder direkt eine dauerhafte Vollversion wählen.
-                    Nach der Anmeldung werden die passenden Auswahlmöglichkeiten für dich freigeschaltet.
+                    Du kannst mit Variante A starten oder direkt eine dauerhafte Vollversion wählen. Nach der Anmeldung
+                    werden die passenden Auswahlmöglichkeiten für dich freigeschaltet.
                   </p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <div className="rounded-[24px] border border-orange-200 bg-slate-50 p-4">
                     <div className="text-sm font-semibold text-slate-900">Flexibel starten</div>
                     <p className="mt-1 text-sm text-slate-700">
                       Variante A eignet sich gut für einen klaren Einstieg über 12 Monate.
                     </p>
                   </div>
 
-                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <div className="rounded-[24px] border border-orange-200 bg-slate-50 p-4">
                     <div className="text-sm font-semibold text-slate-900">Dauerhaft nutzen</div>
                     <p className="mt-1 text-sm text-slate-700">
                       Varianten B und C bleiben ohne zeitliche Begrenzung verfügbar.
                     </p>
                   </div>
 
-                  <div className="rounded-[24px] bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <div className="rounded-[24px] border border-orange-200 bg-slate-50 p-4">
                     <div className="text-sm font-semibold text-slate-900">Upgrade möglich</div>
                     <p className="mt-1 text-sm text-slate-700">
                       Varianten A oder B können jederzeit auf eine höhere Variante upgraden.
@@ -1102,65 +1086,20 @@ export default function AccountPage() {
                   </div>
                 </div>
 
-                {!acceptTerms || !acceptPrivacy ? (
+                {viewMode === 'register' && !consentConfirmed ? (
                   <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-                    Die Auswahl der Varianten ist nach Bestätigung von AGB und
-                    Datenschutzhinweisen möglich.
+                    Die Auswahl der Varianten ist nach Bestätigung von AGB und Datenschutzhinweisen möglich.
                   </div>
-                ) : (
+                ) : authed ? (
                   <div className="rounded-[24px] bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200">
-                    AGB und Datenschutzhinweise sind bestätigt. Du kannst jetzt die freigeschalteten Varianten auswählen. Danach erfolgt eine Weiterleitung zum Bezahldient stripe.com 
+                    AGB und Datenschutzhinweise sind bestätigt. Du kannst jetzt die freigeschalteten Varianten
+                    auswählen. Danach erfolgt eine Weiterleitung zum Bezahldienst stripe.com
                   </div>
-                )}
+                ) : null}
               </div>
             </section>
           </div>
-          {planCardsVisibleAsActive && !consentOk && (
-            <div className="mt-5 w-full rounded-[24px] bg-slate-50 p-4 text-sm text-slate-900 ring-1 ring-slate-200">
-              <p className="font-semibold text-slate-900">
-                Bitte bestätige vor dem Bezahlvorgang einmal AGB und Datenschutzhinweise.
-              </p>
 
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={acceptTerms}
-                    onChange={(e) => setAcceptTerms(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                  />
-                  <span>
-                    Ich akzeptiere die{' '}
-                    <Link href="/agb" className="underline hover:no-underline">
-                      AGB
-                    </Link>
-                    .
-                  </span>
-                </label>
-
-                <label className="flex cursor-pointer items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={acceptPrivacy}
-                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300"
-                  />
-                  <span>
-                    <Link href="/datenschutz" className="underline hover:no-underline">
-                      Datenschutzhinweise
-                    </Link>{' '}
-                    gelesen.
-                  </span>
-                </label>
-
-                <div className="flex items-center rounded-2xl bg-white px-3 py-2 text-xs text-slate-800 ring-1 ring-slate-200">
-                  <Link href="/impressum" className="font-semibold underline hover:text-slate-900">
-                    Impressum
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
           <section className="mt-5 rounded-[28px] bg-white/92 p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -1171,22 +1110,17 @@ export default function AccountPage() {
               </div>
 
               {selectedPlan && !currentUserPlan && (
-                <div className="text-sm font-semibold text-slate-700">
-                  Letzte Auswahl: Variante {selectedPlan}
-                </div>
+                <div className="text-sm font-semibold text-slate-700">Letzte Auswahl: Variante {selectedPlan}</div>
               )}
             </div>
 
-            <div className="mt-5 grid gap-4 lg:grid-cols-3">
-              {(['A', 'B', 'C'] as PlanTier[]).map((plan) => renderPlanCard(plan))}
-            </div>
+            <div className="mt-5 grid gap-4 lg:grid-cols-3">{(['A', 'B', 'C'] as PlanTier[]).map((plan) => renderPlanCard(plan))}</div>
 
             {!planCardsVisibleAsActive && (
               <p className="mt-4 text-sm text-slate-600">
                 Die Varianten sind sichtbar, aber zunächst deaktiviert. Nach bestätigter Anmeldung werden sie auswählbar.
               </p>
             )}
-
           </section>
         </section>
       </main>

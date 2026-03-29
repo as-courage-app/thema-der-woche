@@ -505,6 +505,7 @@ function buildThemeImageCandidates(themeId: string | null): string[] {
 type NotesHistoryCardContentProps = {
     embedded?: boolean;
     themeId?: string | null;
+    onClose?: () => void;
 };
 
 function NotesHistoryCardShell({
@@ -524,7 +525,9 @@ function NotesHistoryCardShell({
 export function NotesHistoryCardContent({
     embedded = false,
     themeId = null,
+    onClose,
 }: NotesHistoryCardContentProps) {
+
     const searchParams = useSearchParams();
     const themeIdFromUrl = themeId ?? searchParams.get('themeId');
 
@@ -835,12 +838,22 @@ export function NotesHistoryCardContent({
                                     zur Konto-Seite / Upgrade
                                 </Link>
 
-                                <Link
-                                    href="/quotes"
-                                    className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                                >
-                                    zurück zu Zitate &amp; Tagesimpulse
-                                </Link>
+                                {onClose ? (
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
+                                    >
+                                        Ausblenden
+                                    </button>
+                                ) : (
+                                    <Link
+                                        href={themeIdFromUrl ? `/quotes?themeId=${encodeURIComponent(themeIdFromUrl)}` : '/quotes'}
+                                        className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
+                                    >
+                                        Ausblenden
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -894,7 +907,7 @@ export function NotesHistoryCardContent({
                                     href={themeIdFromUrl ? `/quotes?themeId=${encodeURIComponent(themeIdFromUrl)}` : '/quotes'}
                                     className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
                                 >
-                                    zurück
+                                    Ausblenden
                                 </Link>
                             </div>
                         </div>
@@ -981,7 +994,7 @@ export function NotesHistoryCardContent({
                                                             </h2>
 
                                                             {isCurrentRun ? (
-                                                                <span className="rounded-full bg-[#F29420] px-3 py-1 text-xs font-semibold text-black">
+                                                                <span className="rounded-full border border-[#F29420] bg-white px-3 py-1 text-xs font-semibold text-black">
                                                                     aktueller Durchlauf
                                                                 </span>
                                                             ) : null}
@@ -1043,12 +1056,14 @@ export function NotesHistoryCardContent({
 
 export function EmbeddedNotesHistoryCard({
     themeId = null,
+    onClose,
 }: {
     themeId?: string | null;
+    onClose?: () => void;
 }) {
     return (
         <Suspense fallback={null}>
-            <NotesHistoryCardContent embedded themeId={themeId} />
+            <NotesHistoryCardContent embedded themeId={themeId} onClose={onClose} />
         </Suspense>
     );
 }
