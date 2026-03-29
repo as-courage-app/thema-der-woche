@@ -423,13 +423,13 @@ export default function ThemesPage() {
                         className="text-left"
                         onClick={() => {
                           if (!isPlanC) {
-                            setIcalNotice((prev) => (prev ? null : 'iCal ist nur in Variante C möglich.'));
+                            setIcalNotice((prev) => (prev ? null : 'iCal ist in Variante C möglich.'));
                           }
                         }}
                         onKeyDown={(e) => {
                           if (!isPlanC && (e.key === 'Enter' || e.key === ' ')) {
                             e.preventDefault();
-                            setIcalNotice((prev) => (prev ? null : 'iCal ist nur in Variante C möglich.'));
+                            setIcalNotice((prev) => (prev ? null : 'iCal ist in Variante C möglich.'));
                           }
                         }}
                       >

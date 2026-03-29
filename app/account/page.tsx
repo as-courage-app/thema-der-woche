@@ -64,7 +64,7 @@ const PLAN_DETAILS: Record<
       '41 Details in Kurz-/Langform',
       'Notizfunktion',
     ],
-    extraNote: 'Teamkalender/iCal-Funktion zum Download',
+    extraNote: 'Teamkalender mit iCal-Funktion zum Bearbeiten und Download',
   },
 };
 
@@ -632,7 +632,7 @@ export default function AccountPage() {
             </span>
 
             <h3 className="mt-3 text-xl font-semibold text-slate-900">{planButtonLabel(plan)}</h3>
-            <p className="mt-1 text-sm text-slate-600">browserbasierte Einzellizenz</p>
+            <p className="mt-1 text-sm text-slate-600">browserbasierte App</p>
           </div>
 
           <div className="text-right">
@@ -824,7 +824,7 @@ export default function AccountPage() {
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h2 className="text-xl font-semibold text-slate-900">Zugang zu deiner Vollversion</h2>
+                      <h2 className="text-xl font-semibold text-slate-900">Zugang zu deiner Version</h2>
                       <p className="mt-1 text-sm text-slate-700">Melde dich an oder lege ein neues Konto an.</p>
                     </div>
 

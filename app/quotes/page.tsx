@@ -550,9 +550,9 @@ export default function QuotesPage() {
                   onPodcastClick={() => {
                     if (!podcastAllowed) {
                       setPodcastNotice((prev) =>
-                        prev === 'Mediathek nur in Variante B oder C verfügbar.'
+                        prev === 'Mediathek in Variante B und C verfügbar.'
                           ? null
-                          : 'Mediathek nur in Variante B oder C verfügbar.',
+                          : 'Mediathek in Variante B und C verfügbar.',
                       );
                       return;
                     }
@@ -596,9 +596,9 @@ export default function QuotesPage() {
                     type="button"
                     onClick={() => {
                       setNotesNotice((prev) =>
-                        prev === 'Notizen nur in Variante B oder C verfügbar.'
+                        prev === 'Notizen in Variante B und C verfügbar.'
                           ? null
-                          : 'Notizen nur in Variante B oder C verfügbar.',
+                          : 'Notizen in Variante B und C verfügbar.',
                       );
                     }}
                     className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-lg cursor-pointer"

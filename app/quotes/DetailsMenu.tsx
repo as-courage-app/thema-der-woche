@@ -64,10 +64,10 @@ export default function DetailsMenu({
       setOpen(false);
 
       if (onBlockedClick) {
-        onBlockedClick('Details nur in Variante C verfügbar.');
+        onBlockedClick('Details in Variante C verfügbar.');
       } else {
         setPlanNotice((prev) =>
-          prev ? null : 'Details nur in Variante C verfügbar.',
+          prev ? null : 'Details in Variante C verfügbar.',
         );
       }
 
