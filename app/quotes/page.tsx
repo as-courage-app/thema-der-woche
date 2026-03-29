@@ -427,17 +427,27 @@ export default function QuotesPage() {
                     )}
 
                     {showIcalButton && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const ics = buildIcsFromPlan(setup, selectedThemes);
-                          downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
-                        }}
-                        className="rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#E4891E]"
-                        title="iCal-Datei herunterladen"
-                      >
-                        iCal herunterladen
-                      </button>
+                      <>
+                        <Link
+                          href="/ical-editor"
+                          className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg cursor-pointer"
+                          title="iCal bearbeiten"
+                        >
+                          iCal bearbeiten
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const ics = buildIcsFromPlan(setup, selectedThemes);
+                            downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
+                          }}
+                          className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg cursor-pointer"
+                          title="iCal-Datei herunterladen"
+                        >
+                          iCal direkt herunterladen
+                        </button>
+                      </>
                     )}
 
                     <button
