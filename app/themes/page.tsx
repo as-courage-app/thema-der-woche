@@ -618,12 +618,12 @@ export default function ThemesPage() {
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="mt-4 mb-4 flex flex-wrap items-center gap-2">
                 {mode === 'random' && (
                   <button
                     type="button"
                     onClick={pickRandomThemes}
-                    className="inline-flex h-[48px] items-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-0 text-sm text-white transition hover:bg-[#E4891E]"
+                    className="inline-flex h-[48px] cursor-pointer items-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-0 text-sm text-white shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-xl"
                   >
                     Zufallsauswahl erzeugen
                   </button>
@@ -632,7 +632,7 @@ export default function ThemesPage() {
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="inline-flex h-[48px] items-center rounded-xl border border-slate-300 bg-white px-4 py-0 text-sm text-black transition hover:bg-slate-50"
+                  className="inline-flex h-[48px] cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 py-0 text-sm text-black shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-xl"
                 >
                   Auswahl aufheben
                 </button>
@@ -640,7 +640,7 @@ export default function ThemesPage() {
                 <button
                   type="button"
                   onClick={clearUsedThemes}
-                  className="inline-flex h-[48px] items-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-0 text-sm text-amber-900 transition hover:bg-amber-100"
+                  className="inline-flex h-[48px] cursor-pointer items-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-0 text-sm text-amber-900 shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:border-amber-400 hover:bg-amber-100 hover:shadow-xl"
                 >
                   genutzt löschen
                 </button>
@@ -649,7 +649,7 @@ export default function ThemesPage() {
                   <button
                     type="button"
                     onClick={onContinue}
-                    className="inline-flex h-[48px] items-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-5 py-0 text-sm font-medium text-white transition hover:bg-[#3f8a25]"
+                    className="inline-flex h-[48px] cursor-pointer items-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-5 py-0 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-xl"
                   >
                     Weiter
                   </button>

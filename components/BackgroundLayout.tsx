@@ -49,9 +49,9 @@ export default function BackgroundLayout({
 
   return (
     <div className="relative w-full min-h-[100dvh] overflow-x-hidden">
-      {/* Hintergrundbild */}
+      {/* Feste globale Hintergrundebene */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 print:hidden"
+        className="pointer-events-none fixed inset-0 z-0 print:hidden"
         aria-hidden="true"
       >
         <Image
@@ -65,11 +65,11 @@ export default function BackgroundLayout({
         {/* Mobile: Lesbarkeit */}
         <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] sm:hidden" />
         {/* Ab Tablet: leichte Abdunklung */}
-        <div className="absolute inset-0 bg-black/10 hidden sm:block" />
+        <div className="absolute inset-0 hidden bg-black/10 sm:block" />
       </div>
 
-      {/* Logo + optional Logout */}
-      <div className="absolute top-3 right-3 z-50 w-[120px] max-w-[40vw] print:hidden sm:top-4 sm:right-4 sm:w-[170px] md:w-[200px]">
+      {/* Logo + Info + Logout immer fixiert */}
+      <div className="fixed top-3 right-3 z-50 w-[120px] max-w-[40vw] print:hidden sm:top-4 sm:right-4 sm:w-[170px] md:w-[200px]">
         <div className="pointer-events-none" aria-hidden="true">
           <Image
             src="/images/logo.jpg"

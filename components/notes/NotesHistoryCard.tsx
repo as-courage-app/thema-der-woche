@@ -903,12 +903,22 @@ export function NotesHistoryCardContent({
                                     Drucken
                                 </button>
 
-                                <Link
-                                    href={themeIdFromUrl ? `/quotes?themeId=${encodeURIComponent(themeIdFromUrl)}` : '/quotes'}
-                                    className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
-                                >
-                                    Ausblenden
-                                </Link>
+                                {onClose ? (
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
+                                    >
+                                        Ausblenden
+                                    </button>
+                                ) : (
+                                    <Link
+                                        href={themeIdFromUrl ? `/quotes?themeId=${encodeURIComponent(themeIdFromUrl)}` : '/quotes'}
+                                        className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
+                                    >
+                                        Ausblenden
+                                    </Link>
+                                )}
                             </div>
                         </div>
 
