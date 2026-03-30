@@ -66,18 +66,23 @@ export default function MediathekMenu({
         }}
         className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg cursor-pointer"
         title="Mediathek öffnen"
+        aria-expanded={open}
+        aria-haspopup="menu"
       >
         <span aria-hidden="true" className="text-base leading-none">
           🎞️
         </span>
         Mediathek
+        <span aria-hidden="true" className="text-xs leading-none">
+          {open ? '▲' : '▼'}
+        </span>
       </button>
 
       {open ? (
         <div className="absolute right-0 z-20 mt-2 min-w-[180px] rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
           <Link
             href={videoHref}
-            className="mt-1 block rounded-lg px-3 py-2 text-sm text-slate-900 hover:bg-slate-100 cursor-pointer"
+            className="block rounded-lg px-3 py-2 text-sm text-slate-900 hover:bg-slate-100 cursor-pointer"
             onClick={() => setOpen(false)}
           >
             Video
@@ -85,7 +90,7 @@ export default function MediathekMenu({
 
           <button
             type="button"
-            className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-900 hover:bg-slate-100 cursor-pointer"
+            className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-900 hover:bg-slate-100 cursor-pointer"
             title={
               podcastReady
                 ? 'Podcast öffnen'

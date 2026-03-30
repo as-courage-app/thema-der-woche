@@ -701,7 +701,7 @@ export default function AccountPage() {
             <div className="grid gap-6 p-6 md:grid-cols-[1.08fr_0.92fr] md:items-center md:p-8">
               <div>
                 <div className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-[#A35B06] ring-1 ring-orange-200">
-                  Edition 1 · browserbasierte Einzellizenz
+                  Edition 1 · browserbasierte App
                 </div>
 
                 <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 md:text-5xl">

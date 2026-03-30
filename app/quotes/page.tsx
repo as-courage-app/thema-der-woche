@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { readCurrentUserPlan } from '@/lib/userPlan';
 import BackgroundLayout from '../../components/BackgroundLayout';
@@ -32,14 +32,14 @@ type SetupState = {
   mode?: 'manual' | 'random';
   themeIds?: string[];
   createdAt?: string;
-
-  // ✅ neu: für A/B/C-Logik (robust: akzeptiert alten + neuen Feldnamen)
   selectedLicenseTier?: LicenseTier;
   licenseTier?: LicenseTier;
-
-  // ✅ neu: iCal Haken
   icalEnabled?: boolean;
 };
+
+type BottomSectionKey = 'notes' | 'ical';
+
+type InlineIcalDraftState = Record<string, string>;
 
 const THEMES: EditionRow[] = edition1 as unknown as EditionRow[];
 
@@ -56,8 +56,8 @@ const WEEKDAYS = [
 function readSetup(): SetupState | null {
   try {
     const possibleKeys = [
-      LS_SETUP, // as-courage.themeSetup.v1
-      'as-courage.themeSetup', // ältere Variante
+      LS_SETUP,
+      'as-courage.themeSetup',
       'themeSetup',
       'setup',
       'as-courage.setup.v1',
@@ -98,9 +98,9 @@ function formatDE(date: Date): string {
 
 function prettifyId(id: string): string {
   const cleaned = id
-    .replace(/^ed\d+-\d+-/i, '') // Ed1-01-
-    .replace(/^ed\d+\s*/i, '') // Ed1
-    .replace(/^\d+-/, '') // 01-
+    .replace(/^ed\d+-\d+-/i, '')
+    .replace(/^ed\d+\s*/i, '')
+    .replace(/^\d+-/, '')
     .replace(/-/g, ' ')
     .trim();
 
@@ -112,7 +112,6 @@ function displayTitle(row: EditionRow): string {
   return t && t.length > 0 ? t : prettifyId(row.id);
 }
 
-/** ✅ Download-Helfer */
 function downloadTextFile(filename: string, content: string, mime = 'text/plain;charset=utf-8') {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -125,7 +124,6 @@ function downloadTextFile(filename: string, content: string, mime = 'text/plain;
   URL.revokeObjectURL(url);
 }
 
-/** ✅ Minimal gültige ICS (Platzhalter) – echte Inhalte bauen wir als nächsten Schritt */
 function pad2(n: number) {
   return String(n).padStart(2, '0');
 }
@@ -153,13 +151,15 @@ function dtstampUtc() {
   return `${y}${m}${d}T${hh}${mm}${ss}Z`;
 }
 
-/**
- * ✅ Erzeugt eine echte ICS-Datei nach deinen Regeln:
- * - ganztägig
- * - Mo–Fr: Thema + Zitat + Tagesfrage
- * - Sa/So: "Schönes Wochenende"
- */
-function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]): string {
+function buildInlineIcalDraftKey(themeId: string, weekIndex: number, dayKey: string) {
+  return `${themeId}__${weekIndex}__${dayKey}`;
+}
+
+function buildIcsFromPlan(
+  setup: SetupState | null,
+  selectedThemes: EditionRow[],
+  inlineDrafts: InlineIcalDraftState = {},
+): string {
   const stamp = dtstampUtc();
   const uidBase = `tdw-${stamp}-${Math.random().toString(16).slice(2)}`;
 
@@ -179,7 +179,6 @@ function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]
     ].join('\r\n');
   }
 
-  // Begrenzung: nicht mehr Wochen exportieren als Themen vorhanden sind
   const countWeeks = Math.min(weeksCount, selectedThemes.length);
 
   const lines: string[] = [
@@ -198,13 +197,13 @@ function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]
     const title = displayTitle(theme);
     const quote = theme.quote ?? '';
 
-    // Mo–Fr
     for (let day = 0; day < 5; day++) {
       const date = addDays(weekMonday, day);
       const dtStart = yyyymmdd(date);
       const dtEnd = yyyymmdd(addDays(date, 1));
-
-      const question = theme.questions?.[day] ?? '';
+      const dayKey = WEEKDAYS[day]?.key ?? '';
+      const draftKey = buildInlineIcalDraftKey(theme.id, w, dayKey);
+      const question = inlineDrafts[draftKey] ?? theme.questions?.[day] ?? '';
       const summary = `${title}: ${question || 'Tagesimpuls'}`;
       const desc = `Thema: ${title}\nZitat: ${quote}\nTagesfrage: ${question}`;
 
@@ -221,11 +220,13 @@ function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]
       eventIndex++;
     }
 
-    // Sa/So
     for (let day = 5; day < 7; day++) {
       const date = addDays(weekMonday, day);
       const dtStart = yyyymmdd(date);
       const dtEnd = yyyymmdd(addDays(date, 1));
+      const dayKey = day === 5 ? 'Sa' : 'So';
+      const draftKey = buildInlineIcalDraftKey(theme.id, w, dayKey);
+      const weekendText = inlineDrafts[draftKey] ?? 'Schönes Wochenende';
 
       lines.push('BEGIN:VEVENT');
       lines.push(`UID:${uidBase}-${eventIndex}@as-courage`);
@@ -233,8 +234,8 @@ function buildIcsFromPlan(setup: SetupState | null, selectedThemes: EditionRow[]
       lines.push(`DTSTART;VALUE=DATE:${dtStart}`);
       lines.push(`DTEND;VALUE=DATE:${dtEnd}`);
       lines.push('TRANSP:TRANSPARENT');
-      lines.push(`SUMMARY:${escapeIcsText('Schönes Wochenende')}`);
-      lines.push(`DESCRIPTION:${escapeIcsText('Schönes Wochenende!')}`);
+      lines.push(`SUMMARY:${escapeIcsText(weekendText)}`);
+      lines.push(`DESCRIPTION:${escapeIcsText(weekendText)}`);
       lines.push('END:VEVENT');
 
       eventIndex++;
@@ -251,9 +252,25 @@ export default function QuotesPage() {
   const [currentUserPlan, setCurrentUserPlan] = useState<'A' | 'B' | 'C' | null>(null);
   const [activeDay, setActiveDay] = useState<Record<string, number>>({});
   const [pageIndex, setPageIndex] = useState<number>(0);
-
-  // Fallback: wenn themes/<id>.jpg fehlt -> demo.jpg
   const [imgFallbackToDemo, setImgFallbackToDemo] = useState<boolean>(false);
+
+  const [showPodcast, setShowPodcast] = useState(false);
+  const [podcastNotice, setPodcastNotice] = useState<string | null>(null);
+  const [detailsNotice, setDetailsNotice] = useState<string | null>(null);
+  const [icalNotice, setIcalNotice] = useState<string | null>(null);
+  const [notesNotice, setNotesNotice] = useState<string | null>(null);
+  const [showEmbeddedNotes, setShowEmbeddedNotes] = useState(false);
+  const [showInlineIcal, setShowInlineIcal] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [bottomSectionOrder, setBottomSectionOrder] = useState<BottomSectionKey[]>([]);
+  const [inlineIcalDrafts, setInlineIcalDrafts] = useState<InlineIcalDraftState>({});
+
+  const [showIcalMenu, setShowIcalMenu] = useState(false);
+  const icalMenuRef = useRef<HTMLDivElement | null>(null);
+  const notesBlockRef = useRef<HTMLDivElement | null>(null);
+  const icalBlockRef = useRef<HTMLDivElement | null>(null);
+  const pendingNotesScrollRef = useRef(false);
+  const pendingIcalScrollRef = useRef(false);
 
   useEffect(() => {
     let alive = true;
@@ -290,6 +307,60 @@ export default function QuotesPage() {
     };
   }, []);
 
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!showEmbeddedNotes) return;
+    if (!pendingNotesScrollRef.current) return;
+
+    const node = notesBlockRef.current;
+    if (!node) return;
+
+    pendingNotesScrollRef.current = false;
+
+    requestAnimationFrame(() => {
+      node.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  }, [showEmbeddedNotes]);
+
+  useEffect(() => {
+    if (!showInlineIcal) return;
+    if (!pendingIcalScrollRef.current) return;
+
+    const node = icalBlockRef.current;
+    if (!node) return;
+
+    pendingIcalScrollRef.current = false;
+
+    requestAnimationFrame(() => {
+      node.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  }, [showInlineIcal]);
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!icalMenuRef.current) return;
+      if (icalMenuRef.current.contains(event.target as Node)) return;
+      setShowIcalMenu(false);
+    }
+
+    if (showIcalMenu) {
+      document.addEventListener('mousedown', handlePointerDown);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [showIcalMenu]);
+
   const selectedThemes = useMemo(() => {
     const ids = setup?.themeIds;
     if (!ids || !Array.isArray(ids) || ids.length === 0) return [];
@@ -303,17 +374,6 @@ export default function QuotesPage() {
   const totalPages = selectedThemes.length;
   const clampedIndex = totalPages > 0 ? Math.min(pageIndex, totalPages - 1) : 0;
   const current: EditionRow | null = totalPages > 0 ? selectedThemes[clampedIndex] : null;
-
-  const [showPodcast, setShowPodcast] = useState(false);
-  const [podcastNotice, setPodcastNotice] = useState<string | null>(null);
-  const [detailsNotice, setDetailsNotice] = useState<string | null>(null);
-  const [notesNotice, setNotesNotice] = useState<string | null>(null);
-  const [showEmbeddedNotes, setShowEmbeddedNotes] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
 
   const currentThemeNumber = useMemo(() => {
     const id = current?.id ?? '';
@@ -333,12 +393,13 @@ export default function QuotesPage() {
     selectedPlanRaw === 'A' || selectedPlanRaw === 'B' || selectedPlanRaw === 'C'
       ? selectedPlanRaw
       : setup?.selectedLicenseTier ?? setup?.licenseTier;
+
   const podcastAllowed =
     currentUserPlan === 'B' ||
     currentUserPlan === 'C' ||
     (!currentUserPlan && (licenseTier === 'B' || licenseTier === 'C'));
-  const podcastReady =
-    !!currentEpisode && currentThemeNumber !== null;
+
+  const podcastReady = !!currentEpisode && currentThemeNumber !== null;
 
   const weekMondayDate = useMemo(() => {
     const base = parseIsoDate(setup?.startMonday);
@@ -347,14 +408,11 @@ export default function QuotesPage() {
   }, [setup?.startMonday, clampedIndex]);
 
   const weekdayDateText = useMemo(() => {
-    // liefert für Mo–Fr: "dd.mm.yyyy" passend zur aktuellen Woche
     if (!weekMondayDate) return (index: number) => '';
     return (index: number) => formatDE(addDays(weekMondayDate, index));
   }, [weekMondayDate]);
 
   const dateRangeText = useMemo(() => {
-
-
     const base = parseIsoDate(setup?.startMonday);
     if (!base) return '';
     const monday = addDays(base, clampedIndex * 7);
@@ -362,22 +420,109 @@ export default function QuotesPage() {
     return `${formatDE(monday)} – ${formatDE(friday)}`;
   }, [setup?.startMonday, clampedIndex]);
 
+  useEffect(() => {
+    if (!current?.id) return;
+
+    setInlineIcalDrafts((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      for (const day of WEEKDAYS) {
+        const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, day.key);
+        if (!(draftKey in next)) {
+          next[draftKey] = current.questions?.[day.index] ?? '—';
+          changed = true;
+        }
+      }
+
+      const saturdayKey = buildInlineIcalDraftKey(current.id, clampedIndex, 'Sa');
+      if (!(saturdayKey in next)) {
+        next[saturdayKey] = 'Schönes Wochenende';
+        changed = true;
+      }
+
+      const sundayKey = buildInlineIcalDraftKey(current.id, clampedIndex, 'So');
+      if (!(sundayKey in next)) {
+        next[sundayKey] = 'Schönes Wochenende';
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
+  }, [current?.id, current?.questions, clampedIndex]);
+
+  const currentInlineIcalEntries = useMemo(() => {
+    const currentThemeId = current?.id;
+
+    const weekdayEntries = WEEKDAYS.map((day) => {
+      const fallbackText = current?.questions?.[day.index] ?? '—';
+      const draftKey = currentThemeId
+        ? buildInlineIcalDraftKey(currentThemeId, clampedIndex, day.key)
+        : null;
+
+      return {
+        key: day.key,
+        label: day.label,
+        dateText: weekdayDateText(day.index),
+        text:
+          currentThemeId && draftKey
+            ? getInlineIcalDraftValue(currentThemeId, clampedIndex, day.key, fallbackText)
+            : fallbackText,
+        kind: 'weekday' as const,
+        questionIndex: day.index,
+        editable: true,
+      };
+    });
+
+    const saturdayText = weekMondayDate
+      ? formatDE(addDays(weekMondayDate, 5))
+      : weekdayDateText(5) || '—';
+
+    const sundayText = weekMondayDate
+      ? formatDE(addDays(weekMondayDate, 6))
+      : weekdayDateText(6) || '—';
+
+    const saturdayDraftKey = currentThemeId
+      ? buildInlineIcalDraftKey(currentThemeId, clampedIndex, 'Sa')
+      : null;
+
+    const sundayDraftKey = currentThemeId
+      ? buildInlineIcalDraftKey(currentThemeId, clampedIndex, 'So')
+      : null;
+
+    return [
+      ...weekdayEntries,
+      {
+        key: 'Sa',
+        label: 'Samstag',
+        dateText: saturdayText,
+        text:
+          currentThemeId && saturdayDraftKey
+            ? getInlineIcalDraftValue(currentThemeId, clampedIndex, 'Sa', 'Schönes Wochenende')
+            : 'Schönes Wochenende',
+        kind: 'weekend' as const,
+        questionIndex: null,
+        editable: true,
+      },
+      {
+        key: 'So',
+        label: 'Sonntag',
+        dateText: sundayText,
+        text:
+          currentThemeId && sundayDraftKey
+            ? getInlineIcalDraftValue(currentThemeId, clampedIndex, 'So', 'Schönes Wochenende')
+            : 'Schönes Wochenende',
+        kind: 'weekend' as const,
+        questionIndex: null,
+        editable: true,
+      },
+    ];
+  }, [current?.id, current?.questions, clampedIndex, inlineIcalDrafts, weekdayDateText, weekMondayDate]);
+
   const dayIndex = current ? activeDay[current.id] ?? 0 : 0;
 
   const canPrev = clampedIndex > 0;
   const canNext = clampedIndex < totalPages - 1;
-
-  function goPrev() {
-    setShowPodcast(false);
-    setPageIndex((p) => Math.max(0, p - 1));
-    setImgFallbackToDemo(false);
-  }
-
-  function goNext() {
-    setShowPodcast(false);
-    setPageIndex((p) => Math.min(Math.max(0, totalPages - 1), p + 1));
-    setImgFallbackToDemo(false);
-  }
 
   const imageSrc = useMemo(() => {
     if (!current) return '/images/demo.jpg';
@@ -387,18 +532,72 @@ export default function QuotesPage() {
 
   const currentTitle = current ? displayTitle(current) : '';
 
-  // ✅ Button nur bei C + iCal-Haken (robust: alter/neuer Feldname)
   const showIcalButton = useMemo(() => {
-    return currentUserPlan === 'C' && Boolean(setup?.icalEnabled);
-  }, [currentUserPlan, setup]);
+    return selectedThemes.length > 0;
+  }, [selectedThemes.length]);
+
+  const orderedBottomSections = useMemo(() => {
+    return bottomSectionOrder.filter((section) => {
+      if (section === 'notes') return showEmbeddedNotes && !!current?.id;
+      if (section === 'ical') return showInlineIcal;
+      return false;
+    });
+  }, [bottomSectionOrder, showEmbeddedNotes, showInlineIcal, current?.id]);
+
+  const hasBottomSections = orderedBottomSections.length > 0;
+
+  function getInlineIcalDraftValue(
+    themeId: string,
+    weekIndex: number,
+    dayKey: string,
+    fallbackValue: string,
+  ) {
+    const draftKey = buildInlineIcalDraftKey(themeId, weekIndex, dayKey);
+    return inlineIcalDrafts[draftKey] ?? fallbackValue;
+  }
+
+  function updateInlineIcalDraft(themeId: string, weekIndex: number, dayKey: string, value: string) {
+    const draftKey = buildInlineIcalDraftKey(themeId, weekIndex, dayKey);
+
+    setInlineIcalDrafts((prev) => ({
+      ...prev,
+      [draftKey]: value,
+    }));
+  }
+
+  function goPrev() {
+    setShowPodcast(false);
+    setShowIcalMenu(false);
+    setPageIndex((p) => Math.max(0, p - 1));
+    setImgFallbackToDemo(false);
+  }
+
+  function goNext() {
+    setShowPodcast(false);
+    setShowIcalMenu(false);
+    setPageIndex((p) => Math.min(Math.max(0, totalPages - 1), p + 1));
+    setImgFallbackToDemo(false);
+  }
+
+  function openIcalEditor() {
+    setShowIcalMenu(false);
+    pendingIcalScrollRef.current = true;
+    setBottomSectionOrder((prev) => (prev.includes('ical') ? prev : [...prev, 'ical']));
+    setShowInlineIcal(true);
+  }
+
+  function downloadIcalDirectly() {
+    const ics = buildIcsFromPlan(setup, selectedThemes, inlineIcalDrafts);
+    setShowIcalMenu(false);
+    downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
+  }
 
   return (
     <RequireAuth>
       <BackgroundLayout activeThemeId={current?.id}>
-        <div className="mx-auto flex h-full min-h-[100svh] lg:min-h-0 max-w-6xl px-10 py-3">
-          <div className="w-full max-h-none rounded-none sm:rounded-2xl border-0 sm:border sm:border-[#F29420] bg-white/98 sm:bg-white/85 shadow-none sm:shadow-xl backdrop-blur-md min-h-[100dvh] sm:min-h-0 overflow-visible flex flex-col">
-            {/* Kopf */}
-            <div className="p-5 sm:p-7 shrink-0">
+        <div className="mx-auto flex h-full max-w-6xl min-h-[100svh] px-10 py-3 lg:min-h-0">
+          <div className="flex min-h-[100dvh] w-full max-h-none flex-col overflow-visible rounded-none border-0 bg-white/98 shadow-none backdrop-blur-md sm:min-h-0 sm:rounded-2xl sm:border sm:border-[#F29420] sm:bg-white/85 sm:shadow-xl">
+            <div className="shrink-0 p-5 sm:p-7">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h1 className="text-2xl font-semibold text-slate-900">
@@ -415,7 +614,6 @@ export default function QuotesPage() {
 
                 <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
                   <div className="flex flex-wrap gap-2">
-
                     {currentUserPlan && currentUserPlan !== 'C' && (
                       <Link
                         href="/account"
@@ -426,46 +624,18 @@ export default function QuotesPage() {
                       </Link>
                     )}
 
-                    {showIcalButton && (
-                      <>
-                        <Link
-                          href="/ical-editor"
-                          className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg cursor-pointer"
-                          title="iCal bearbeiten"
-                        >
-                          iCal bearbeiten
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const ics = buildIcsFromPlan(setup, selectedThemes);
-                            downloadTextFile('thema-der-woche.ics', ics, 'text/calendar;charset=utf-8');
-                          }}
-                          className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg cursor-pointer"
-                          title="iCal-Datei herunterladen"
-                        >
-                          iCal direkt herunterladen
-                        </button>
-                      </>
-                    )}
-
                     <button
                       type="button"
                       onClick={() => router.push('/themes')}
-                      className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg cursor-pointer"
+                      className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg"
                     >
                       zurück zur Themenauswahl
                     </button>
-
                   </div>
-
                 </div>
               </div>
 
-              {/* Navigation */}
-
-              {podcastNotice || detailsNotice || notesNotice ? (
+              {podcastNotice || detailsNotice || (icalNotice && icalNotice !== 'Änderungen lokal gespeichert.') || notesNotice ? (
                 <div className="mt-3 flex flex-wrap gap-3">
                   {podcastNotice ? (
                     <div className="inline-block max-w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -474,7 +644,7 @@ export default function QuotesPage() {
                         <button
                           type="button"
                           onClick={() => setPodcastNotice(null)}
-                          className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                          className="cursor-pointer rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100"
                         >
                           OK
                         </button>
@@ -489,7 +659,22 @@ export default function QuotesPage() {
                         <button
                           type="button"
                           onClick={() => setDetailsNotice(null)}
-                          className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                          className="cursor-pointer rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {icalNotice ? (
+                    <div className="inline-block max-w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                      <div className="flex items-start justify-between gap-3">
+                        <span>{icalNotice}</span>
+                        <button
+                          type="button"
+                          onClick={() => setIcalNotice(null)}
+                          className="cursor-pointer rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100"
                         >
                           OK
                         </button>
@@ -504,7 +689,7 @@ export default function QuotesPage() {
                         <button
                           type="button"
                           onClick={() => setNotesNotice(null)}
-                          className="rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                          className="cursor-pointer rounded-xl border border-amber-200 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100"
                         >
                           OK
                         </button>
@@ -520,10 +705,10 @@ export default function QuotesPage() {
                   onClick={goPrev}
                   disabled={!canPrev}
                   className={[
-                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition duration-200',
+                    'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
                     canPrev
-                      ? 'border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#3f8a25] hover:border-[#3f8a25] hover:shadow-lg cursor-pointer'
-                      : 'border-slate-200 bg-white text-slate-400 cursor-not-allowed',
+                      ? 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
+                      : 'cursor-not-allowed border-slate-200 bg-white text-slate-400',
                   ].join(' ')}
                 >
                   zurück
@@ -534,10 +719,10 @@ export default function QuotesPage() {
                   onClick={goNext}
                   disabled={!canNext}
                   className={[
-                    'min-h-[44px] rounded-xl px-4 py-2 text-sm font-medium border shadow-sm transition duration-200',
+                    'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
                     canNext
-                      ? 'border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#3f8a25] hover:border-[#3f8a25] hover:shadow-lg cursor-pointer'
-                      : 'border-slate-200 bg-white text-slate-400 cursor-not-allowed',
+                      ? 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
+                      : 'cursor-not-allowed border-slate-200 bg-white text-slate-400',
                   ].join(' ')}
                 >
                   weiter
@@ -577,12 +762,123 @@ export default function QuotesPage() {
                   }}
                 />
 
+                {showIcalButton && (
+                  <div className="relative" ref={icalMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (currentUserPlan !== 'C') {
+                          setIcalNotice((prev) =>
+                            prev === 'iCal ist in Variante C verfügbar.'
+                              ? null
+                              : 'iCal ist in Variante C verfügbar.',
+                          );
+                          setShowIcalMenu(false);
+                          return;
+                        }
+
+                        setIcalNotice(null);
+                        setShowIcalMenu((prev) => !prev);
+                      }}
+                      className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg"
+                      title="iCal öffnen"
+                      aria-expanded={showIcalMenu}
+                      aria-haspopup="menu"
+                    >
+                      <span aria-hidden="true" className="text-base leading-none">
+                        📅
+                      </span>
+                      iCal
+                      <span aria-hidden="true" className="text-xs leading-none">
+                        {showIcalMenu ? '▲' : '▼'}
+                      </span>
+                    </button>
+
+                    {currentUserPlan === 'C' && showIcalMenu ? (
+                      <div className="absolute left-0 z-30 mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                        <button
+                          type="button"
+                          onClick={downloadIcalDirectly}
+                          className="flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left text-sm text-slate-900 transition hover:bg-slate-50"
+                        >
+                          <span aria-hidden="true" className="pt-0.5 text-base leading-none">
+                            📥
+                          </span>
+                          <span>
+                            <span className="block font-semibold text-slate-900">
+                              iCal direkt herunterladen
+                            </span>
+                            <span className="block text-xs text-slate-600">
+                              Standard-iCal sofort als Datei herunterladen
+                            </span>
+                          </span>
+                        </button>
+
+                        <div className="border-t border-slate-100" />
+
+                        <button
+                          type="button"
+                          onClick={openIcalEditor}
+                          className="flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left text-sm text-slate-900 transition hover:bg-slate-50"
+                        >
+                          <span aria-hidden="true" className="pt-0.5 text-base leading-none">
+                            ✏️
+                          </span>
+                          <span>
+                            <span className="block font-semibold text-slate-900">
+                              iCal aktuelle Woche schnell bearbeiten
+                            </span>
+                            <span className="block text-xs text-slate-600">
+                              Schnellbearbeitung direkt unterhalb der Quotes-Seite öffnen
+                            </span>
+                          </span>
+                        </button>
+
+                        <div className="border-t border-slate-100" />
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowIcalMenu(false);
+                            router.push('/ical-editor');
+                          }}
+                          className="flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left text-sm text-slate-900 transition hover:bg-slate-50"
+                        >
+                          <span aria-hidden="true" className="pt-0.5 text-base leading-none">
+                            🗂️
+                          </span>
+                          <span>
+                            <span className="block font-semibold text-slate-900">
+                              iCal mehrere Wochen im iCal-Editor bearbeiten
+                            </span>
+                            <span className="block text-xs text-slate-600">
+                              Vollständigen Editor für mehrere Wochen und gemeinsamen Download öffnen
+                            </span>
+                          </span>
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
 
                 {currentUserPlan === 'B' || currentUserPlan === 'C' ? (
                   <button
                     type="button"
-                    onClick={() => setShowEmbeddedNotes((prev) => !prev)}
-                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-lg cursor-pointer"
+                    onClick={() => {
+                      if (!showEmbeddedNotes) {
+                        pendingNotesScrollRef.current = true;
+                        setBottomSectionOrder((prev) =>
+                          prev.includes('notes') ? prev : [...prev, 'notes'],
+                        );
+                        setShowEmbeddedNotes(true);
+                        return;
+                      }
+
+                      pendingNotesScrollRef.current = false;
+                      setShowEmbeddedNotes(false);
+                      setBottomSectionOrder((prev) => prev.filter((entry) => entry !== 'notes'));
+                    }}
+                    className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg"
                     title={showEmbeddedNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
                   >
                     <span aria-hidden="true" className="text-base leading-none">
@@ -591,7 +887,6 @@ export default function QuotesPage() {
                     {showEmbeddedNotes ? 'Notizen ausblenden' : 'Notizen einblenden'}
                   </button>
                 ) : (
-
                   <button
                     type="button"
                     onClick={() => {
@@ -601,7 +896,7 @@ export default function QuotesPage() {
                           : 'Notizen in Variante B und C verfügbar.',
                       );
                     }}
-                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-100 hover:border-slate-400 hover:shadow-lg cursor-pointer"
+                    className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg"
                     title="Notizen öffnen"
                   >
                     <span aria-hidden="true" className="text-base leading-none">
@@ -615,12 +910,6 @@ export default function QuotesPage() {
                   {totalPages > 0 ? (
                     <>
                       Thema <span className="font-semibold">{clampedIndex + 1}</span> / {totalPages}
-                      {dateRangeText ? (
-                        <>
-                          <span className="mx-2 text-slate-300">|</span>
-                          <span className="font-medium">{dateRangeText}</span>
-                        </>
-                      ) : null}
                     </>
                   ) : (
                     <span className="text-slate-600">Noch keine Themen ausgewählt.</span>
@@ -640,26 +929,34 @@ export default function QuotesPage() {
                   if (!Number.isFinite(nr)) return currentEpisode.title;
 
                   const prefix = `ed1-${String(nr).padStart(2, '0')}-`;
-                  const theme = (edition1 as any[]).find((t) =>
-                    String(t?.id ?? '').startsWith(prefix)
-                  );
+                  const theme = (edition1 as any[]).find((t) => String(t?.id ?? '').startsWith(prefix));
 
                   return theme?.title?.trim() || currentEpisode.title || `Podcast Folge ${nr}`;
                 })()}
               />
             ) : null}
 
-            {/* Split-Bereich */}
-            <div className="flex-1 min-h-0 overflow-auto lg:overflow-hidden px-5 pb-5 sm:px-7 sm:pb-7">
+            <div
+              className={
+                hasBottomSections
+                  ? 'px-5 pb-5 sm:px-7 sm:pb-7'
+                  : 'flex-1 min-h-0 overflow-auto px-5 pb-5 sm:px-7 sm:pb-7 lg:overflow-hidden'
+              }
+            >
               {!current ? (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                   Ich finde noch keine ausgewählten Themen. Bitte gehe zur Themenauswahl und wähle Themen aus.
                 </div>
               ) : (
-                <div className="rounded-2xl border border-slate-200 bg-white lg:h-full lg:overflow-hidden">
+                <div
+                  className={
+                    hasBottomSections
+                      ? 'rounded-2xl border border-slate-200 bg-white'
+                      : 'rounded-2xl border border-slate-200 bg-white lg:h-full lg:overflow-hidden'
+                  }
+                >
                   <div className="flex flex-col lg:flex-row">
-                    {/* LINKS: Bild */}
-                    <div className="relative lg:w-1/2 bg-slate-100">
+                    <div className="relative bg-slate-100 lg:w-1/2">
                       <div className="h-64 lg:h-full">
                         <img
                           src={imageSrc}
@@ -670,8 +967,7 @@ export default function QuotesPage() {
                       </div>
                     </div>
 
-                    {/* RECHTS: Inhalt */}
-                    <div className="lg:w-1/2 lg:h-full lg:overflow-auto">
+                    <div className="lg:h-full lg:w-1/2 lg:overflow-auto">
                       <div className="p-5 lg:p-6">
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <h2 className="text-lg font-semibold text-slate-900">{currentTitle}</h2>
@@ -681,11 +977,15 @@ export default function QuotesPage() {
                         </div>
 
                         <div
-                          className="mt-3 sticky top-0 z-10 rounded-xl border-2 bg-slate-50 p-4 shadow-sm"
+                          className="sticky top-0 z-10 mt-3 rounded-xl border-2 bg-slate-50 p-4 shadow-sm"
                           style={{ borderColor: BRAND_ORANGE }}
                         >
-                          <div className="text-lg font-semibold tracking-wide text-slate-900">Wochenzitat</div>
-                          <div className="mt-2 text-lg leading-relaxed text-slate-900">„{current.quote}“</div>
+                          <div className="text-lg font-semibold tracking-wide text-slate-900">
+                            Wochenzitat
+                          </div>
+                          <div className="mt-2 text-lg leading-relaxed text-slate-900">
+                            „{current.quote}“
+                          </div>
                         </div>
 
                         <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-5">
@@ -700,10 +1000,10 @@ export default function QuotesPage() {
                                 }))
                               }
                               className={[
-                                'w-full rounded-2xl px-3 py-2 text-sm border shadow-sm transition duration-200 cursor-pointer',
+                                'w-full cursor-pointer rounded-2xl border px-3 py-2 text-sm shadow-sm transition duration-200',
                                 dayIndex === d.index
-                                  ? 'bg-[#4EA72E] text-white border-[#4EA72E] hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#3f8a25] hover:border-[#3f8a25] hover:shadow-md'
-                                  : 'bg-white text-slate-700 border-slate-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-slate-50 hover:border-slate-300 hover:shadow-md',
+                                  ? 'border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-md'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-300 hover:bg-slate-50 hover:shadow-md',
                               ].join(' ')}
                             >
                               <span className="flex flex-col items-center leading-tight">
@@ -715,7 +1015,9 @@ export default function QuotesPage() {
                         </div>
 
                         <div className="mt-3 rounded-xl border-2 border-[#F29420] bg-slate-50 p-5">
-                          <div className="text-lg font-semibold text-slate-900">{WEEKDAYS[dayIndex].label}</div>
+                          <div className="text-lg font-semibold text-slate-900">
+                            {WEEKDAYS[dayIndex].label}
+                          </div>
                           <div className="mt-2 text-lg leading-relaxed text-slate-900">
                             {current.questions?.[dayIndex] ?? '—'}
                           </div>
@@ -729,16 +1031,180 @@ export default function QuotesPage() {
               )}
             </div>
 
-            {showEmbeddedNotes && current?.id ? (
-              <div className="px-5 pb-5 sm:px-7 sm:pb-7">
-                <EmbeddedNotesHistoryCard
-                  themeId={current.id}
-                  onClose={() => setShowEmbeddedNotes(false)}
-                />
-              </div>
-            ) : null}
+            {orderedBottomSections.map((section) => {
+              if (section === 'notes' && current?.id) {
+                return (
+                  <div key="notes" ref={notesBlockRef} className="px-5 pb-5 sm:px-7 sm:pb-7">
+                    <EmbeddedNotesHistoryCard
+                      themeId={current.id}
+                      onClose={() => {
+                        pendingNotesScrollRef.current = false;
+                        setShowEmbeddedNotes(false);
+                        setBottomSectionOrder((prev) => prev.filter((entry) => entry !== 'notes'));
+                      }}
+                    />
+                  </div>
+                );
+              }
 
-            {/* Footer */}
+              if (section === 'ical') {
+                return (
+                  <div key="ical" ref={icalBlockRef} className="px-5 pb-5 sm:px-7 sm:pb-7">
+                    <div className="rounded-2xl border border-[#F29420] bg-white p-5 shadow-sm">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                              <div>
+                                <h3 className="text-2xl font-semibold text-slate-900">
+                                  iCal-Schnellbearbeitung <span className="text-slate-600"><br />
+                                    (Variante C)</span>
+                                </h3>
+                                <div className="mt-2 text-base text-slate-900">
+                                  Aktuell: <span className="font-semibold text-[#F29420]">Aktuelle Woche</span>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap gap-2 xl:justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    localStorage.setItem(
+                                      'as-courage.inlineIcalDrafts.v1',
+                                      JSON.stringify(inlineIcalDrafts),
+                                    );
+                                    setIcalNotice('Änderungen lokal gespeichert.');
+                                  }}
+                                  className={[
+                                    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02]',
+                                    icalNotice === 'Änderungen lokal gespeichert.'
+                                      ? 'bg-[#4EA72E] hover:bg-[#3f8a25] hover:shadow-xl'
+                                      : 'bg-[#F29420] hover:bg-[#E4891E] hover:shadow-xl',
+                                  ].join(' ')}
+                                >
+                                  {icalNotice === 'Änderungen lokal gespeichert.'
+                                    ? 'Änderungen lokal gespeichert'
+                                    : 'Änderungen speichern'}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={downloadIcalDirectly}
+                                  className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg"
+                                >
+                                  bearbeiteten iCal herunterladen
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    pendingIcalScrollRef.current = false;
+                                    setShowInlineIcal(false);
+                                    setBottomSectionOrder((prev) => prev.filter((entry) => entry !== 'ical'));
+                                  }}
+                                  className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl bg-[#F29420] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-xl"
+                                >
+                                  Schließen
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#F29420] bg-white p-5">
+                              <h4 className="text-xl font-semibold text-slate-900">
+                                Aktuelle Woche mit bewusster Speicherung bearbeiten
+                              </h4>
+                              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                                Diese Schnellbearbeitung gilt für die aktuell sichtbare Woche. Für mehrere Wochen mit gemeinsamem iCal-Download steht im iCal-Menü zusätzlich der iCal-Editor zur Verfügung.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border-2 border-[#F29420] bg-slate-50 p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <div className="text-lg font-semibold text-slate-900">{currentTitle || '—'}</div>
+                              <div className="mt-1 text-sm font-medium text-slate-600">{dateRangeText || '—'}</div>
+                            </div>
+
+                            <div className="rounded-xl border border-[#F29420] bg-white px-3 py-2 text-sm text-slate-700">
+                              Woche {clampedIndex + 1}
+                            </div>
+                          </div>
+
+                          <div className="mt-3 rounded-xl border border-[#F29420] bg-white p-4">
+                            <div className="text-sm font-semibold text-slate-900">Wochenzitat</div>
+                            <div className="mt-2 text-sm leading-relaxed text-slate-700">„{current?.quote ?? '—'}“</div>
+                          </div>
+
+                          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {currentInlineIcalEntries.map((entry) => {
+                              const defaultText =
+                                entry.questionIndex !== null
+                                  ? current?.questions?.[entry.questionIndex] ?? '—'
+                                  : 'Schönes Wochenende';
+
+                              const isEdited = entry.text !== defaultText;
+
+                              return (
+                                <div
+                                  key={entry.key}
+                                  className="rounded-2xl border border-slate-200 bg-white p-4"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="text-sm font-semibold text-slate-900">{entry.label}</div>
+                                    <div className="text-xs text-slate-500">{entry.dateText}</div>
+                                  </div>
+
+                                  <textarea
+                                    value={entry.text}
+                                    onChange={(event) => {
+                                      if (icalNotice === 'Änderungen lokal gespeichert.') {
+                                        setIcalNotice(null);
+                                      }
+
+                                      updateInlineIcalDraft(current!.id, clampedIndex, entry.key, event.target.value);
+                                    }}
+                                    rows={4}
+                                    className="mt-3 min-h-[112px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition focus:border-[#F29420] focus:ring-2 focus:ring-[#F29420]/20"
+                                  />
+
+                                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                                    <div className="text-xs text-slate-500">Standard: {defaultText}</div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (icalNotice === 'Änderungen lokal gespeichert.') {
+                                          setIcalNotice(null);
+                                        }
+
+                                        updateInlineIcalDraft(current!.id, clampedIndex, entry.key, defaultText);
+                                      }}
+                                      disabled={!isEdited}
+                                      className={[
+                                        'inline-flex min-h-[36px] items-center justify-center rounded-xl border px-3 py-1.5 text-xs font-semibold shadow-sm transition duration-200',
+                                        isEdited
+                                          ? 'cursor-pointer border-slate-300 bg-white text-slate-700 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-50 hover:shadow-md'
+                                          : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400',
+                                      ].join(' ')}
+                                    >
+                                      Standard
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return null;
+            })}
           </div>
         </div>
       </BackgroundLayout>

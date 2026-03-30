@@ -130,10 +130,7 @@ export default function ThemesPage() {
 
   const SETUP_KEY = 'as-courage.themeSetup.v1';
 
-  const [isPlanC, setIsPlanC] = useState(false);
   const [currentUserPlan, setCurrentUserPlan] = useState<'A' | 'B' | 'C' | null>(null);
-  const [icalPref, setIcalPref] = useState(false);
-  const [icalNotice, setIcalNotice] = useState<string | null>(null);
 
   const [mode, setMode] = useState<Mode>('manual');
   const [weeksCount, setWeeksCount] = useState<number>(1);
@@ -150,9 +147,8 @@ export default function ThemesPage() {
   useEffect(() => {
     let alive = true;
 
-    async function loadPlanAndIcalPref() {
+    async function loadPlan() {
       let plan: 'A' | 'B' | 'C' | null = null;
-      let planC = false;
 
       try {
         plan = await readCurrentUserPlan();
@@ -161,24 +157,10 @@ export default function ThemesPage() {
       }
 
       if (!alive) return;
-
       setCurrentUserPlan(plan);
-      planC = plan === 'C';
-
-      try {
-        const raw = localStorage.getItem(SETUP_KEY);
-        if (raw) {
-          const s = JSON.parse(raw) as { icalEnabled?: boolean };
-          setIcalPref(Boolean(s.icalEnabled));
-        }
-      } catch {
-        // ignorieren
-      }
-
-      setIsPlanC(planC);
     }
 
-    loadPlanAndIcalPref();
+    loadPlan();
 
     return () => {
       alive = false;
@@ -197,7 +179,7 @@ export default function ThemesPage() {
 
       const next = {
         ...prev,
-        icalEnabled: isPlanC ? icalPref : false,
+        icalEnabled: true,
         weeksCount,
         startMonday,
       };
@@ -206,7 +188,7 @@ export default function ThemesPage() {
     } catch {
       // ignorieren
     }
-  }, [setupLoaded, isPlanC, icalPref, weeksCount, startMonday]);
+  }, [setupLoaded, weeksCount, startMonday]);
 
   function moveSelectedTheme(from: number, dir: -1 | 1) {
     setSelectedThemes((prev) => {
@@ -274,7 +256,6 @@ export default function ThemesPage() {
   const selectedSet = useMemo(() => new Set(selectedThemes), [selectedThemes]);
   const usedSet = useMemo(() => new Set(usedThemes), [usedThemes]);
 
-  const canSelectMore = selectedThemes.length < weeksCount;
   const selectionComplete = weeksCount > 0 && selectedThemes.length >= weeksCount;
   const showThemesList = !selectionComplete;
 
@@ -347,6 +328,7 @@ export default function ThemesPage() {
       startMonday,
       mode,
       themeIds: selectedThemes,
+      icalEnabled: true,
       createdAt: new Date().toISOString(),
     };
     writeLS(LS.setup, setup);
@@ -395,7 +377,7 @@ export default function ThemesPage() {
                         </span>
                       </div>
 
-                      {!isPlanC && (
+                      {currentUserPlan !== 'C' && (
                         <Link
                           href="/account"
                           className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[#F29420] px-4 py-2 text-sm font-medium text-slate-900 shadow-md transition hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-xl cursor-pointer"
@@ -415,58 +397,6 @@ export default function ThemesPage() {
                     >
                       zurück
                     </Link>
-
-                    <div className="flex flex-col gap-2">
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        className="text-left"
-                        onClick={() => {
-                          if (!isPlanC) {
-                            setIcalNotice((prev) => (prev ? null : 'iCal ist in Variante C möglich.'));
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (!isPlanC && (e.key === 'Enter' || e.key === ' ')) {
-                            e.preventDefault();
-                            setIcalNotice((prev) => (prev ? null : 'iCal ist in Variante C möglich.'));
-                          }
-                        }}
-                      >
-                        <div
-                          className={[
-                            'flex cursor-pointer items-start gap-2 rounded-xl px-3 py-2 text-xs text-slate-900',
-                            isPlanC && icalPref
-                              ? 'border border-[#F29420] bg-orange-100'
-                              : 'border border-orange-200 bg-orange-50',
-                          ].join(' ')}
-                        >
-                          <input
-                            type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#F29420]"
-                            checked={isPlanC ? icalPref : false}
-                            aria-disabled={!isPlanC}
-                            onChange={(e) => {
-                              if (!isPlanC) return;
-                              setIcalPref(e.target.checked);
-                              setIcalNotice(null);
-                            }}
-                          />
-                          <span className="leading-5">
-                            iCal aktivieren (nur in Variante C möglich)
-                            <span className="block text-[11px] text-slate-700">
-                              Download später bei „Zitate &amp; Tagesimpulse“
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-
-                      {icalNotice && (
-                        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                          {icalNotice}
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
               </header>
@@ -593,7 +523,7 @@ export default function ThemesPage() {
                         'rounded-lg border px-3 py-2 text-sm transition',
                         mode === 'manual'
                           ? 'border-[#F29420] bg-[#F29420] text-white'
-                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50'
+                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
                       ].join(' ')}
                     >
                       Manuell
@@ -609,7 +539,7 @@ export default function ThemesPage() {
                         'rounded-lg border px-3 py-2 text-sm transition',
                         mode === 'random'
                           ? 'border-[#F29420] bg-[#F29420] text-white'
-                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50'
+                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
                       ].join(' ')}
                     >
                       Zufall
