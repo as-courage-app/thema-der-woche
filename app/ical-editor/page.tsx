@@ -48,22 +48,54 @@ const WEEKDAYS = [
     { key: 'So', label: 'Sonntag', index: 6 },
 ] as const;
 
-type CalendarImportKey = 'themeImpulse';
+type CalendarImportKey =
+    | 'schoolHolidays'
+    | 'nationalHolidays'
+    | 'internationalHolidays'
+    | 'businessCalendar';
 
 type CalendarImportOption = {
     key: CalendarImportKey;
     label: string;
     description: string;
+    available: boolean;
 };
 
 const CALENDAR_IMPORT_OPTIONS: CalendarImportOption[] = [
     {
-        key: 'themeImpulse',
-        label: 'Zusatzkalender: Thema der Woche mit Tagesimpuls',
-        description:
-            'Ergänzt pro ausgewähltem Tag einen zusätzlichen Kalendereintrag mit Wochenthema und passendem Tagesimpuls.',
+        key: 'schoolHolidays',
+        label: 'Zusatzkalender: Schulferien',
+        description: 'Wird später als zusätzlicher Kalender zum Teamkalender ergänzbar.',
+        available: false,
+    },
+    {
+        key: 'nationalHolidays',
+        label: 'Zusatzkalender: nationale Feiertage',
+        description: 'Wird später als zusätzlicher Kalender zum Teamkalender ergänzbar.',
+        available: false,
+    },
+    {
+        key: 'internationalHolidays',
+        label: 'Zusatzkalender: internationale Feiertage',
+        description: 'Wird später als zusätzlicher Kalender zum Teamkalender ergänzbar.',
+        available: false,
+    },
+    {
+        key: 'businessCalendar',
+        label: 'Zusatzkalender: Betriebskalender',
+        description: 'Wird später als zusätzlicher Kalender zum Teamkalender ergänzbar.',
+        available: false,
     },
 ];
+
+function isCalendarImportKey(value: unknown): value is CalendarImportKey {
+    return (
+        value === 'schoolHolidays' ||
+        value === 'nationalHolidays' ||
+        value === 'internationalHolidays' ||
+        value === 'businessCalendar'
+    );
+}
 
 function readSetup(): SetupState | null {
     try {
@@ -125,7 +157,7 @@ function readIcalCalendarImports(): CalendarImportKey[] {
         const parsed = JSON.parse(raw) as unknown;
         if (!Array.isArray(parsed)) return [];
 
-        return parsed.filter((value): value is CalendarImportKey => value === 'themeImpulse');
+        return parsed.filter(isCalendarImportKey);
     } catch {
         return [];
     }
@@ -248,6 +280,29 @@ function dtstampUtc() {
     return `${y}${m}${d}T${hh}${mm}${ss}Z`;
 }
 
+function buildAdditionalCalendarEvents(
+    selectedCalendarImports: CalendarImportKey[],
+    _stamp: string,
+    _uidBase: string,
+    startEventIndex: number,
+) {
+    const selectedAvailableImports = CALENDAR_IMPORT_OPTIONS.filter(
+        (option) => option.available && selectedCalendarImports.includes(option.key),
+    );
+
+    if (selectedAvailableImports.length === 0) {
+        return {
+            lines: [] as string[],
+            nextEventIndex: startEventIndex,
+        };
+    }
+
+    return {
+        lines: [] as string[],
+        nextEventIndex: startEventIndex,
+    };
+}
+
 function buildIcsFromEditorData(
     setup: SetupState | null,
     selectedThemes: EditionRow[],
@@ -255,9 +310,8 @@ function buildIcsFromEditorData(
     daySelections: DaySelections,
     selectedCalendarImports: CalendarImportKey[],
 ): string {
-
     const stamp = dtstampUtc();
-    const uidBase = `tdw-editor-${stamp}-${Math.random().toString(16).slice(2)}`;
+    const uidBase = `teamkalender-${stamp}-${Math.random().toString(16).slice(2)}`;
 
     const weeksCount = setup?.weeksCount ?? 0;
     const startIso = setup?.startMonday;
@@ -267,27 +321,38 @@ function buildIcsFromEditorData(
         return [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//as-courage//Thema der Woche iCal-Editor//DE',
+            'PRODID:-//as-courage//Teamkalender//DE',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
+            'X-WR-CALNAME:Teamkalender',
+            'X-WR-CALDESC:Teamkalender',
             'END:VCALENDAR',
             '',
         ].join('\r\n');
     }
 
+    const activeImportLabels = CALENDAR_IMPORT_OPTIONS.filter(
+        (option) => option.available && selectedCalendarImports.includes(option.key),
+    ).map((option) => option.label);
+
+    const calendarDescription =
+        activeImportLabels.length > 0
+            ? `Teamkalender mit Zusatzkalendern: ${activeImportLabels.join(', ')}`
+            : 'Teamkalender ohne Zusatzkalender';
+
     const lines: string[] = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
-        'PRODID:-//as-courage//Thema der Woche iCal-Editor//DE',
+        'PRODID:-//as-courage//Teamkalender//DE',
         'CALSCALE:GREGORIAN',
         'METHOD:PUBLISH',
+        'X-WR-CALNAME:Teamkalender',
+        `X-WR-CALDESC:${escapeIcsText(calendarDescription)}`,
     ];
 
     let eventIndex = 0;
 
     const countWeeks = Math.min(weeksCount, selectedThemes.length);
-    const includeThemeImpulseImport = selectedCalendarImports.includes('themeImpulse');
-    void includeThemeImpulseImport;
 
     for (let weekIndex = 0; weekIndex < countWeeks; weekIndex++) {
         const theme = selectedThemes[weekIndex];
@@ -305,13 +370,28 @@ function buildIcsFromEditorData(
             const dtStart = yyyymmdd(date);
             const dtEnd = yyyymmdd(addDays(date, 1));
 
-            const questionText =
+            const dayText =
                 weekday.index <= 4
                     ? draftTexts[draftKey] ?? theme.questions?.[weekday.index] ?? ''
                     : draftTexts[draftKey] ?? 'Schönes Wochenende';
 
-            const standardSummary = `${weekday.label}`;
-            const standardDescription = `${weekday.label} · ${formatDE(date)}`;
+            const summary = `Teamkalender · ${title} · ${weekday.label}`;
+
+            const description =
+                weekday.index <= 4
+                    ? [
+                        'Teamkalender',
+                        `Datum: ${formatDE(date)}`,
+                        `Wochenthema: ${title}`,
+                        `Zitat: ${quote}`,
+                        `Tagesimpuls: ${dayText}`,
+                    ].join('\n')
+                    : [
+                        'Teamkalender',
+                        `Datum: ${formatDE(date)}`,
+                        `Wochenthema: ${title}`,
+                        `Hinweis: ${dayText || 'Schönes Wochenende'}`,
+                    ].join('\n');
 
             lines.push('BEGIN:VEVENT');
             lines.push(`UID:${uidBase}-${eventIndex}@as-courage`);
@@ -319,39 +399,24 @@ function buildIcsFromEditorData(
             lines.push(`DTSTART;VALUE=DATE:${dtStart}`);
             lines.push(`DTEND;VALUE=DATE:${dtEnd}`);
             lines.push('TRANSP:TRANSPARENT');
-            lines.push(`SUMMARY:${escapeIcsText(standardSummary)}`);
-            lines.push(`DESCRIPTION:${escapeIcsText(standardDescription)}`);
+            lines.push(`SUMMARY:${escapeIcsText(summary)}`);
+            lines.push(`DESCRIPTION:${escapeIcsText(description)}`);
             lines.push('END:VEVENT');
 
             eventIndex++;
-
-            if (includeThemeImpulseImport) {
-                const impulseSummary =
-                    weekday.index <= 4
-                        ? `${title}: ${questionText || 'Tagesimpuls'}`
-                        : `${title}: ${questionText || 'Schönes Wochenende'}`;
-
-                const impulseDescription =
-                    weekday.index <= 4
-                        ? `Thema: ${title}\nZitat: ${quote}\nTagesimpuls: ${questionText}`
-                        : `Thema: ${title}\nHinweis: ${questionText || 'Schönes Wochenende'}`;
-
-                lines.push('BEGIN:VEVENT');
-                lines.push(`UID:${uidBase}-${eventIndex}@as-courage`);
-                lines.push(`DTSTAMP:${stamp}`);
-                lines.push(`DTSTART;VALUE=DATE:${dtStart}`);
-                lines.push(`DTEND;VALUE=DATE:${dtEnd}`);
-                lines.push('TRANSP:TRANSPARENT');
-                lines.push(`SUMMARY:${escapeIcsText(impulseSummary)}`);
-                lines.push(`DESCRIPTION:${escapeIcsText(impulseDescription)}`);
-                lines.push('END:VEVENT');
-
-                eventIndex++;
-            }
         }
     }
 
+    const additionalCalendarEvents = buildAdditionalCalendarEvents(
+        selectedCalendarImports,
+        stamp,
+        uidBase,
+        eventIndex,
+    );
+
+    lines.push(...additionalCalendarEvents.lines);
     lines.push('END:VCALENDAR', '');
+
     return lines.join('\r\n');
 }
 
@@ -419,7 +484,9 @@ export default function ICalEditorPage() {
         const baseDate = parseIsoDate(setup?.startMonday);
         if (!baseDate || selectedThemes.length === 0) return [];
 
-        return selectedThemes.map((theme, weekIndex) => {
+        const countWeeks = Math.min(setup?.weeksCount ?? selectedThemes.length, selectedThemes.length);
+
+        return selectedThemes.slice(0, countWeeks).map((theme, weekIndex) => {
             const monday = addDays(baseDate, weekIndex * 7);
             const friday = addDays(monday, 4);
 
@@ -457,7 +524,7 @@ export default function ICalEditorPage() {
                 days,
             };
         });
-    }, [setup?.startMonday, selectedThemes, draftTexts, daySelections]);
+    }, [setup?.startMonday, setup?.weeksCount, selectedThemes, draftTexts, daySelections]);
 
     const hasAnyChanges =
         Object.keys(draftTexts).length > 0 ||
@@ -465,6 +532,12 @@ export default function ICalEditorPage() {
         selectedCalendarImports.length > 0;
 
     const canExport = Boolean(setup?.startMonday) && selectedThemes.length > 0;
+
+    const availableCalendarImportCount = CALENDAR_IMPORT_OPTIONS.filter((option) => option.available).length;
+
+    const activeAdditionalCalendarLabels = CALENDAR_IMPORT_OPTIONS.filter(
+        (option) => option.available && selectedCalendarImports.includes(option.key),
+    ).map((option) => option.label);
 
     function resetSingleDay(draftKey: string) {
         setDraftTexts((prev) => {
@@ -511,12 +584,7 @@ export default function ICalEditorPage() {
             selectedCalendarImports,
         );
 
-        const filename =
-            selectedCalendarImports.length > 0
-                ? 'thema-der-woche-editor-mit-zusatzkalendern.ics'
-                : 'thema-der-woche-editor-standard.ics';
-
-        downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
+        downloadTextFile('Teamkalender.ics', ics, 'text/calendar;charset=utf-8');
     }
 
     return (
@@ -563,7 +631,7 @@ export default function ICalEditorPage() {
                                             : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400',
                                     ].join(' ')}
                                 >
-                                    bearbeiteten iCal herunterladen
+                                    Teamkalender herunterladen
                                 </button>
 
                                 <button
@@ -608,25 +676,42 @@ export default function ICalEditorPage() {
                             ) : (
                                 <div className="space-y-5">
                                     <div className="rounded-2xl border border-[#F29420] bg-amber-50 p-4">
-                                        <div className="text-sm font-semibold text-slate-900">Zusätzliche Kalender</div>
+                                        <div className="text-sm font-semibold text-slate-900">Teamkalender</div>
                                         <p className="mt-2 text-xs leading-relaxed text-slate-700">
-                                            Der Standard-Kalender ist immer die feste Grundlage. Zusätzliche Kalender
-                                            werden per Häkchen ergänzt.
+                                            Der Teamkalender ist immer der Grundexport. Standard bedeutet hier:
+                                            Teamkalender ohne Zusatzkalender und ohne neue Bearbeitungen. Auch mit
+                                            abgewählten Tagen oder geänderten Tagesimpulsen bleibt es derselbe
+                                            Teamkalender.
                                         </p>
 
                                         <div className="mt-3 rounded-xl border border-[#F29420] bg-white px-3 py-2 text-xs font-medium text-slate-800">
                                             Aktueller Download:{' '}
                                             <span className="font-semibold text-[#F29420]">
-                                                {selectedCalendarImports.includes('themeImpulse')
-                                                    ? 'Standard-Kalender + Zusatzkalender: Thema der Woche mit Tagesimpuls'
-                                                    : 'Standard-Kalender'}
+                                                {activeAdditionalCalendarLabels.length > 0
+                                                    ? `Teamkalender + ${activeAdditionalCalendarLabels.join(', ')}`
+                                                    : 'Teamkalender'}
                                             </span>
                                         </div>
 
+                                        <div className="mt-2 text-xs text-slate-600">
+                                            Die Download-Datei heißt immer <span className="font-semibold">Teamkalender.ics</span>.
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-2xl border border-[#F29420] bg-white p-4">
+                                        <div className="text-sm font-semibold text-slate-900">
+                                            Zusatzkalender zum Teamkalender
+                                        </div>
+                                        <p className="mt-2 text-xs leading-relaxed text-slate-700">
+                                            Zusatzkalender sind Ergänzungen zum Teamkalender, nicht sein Ersatz. Sie
+                                            werden später per Häkchen auswählbar und gemeinsam mit dem Teamkalender in
+                                            einer einzigen Download-Datei zusammengeführt.
+                                        </p>
+
                                         <div className="mt-3 space-y-3">
                                             {!storageLoaded ? (
-                                                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-                                                    Zusätzliche Kalender werden geladen …
+                                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                                                    Zusatzkalender werden geladen …
                                                 </div>
                                             ) : (
                                                 CALENDAR_IMPORT_OPTIONS.map((option) => {
@@ -635,12 +720,20 @@ export default function ICalEditorPage() {
                                                     return (
                                                         <label
                                                             key={option.key}
-                                                            className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
+                                                            className={[
+                                                                'flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-sm transition duration-200',
+                                                                option.available
+                                                                    ? 'cursor-pointer border-slate-300 bg-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-50 hover:shadow-md'
+                                                                    : 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-80',
+                                                            ].join(' ')}
                                                         >
                                                             <input
                                                                 type="checkbox"
                                                                 checked={isChecked}
+                                                                disabled={!option.available}
                                                                 onChange={() => {
+                                                                    if (!option.available) return;
+
                                                                     setSelectedCalendarImports((prev) =>
                                                                         prev.includes(option.key)
                                                                             ? prev.filter((key) => key !== option.key)
@@ -649,7 +742,7 @@ export default function ICalEditorPage() {
                                                                     setSaveSuccess(false);
                                                                     setSaveNotice('Ungespeicherte Änderungen');
                                                                 }}
-                                                                className="mt-1 h-4 w-4 cursor-pointer rounded border-slate-300 text-[#F29420] focus:ring-[#F29420]"
+                                                                className="mt-1 h-4 w-4 cursor-pointer rounded border-slate-300 text-[#F29420] focus:ring-[#F29420] disabled:cursor-not-allowed"
                                                             />
 
                                                             <span className="flex-1">
@@ -659,12 +752,24 @@ export default function ICalEditorPage() {
                                                                 <span className="mt-1 block text-xs leading-relaxed text-slate-600">
                                                                     {option.description}
                                                                 </span>
+                                                                {!option.available ? (
+                                                                    <span className="mt-2 inline-flex rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                                                                        in Vorbereitung
+                                                                    </span>
+                                                                ) : null}
                                                             </span>
                                                         </label>
                                                     );
                                                 })
                                             )}
                                         </div>
+
+                                        {storageLoaded && availableCalendarImportCount === 0 ? (
+                                            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
+                                                In diesem Stand ist noch kein Zusatzkalender fachlich angebunden. Die
+                                                Struktur dafür ist hier bereits vorbereitet.
+                                            </div>
+                                        ) : null}
                                     </div>
 
                                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -787,7 +892,7 @@ export default function ICalEditorPage() {
                                                                                 : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400',
                                                                         ].join(' ')}
                                                                     >
-                                                                        Standard
+                                                                        Standard wiederherstellen
                                                                     </button>
                                                                 </div>
                                                             </div>
