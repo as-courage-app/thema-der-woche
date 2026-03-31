@@ -9,6 +9,8 @@ import edition1 from '../data/edition1.json';
 
 const LS_SETUP = 'as-courage.themeSetup.v1';
 const LS_ICAL_DRAFTS = 'as-courage.icalDrafts.v1';
+const LS_ICAL_DAY_SELECTIONS = 'as-courage.icalDaySelections.v1';
+const LS_ICAL_CALENDAR_IMPORTS = 'as-courage.icalCalendarImports.v1';
 
 type LicenseTier = 'A' | 'B' | 'C';
 
@@ -32,6 +34,7 @@ type EditionRow = {
 };
 
 type DraftTexts = Record<string, string>;
+type DaySelections = Record<string, boolean>;
 
 const THEMES: EditionRow[] = edition1 as unknown as EditionRow[];
 
@@ -44,6 +47,23 @@ const WEEKDAYS = [
     { key: 'Sa', label: 'Samstag', index: 5 },
     { key: 'So', label: 'Sonntag', index: 6 },
 ] as const;
+
+type CalendarImportKey = 'themeImpulse';
+
+type CalendarImportOption = {
+    key: CalendarImportKey;
+    label: string;
+    description: string;
+};
+
+const CALENDAR_IMPORT_OPTIONS: CalendarImportOption[] = [
+    {
+        key: 'themeImpulse',
+        label: 'Zusatzkalender: Thema der Woche mit Tagesimpuls',
+        description:
+            'Ergänzt pro ausgewähltem Tag einen zusätzlichen Kalendereintrag mit Wochenthema und passendem Tagesimpuls.',
+    },
+];
 
 function readSetup(): SetupState | null {
     try {
@@ -83,6 +103,34 @@ function readIcalDrafts(): DraftTexts {
     }
 }
 
+function readIcalDaySelections(): DaySelections {
+    try {
+        const raw = localStorage.getItem(LS_ICAL_DAY_SELECTIONS);
+        if (!raw) return {};
+
+        const parsed = JSON.parse(raw) as DaySelections;
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+
+        return parsed;
+    } catch {
+        return {};
+    }
+}
+
+function readIcalCalendarImports(): CalendarImportKey[] {
+    try {
+        const raw = localStorage.getItem(LS_ICAL_CALENDAR_IMPORTS);
+        if (!raw) return [];
+
+        const parsed = JSON.parse(raw) as unknown;
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed.filter((value): value is CalendarImportKey => value === 'themeImpulse');
+    } catch {
+        return [];
+    }
+}
+
 function writeIcalDrafts(drafts: DraftTexts) {
     try {
         if (Object.keys(drafts).length === 0) {
@@ -91,6 +139,32 @@ function writeIcalDrafts(drafts: DraftTexts) {
         }
 
         localStorage.setItem(LS_ICAL_DRAFTS, JSON.stringify(drafts));
+    } catch {
+        // lokal still behandeln
+    }
+}
+
+function writeIcalDaySelections(daySelections: DaySelections) {
+    try {
+        if (Object.keys(daySelections).length === 0) {
+            localStorage.removeItem(LS_ICAL_DAY_SELECTIONS);
+            return;
+        }
+
+        localStorage.setItem(LS_ICAL_DAY_SELECTIONS, JSON.stringify(daySelections));
+    } catch {
+        // lokal still behandeln
+    }
+}
+
+function writeIcalCalendarImports(selectedCalendarImports: CalendarImportKey[]) {
+    try {
+        if (selectedCalendarImports.length === 0) {
+            localStorage.removeItem(LS_ICAL_CALENDAR_IMPORTS);
+            return;
+        }
+
+        localStorage.setItem(LS_ICAL_CALENDAR_IMPORTS, JSON.stringify(selectedCalendarImports));
     } catch {
         // lokal still behandeln
     }
@@ -178,7 +252,10 @@ function buildIcsFromEditorData(
     setup: SetupState | null,
     selectedThemes: EditionRow[],
     draftTexts: DraftTexts,
+    daySelections: DaySelections,
+    selectedCalendarImports: CalendarImportKey[],
 ): string {
+
     const stamp = dtstampUtc();
     const uidBase = `tdw-editor-${stamp}-${Math.random().toString(16).slice(2)}`;
 
@@ -198,8 +275,6 @@ function buildIcsFromEditorData(
         ].join('\r\n');
     }
 
-    const countWeeks = Math.min(weeksCount, selectedThemes.length);
-
     const lines: string[] = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
@@ -210,6 +285,10 @@ function buildIcsFromEditorData(
 
     let eventIndex = 0;
 
+    const countWeeks = Math.min(weeksCount, selectedThemes.length);
+    const includeThemeImpulseImport = selectedCalendarImports.includes('themeImpulse');
+    void includeThemeImpulseImport;
+
     for (let weekIndex = 0; weekIndex < countWeeks; weekIndex++) {
         const theme = selectedThemes[weekIndex];
         const weekMonday = addDays(baseDate, weekIndex * 7);
@@ -217,25 +296,22 @@ function buildIcsFromEditorData(
         const quote = theme.quote ?? '';
 
         for (const weekday of WEEKDAYS) {
+            const draftKey = makeDraftKey(theme.id, weekIndex, weekday.key);
+            const isActive = daySelections[draftKey] ?? true;
+
+            if (!isActive) continue;
+
             const date = addDays(weekMonday, weekday.index);
             const dtStart = yyyymmdd(date);
             const dtEnd = yyyymmdd(addDays(date, 1));
-            const draftKey = makeDraftKey(theme.id, weekIndex, weekday.key);
 
             const questionText =
                 weekday.index <= 4
                     ? draftTexts[draftKey] ?? theme.questions?.[weekday.index] ?? ''
                     : draftTexts[draftKey] ?? 'Schönes Wochenende';
 
-            const summary =
-                weekday.index <= 4
-                    ? `${title}: ${questionText || 'Tagesimpuls'}`
-                    : questionText || 'Schönes Wochenende';
-
-            const description =
-                weekday.index <= 4
-                    ? `Thema: ${title}\nZitat: ${quote}\nTagesfrage: ${questionText}`
-                    : questionText || 'Schönes Wochenende!';
+            const standardSummary = `${weekday.label}`;
+            const standardDescription = `${weekday.label} · ${formatDE(date)}`;
 
             lines.push('BEGIN:VEVENT');
             lines.push(`UID:${uidBase}-${eventIndex}@as-courage`);
@@ -243,11 +319,35 @@ function buildIcsFromEditorData(
             lines.push(`DTSTART;VALUE=DATE:${dtStart}`);
             lines.push(`DTEND;VALUE=DATE:${dtEnd}`);
             lines.push('TRANSP:TRANSPARENT');
-            lines.push(`SUMMARY:${escapeIcsText(summary)}`);
-            lines.push(`DESCRIPTION:${escapeIcsText(description)}`);
+            lines.push(`SUMMARY:${escapeIcsText(standardSummary)}`);
+            lines.push(`DESCRIPTION:${escapeIcsText(standardDescription)}`);
             lines.push('END:VEVENT');
 
             eventIndex++;
+
+            if (includeThemeImpulseImport) {
+                const impulseSummary =
+                    weekday.index <= 4
+                        ? `${title}: ${questionText || 'Tagesimpuls'}`
+                        : `${title}: ${questionText || 'Schönes Wochenende'}`;
+
+                const impulseDescription =
+                    weekday.index <= 4
+                        ? `Thema: ${title}\nZitat: ${quote}\nTagesimpuls: ${questionText}`
+                        : `Thema: ${title}\nHinweis: ${questionText || 'Schönes Wochenende'}`;
+
+                lines.push('BEGIN:VEVENT');
+                lines.push(`UID:${uidBase}-${eventIndex}@as-courage`);
+                lines.push(`DTSTAMP:${stamp}`);
+                lines.push(`DTSTART;VALUE=DATE:${dtStart}`);
+                lines.push(`DTEND;VALUE=DATE:${dtEnd}`);
+                lines.push('TRANSP:TRANSPARENT');
+                lines.push(`SUMMARY:${escapeIcsText(impulseSummary)}`);
+                lines.push(`DESCRIPTION:${escapeIcsText(impulseDescription)}`);
+                lines.push('END:VEVENT');
+
+                eventIndex++;
+            }
         }
     }
 
@@ -262,8 +362,11 @@ export default function ICalEditorPage() {
     const [isLoadingPlan, setIsLoadingPlan] = useState(true);
     const [setup, setSetup] = useState<SetupState | null>(null);
     const [draftTexts, setDraftTexts] = useState<DraftTexts>({});
-    const [draftsLoaded, setDraftsLoaded] = useState(false);
-    const [saveNotice, setSaveNotice] = useState<string | null>(null);
+    const [daySelections, setDaySelections] = useState<DaySelections>({});
+    const [storageLoaded, setStorageLoaded] = useState(false);
+    const [, setSaveNotice] = useState<string | null>(null);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [selectedCalendarImports, setSelectedCalendarImports] = useState<CalendarImportKey[]>([]);
 
     useEffect(() => {
         let alive = true;
@@ -272,14 +375,18 @@ export default function ICalEditorPage() {
             const plan = await readCurrentUserPlan();
             const currentSetup = readSetup();
             const storedDrafts = readIcalDrafts();
+            const storedDaySelections = readIcalDaySelections();
+            const storedCalendarImports = readIcalCalendarImports();
 
             if (!alive) return;
 
             setCurrentUserPlan(plan);
             setSetup(currentSetup);
             setDraftTexts(storedDrafts);
+            setDaySelections(storedDaySelections);
+            setSelectedCalendarImports(storedCalendarImports);
             setIsLoadingPlan(false);
-            setDraftsLoaded(true);
+            setStorageLoaded(true);
         }
 
         loadData();
@@ -290,11 +397,11 @@ export default function ICalEditorPage() {
     }, []);
 
     useEffect(() => {
-        if (!draftsLoaded) return;
+        if (!storageLoaded) return;
         // vorerst kein automatisches Speichern mehr
-    }, [draftTexts, draftsLoaded]);
+    }, [draftTexts, daySelections, storageLoaded]);
 
-    const isVariantC = true;
+    const isVariantC = currentUserPlan === 'C';
 
     const selectedThemes = useMemo(() => {
         const ids = setup?.themeIds;
@@ -327,6 +434,8 @@ export default function ICalEditorPage() {
 
                 const currentText = draftTexts[draftKey] ?? defaultText;
                 const isEdited = currentText !== defaultText;
+                const isActive = daySelections[draftKey] ?? true;
+                const isChanged = isEdited || !isActive;
 
                 return {
                     ...weekday,
@@ -335,6 +444,8 @@ export default function ICalEditorPage() {
                     defaultText,
                     currentText,
                     isEdited,
+                    isActive,
+                    isChanged,
                 };
             });
 
@@ -346,33 +457,66 @@ export default function ICalEditorPage() {
                 days,
             };
         });
-    }, [setup?.startMonday, selectedThemes, draftTexts]);
+    }, [setup?.startMonday, selectedThemes, draftTexts, daySelections]);
 
-    const hasAnyDrafts = Object.keys(draftTexts).length > 0;
+    const hasAnyChanges =
+        Object.keys(draftTexts).length > 0 ||
+        Object.keys(daySelections).length > 0 ||
+        selectedCalendarImports.length > 0;
+
     const canExport = Boolean(setup?.startMonday) && selectedThemes.length > 0;
 
-    function resetSingleDraft(draftKey: string) {
+    function resetSingleDay(draftKey: string) {
         setDraftTexts((prev) => {
             const next = { ...prev };
             delete next[draftKey];
             return next;
         });
+
+        setDaySelections((prev) => {
+            const next = { ...prev };
+            delete next[draftKey];
+            return next;
+        });
+
+        setSaveSuccess(false);
         setSaveNotice('Ungespeicherte Änderungen');
     }
 
     function resetAllDrafts() {
         setDraftTexts({});
+        setDaySelections({});
+        setSelectedCalendarImports([]);
+        writeIcalDrafts({});
+        writeIcalDaySelections({});
+        writeIcalCalendarImports([]);
+        setSaveSuccess(false);
         setSaveNotice('Ungespeicherte Änderungen');
     }
 
     function handleSaveDrafts() {
         writeIcalDrafts(draftTexts);
+        writeIcalDaySelections(daySelections);
+        writeIcalCalendarImports(selectedCalendarImports);
+        setSaveSuccess(true);
         setSaveNotice('Änderungen wurden im localStorage dieses Browsers auf diesem Gerät gespeichert.');
     }
 
     function handleDownloadEditedIcal() {
-        const ics = buildIcsFromEditorData(setup, selectedThemes, draftTexts);
-        downloadTextFile('thema-der-woche-editor.ics', ics, 'text/calendar;charset=utf-8');
+        const ics = buildIcsFromEditorData(
+            setup,
+            selectedThemes,
+            draftTexts,
+            daySelections,
+            selectedCalendarImports,
+        );
+
+        const filename =
+            selectedCalendarImports.length > 0
+                ? 'thema-der-woche-editor-mit-zusatzkalendern.ics'
+                : 'thema-der-woche-editor-standard.ics';
+
+        downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
     }
 
     return (
@@ -398,9 +542,14 @@ export default function ICalEditorPage() {
                                 <button
                                     type="button"
                                     onClick={handleSaveDrafts}
-                                    className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-lg"
+                                    className={[
+                                        'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg',
+                                        saveSuccess
+                                            ? 'border-[#4EA72E] bg-[#4EA72E] hover:border-[#3f8a25] hover:bg-[#3f8a25]'
+                                            : 'border-[#F29420] bg-[#F29420] hover:border-[#E4891E] hover:bg-[#E4891E]',
+                                    ].join(' ')}
                                 >
-                                    Änderungen speichern
+                                    {saveSuccess ? 'Änderungen gespeichert' : 'Änderungen speichern'}
                                 </button>
 
                                 <button
@@ -431,12 +580,12 @@ export default function ICalEditorPage() {
                             {!isLoadingPlan && !isVariantC ? (
                                 <div className="space-y-4">
                                     <div className="text-lg font-semibold text-slate-900">
-                                        Dieser Bereich ist nur in Variante C verfügbar.
+                                        Dieser Bereich ist in Variante C verfügbar.
                                     </div>
 
                                     <p className="text-sm leading-relaxed text-slate-700">
                                         Hier entsteht die neue bearbeitbare iCal-Oberfläche für Variante C. In Variante A und B bleibt
-                                        dieser Bereich gesperrt.
+                                        dieser Bereich deaktiviert.
                                     </p>
 
                                     <div className="flex flex-wrap gap-2">
@@ -458,6 +607,66 @@ export default function ICalEditorPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-5">
+                                    <div className="rounded-2xl border border-[#F29420] bg-amber-50 p-4">
+                                        <div className="text-sm font-semibold text-slate-900">Zusätzliche Kalender</div>
+                                        <p className="mt-2 text-xs leading-relaxed text-slate-700">
+                                            Der Standard-Kalender ist immer die feste Grundlage. Zusätzliche Kalender
+                                            werden per Häkchen ergänzt.
+                                        </p>
+
+                                        <div className="mt-3 rounded-xl border border-[#F29420] bg-white px-3 py-2 text-xs font-medium text-slate-800">
+                                            Aktueller Download:{' '}
+                                            <span className="font-semibold text-[#F29420]">
+                                                {selectedCalendarImports.includes('themeImpulse')
+                                                    ? 'Standard-Kalender + Zusatzkalender: Thema der Woche mit Tagesimpuls'
+                                                    : 'Standard-Kalender'}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-3 space-y-3">
+                                            {!storageLoaded ? (
+                                                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
+                                                    Zusätzliche Kalender werden geladen …
+                                                </div>
+                                            ) : (
+                                                CALENDAR_IMPORT_OPTIONS.map((option) => {
+                                                    const isChecked = selectedCalendarImports.includes(option.key);
+
+                                                    return (
+                                                        <label
+                                                            key={option.key}
+                                                            className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-50 hover:shadow-md"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isChecked}
+                                                                onChange={() => {
+                                                                    setSelectedCalendarImports((prev) =>
+                                                                        prev.includes(option.key)
+                                                                            ? prev.filter((key) => key !== option.key)
+                                                                            : [...prev, option.key]
+                                                                    );
+                                                                    setSaveSuccess(false);
+                                                                    setSaveNotice('Ungespeicherte Änderungen');
+                                                                }}
+                                                                className="mt-1 h-4 w-4 cursor-pointer rounded border-slate-300 text-[#F29420] focus:ring-[#F29420]"
+                                                            />
+
+                                                            <span className="flex-1">
+                                                                <span className="block text-sm font-semibold text-slate-900">
+                                                                    {option.label}
+                                                                </span>
+                                                                <span className="mt-1 block text-xs leading-relaxed text-slate-600">
+                                                                    {option.description}
+                                                                </span>
+                                                            </span>
+                                                        </label>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div>
                                             <div className="text-lg font-semibold text-slate-900">
@@ -467,21 +676,15 @@ export default function ICalEditorPage() {
                                                 Änderungen werden nicht mehr automatisch übernommen. Erst nach Klick auf
                                                 „Änderungen speichern“ bleiben sie lokal auf diesem Gerät erhalten.
                                             </p>
-
-                                            {saveNotice ? (
-                                                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                                                    {saveNotice}
-                                                </div>
-                                            ) : null}
                                         </div>
 
                                         <button
                                             type="button"
                                             onClick={resetAllDrafts}
-                                            disabled={!hasAnyDrafts}
+                                            disabled={!hasAnyChanges}
                                             className={[
                                                 'inline-flex min-h-[44px] items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition duration-200',
-                                                hasAnyDrafts
+                                                hasAnyChanges
                                                     ? 'cursor-pointer border-[#F29420] bg-[#F29420] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-lg'
                                                     : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400',
                                             ].join(' ')}
@@ -524,9 +727,36 @@ export default function ICalEditorPage() {
                                                                 key={`${week.themeId}-${weekIndex}-${day.key}`}
                                                                 className="rounded-2xl border border-slate-200 bg-white p-4"
                                                             >
-                                                                <div className="flex items-center justify-between gap-2">
-                                                                    <div className="text-sm font-semibold text-slate-900">{day.label}</div>
-                                                                    <div className="text-xs text-slate-500">{day.dateText}</div>
+                                                                <div className="flex items-start justify-between gap-3">
+                                                                    <div>
+                                                                        <div className="text-sm font-semibold text-slate-900">{day.label}</div>
+                                                                        <div className="text-xs text-slate-500">{day.dateText}</div>
+                                                                    </div>
+
+                                                                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#F29420] bg-amber-50 px-3 py-2 text-xs font-semibold text-slate-800">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={day.isActive}
+                                                                            onChange={() => {
+                                                                                setDaySelections((prev) => {
+                                                                                    const next = { ...prev };
+                                                                                    const currentlyActive = prev[day.draftKey] ?? true;
+
+                                                                                    if (currentlyActive) {
+                                                                                        next[day.draftKey] = false;
+                                                                                    } else {
+                                                                                        delete next[day.draftKey];
+                                                                                    }
+
+                                                                                    return next;
+                                                                                });
+                                                                                setSaveSuccess(false);
+                                                                                setSaveNotice('Ungespeicherte Änderungen');
+                                                                            }}
+                                                                            className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#F29420] focus:ring-[#F29420]"
+                                                                        />
+                                                                        <span>exportieren</span>
+                                                                    </label>
                                                                 </div>
 
                                                                 <textarea
@@ -536,6 +766,7 @@ export default function ICalEditorPage() {
                                                                             ...prev,
                                                                             [day.draftKey]: event.target.value,
                                                                         }));
+                                                                        setSaveSuccess(false);
                                                                         setSaveNotice('Ungespeicherte Änderungen');
                                                                     }}
                                                                     rows={4}
@@ -547,11 +778,11 @@ export default function ICalEditorPage() {
 
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => resetSingleDraft(day.draftKey)}
-                                                                        disabled={!day.isEdited}
+                                                                        onClick={() => resetSingleDay(day.draftKey)}
+                                                                        disabled={!day.isChanged}
                                                                         className={[
                                                                             'inline-flex min-h-[36px] items-center justify-center rounded-xl border px-3 py-1.5 text-xs font-semibold shadow-sm transition duration-200',
-                                                                            day.isEdited
+                                                                            day.isChanged
                                                                                 ? 'cursor-pointer border-slate-300 bg-white text-slate-700 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-50 hover:shadow-md'
                                                                                 : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400',
                                                                         ].join(' ')}
@@ -567,10 +798,7 @@ export default function ICalEditorPage() {
                                         </div>
                                     )}
 
-                                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                                        Nächster Schritt: die bestehende iCal-Logik aus der Quotes-Seite in eine gemeinsame Helper-Datei
-                                        auslagern, damit Editor und Quotes dieselbe Exportbasis nutzen.
-                                    </div>
+                                    {null}
                                 </div>
                             )}
                         </div>

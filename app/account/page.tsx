@@ -679,12 +679,12 @@ export default function AccountPage() {
         <section className="rounded-[30px] border border-[#F29420] bg-white/85 p-4 shadow-xl backdrop-blur-md md:p-6">
           <div className="mb-4 flex items-start justify-end gap-2">
             {canOpenThemes ? (
-              <Link href="/themes" className={softButtonClass}>
+              <Link href="/themes" className={greenButtonClass}>
                 Themenauswahl
               </Link>
             ) : (
               <span
-                className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 opacity-50 shadow-md ring-1 ring-slate-200"
+                className="inline-flex min-h-[46px] cursor-not-allowed items-center justify-center rounded-2xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-500 shadow-sm"
                 aria-disabled="true"
                 title="Bitte erst anmelden"
               >
