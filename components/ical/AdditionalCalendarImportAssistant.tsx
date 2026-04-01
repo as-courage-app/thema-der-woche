@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 const LS_ADDITIONAL_CALENDARS = 'as-courage.additionalCalendars.v1';
 
@@ -230,6 +230,10 @@ export default function AdditionalCalendarImportAssistant() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    const urlSectionRef = useRef<HTMLDivElement | null>(null);
+    const fileSectionRef = useRef<HTMLDivElement | null>(null);
+    const helpSectionRef = useRef<HTMLDivElement | null>(null);
+
     useEffect(() => {
         setStoredCalendars(readStoredCalendars());
     }, []);
@@ -248,6 +252,22 @@ export default function AdditionalCalendarImportAssistant() {
         setPreview(null);
         setSourceUrl('');
         setSelectedFile(null);
+    }
+
+    function scrollToSelectedSource(targetType: SourceType) {
+        window.setTimeout(() => {
+            const targetRef =
+                targetType === 'url'
+                    ? urlSectionRef
+                    : targetType === 'file'
+                        ? fileSectionRef
+                        : helpSectionRef;
+
+            targetRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }, 0);
     }
 
     async function handleCheckUrlSource() {
@@ -435,6 +455,7 @@ export default function AdditionalCalendarImportAssistant() {
                     setSourceType(key);
                     resetMessages();
                     setPreview(null);
+                    scrollToSelectedSource(key);
                 }}
                 className={[
                     'w-full rounded-2xl border p-4 text-left shadow-sm transition duration-200',
@@ -528,7 +549,10 @@ export default function AdditionalCalendarImportAssistant() {
                         </div>
 
                         {sourceType === 'url' ? (
-                            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div
+                                ref={urlSectionRef}
+                                className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                            >
                                 <div className="text-sm font-semibold text-slate-900">ICS-Link einfügen</div>
 
                                 <input
@@ -566,7 +590,10 @@ export default function AdditionalCalendarImportAssistant() {
                         ) : null}
 
                         {sourceType === 'file' ? (
-                            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div
+                                ref={fileSectionRef}
+                                className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                            >
                                 <div className="text-sm font-semibold text-slate-900">ICS-Datei hochladen</div>
 
                                 <input
@@ -605,8 +632,21 @@ export default function AdditionalCalendarImportAssistant() {
                         ) : null}
 
                         {sourceType === 'help' ? (
-                            <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                                <div className="text-sm font-semibold text-slate-900">Hilfe zum Finden</div>
+                            <div
+                                ref={helpSectionRef}
+                                className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                            >
+                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div className="text-sm font-semibold text-slate-900">Hilfe zum Finden</div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setSourceType('url')}
+                                        className={SECONDARY_BUTTON_CLASS}
+                                    >
+                                        schließen
+                                    </button>
+                                </div>
 
                                 <div className="space-y-3 text-sm leading-relaxed text-slate-700">
                                     <div>
