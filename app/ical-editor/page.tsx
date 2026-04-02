@@ -1148,7 +1148,7 @@ export default function ICalEditorPage() {
                                                         }
                                                         className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#990000] bg-[#990000] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#7A0000] hover:bg-[#7A0000] hover:shadow-lg"
                                                     >
-                                                        weiter zu iCal-Zusatzkalender
+                                                        iCal-Zusatzkalender suchen und auswählen
                                                     </button>
 
                                                     <button

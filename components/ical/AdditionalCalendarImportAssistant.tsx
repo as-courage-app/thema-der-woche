@@ -47,13 +47,16 @@ type PreviewState = {
 };
 
 const PRIMARY_BUTTON_CLASS =
-    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg';
+    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#990000] bg-[#990000] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#7A0000] hover:bg-[#7A0000] hover:shadow-lg';
 
-const SUCCESS_BUTTON_CLASS =
-    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg';
+const EMPHASIS_BUTTON_CLASS =
+    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#990000] bg-[#990000] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#7A0000] hover:bg-[#7A0000] hover:shadow-lg';
 
 const SECONDARY_BUTTON_CLASS =
     'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-50 hover:shadow-md';
+
+const OUTLINE_RED_BUTTON_CLASS =
+    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#990000] bg-white px-4 py-2 text-sm font-semibold text-[#7A0000] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#FFF4F4] hover:border-[#7A0000] hover:shadow-md';
 
 const DISABLED_BUTTON_CLASS =
     'inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400 shadow-sm';
@@ -240,7 +243,7 @@ export default function AdditionalCalendarImportAssistant() {
 
     const activeCalendarCount = useMemo(
         () => storedCalendars.filter((calendar) => calendar.isEnabled).length,
-        [storedCalendars]
+        [storedCalendars],
     );
 
     function resetMessages() {
@@ -407,7 +410,7 @@ export default function AdditionalCalendarImportAssistant() {
         writeStoredCalendars(nextCalendars);
 
         setSuccessMessage(
-            'Der Zusatzkalender wurde lokal gespeichert. Er ist damit vorbereitet, wird aber noch nicht automatisch in den Teamkalender eingebaut.'
+            'Der Zusatzkalender wurde lokal gespeichert. Er ist damit vorbereitet, wird aber noch nicht automatisch in den Teamkalender eingebaut.',
         );
 
         setCalendarLabel('');
@@ -417,9 +420,7 @@ export default function AdditionalCalendarImportAssistant() {
 
     function handleToggleCalendar(calendarId: string) {
         const nextCalendars = storedCalendars.map((calendar) =>
-            calendar.id === calendarId
-                ? { ...calendar, isEnabled: !calendar.isEnabled }
-                : calendar
+            calendar.id === calendarId ? { ...calendar, isEnabled: !calendar.isEnabled } : calendar,
         );
 
         setStoredCalendars(nextCalendars);
@@ -441,11 +442,7 @@ export default function AdditionalCalendarImportAssistant() {
         setErrorMessage(null);
     }
 
-    function renderSourceCard(
-        key: SourceType,
-        title: string,
-        description: string
-    ) {
+    function renderSourceCard(key: SourceType, title: string, description: string) {
         const isActive = sourceType === key;
 
         return (
@@ -460,8 +457,8 @@ export default function AdditionalCalendarImportAssistant() {
                 className={[
                     'w-full rounded-2xl border p-4 text-left shadow-sm transition duration-200',
                     isActive
-                        ? 'cursor-pointer border-[#F29420] bg-amber-50 shadow-md'
-                        : 'cursor-pointer border-slate-200 bg-white hover:-translate-y-0.5 hover:scale-[1.01] hover:border-slate-300 hover:bg-slate-50 hover:shadow-md',
+                        ? 'cursor-pointer border-[#990000] bg-[#FFF4F4] shadow-md'
+                        : 'cursor-pointer border-slate-200 bg-white hover:-translate-y-0.5 hover:scale-[1.01] hover:border-[#C88F8F] hover:bg-[#FFF8F8] hover:shadow-md',
                 ].join(' ')}
             >
                 <div className="text-sm font-semibold text-slate-900">{title}</div>
@@ -472,23 +469,26 @@ export default function AdditionalCalendarImportAssistant() {
 
     return (
         <div className="space-y-5">
-            <div className="rounded-2xl border border-[#F29420] bg-amber-50 p-4">
-                <div className="text-sm font-semibold text-slate-900">Zusatzkalender getrennt vorbereiten</div>
+            <div className="rounded-2xl border border-[#990000] bg-[#FFF4F4] p-4">
+                <div className="text-sm font-semibold text-slate-900">
+                    Zusatzkalender getrennt vorbereiten
+                </div>
                 <p className="mt-2 text-xs leading-relaxed text-slate-700">
-                    Hier können Nutzer*innen Zusatzkalender erst prüfen, benennen und lokal speichern.
-                    Der eigentliche Teamkalender bleibt dabei vorerst unberührt. Erst wenn alles sauber
-                    getestet ist, kann die spätere Zusammenführung in einer gemeinsamen Download-Datei folgen.
+                    Hier können Nutzer*innen Zusatzkalender erst prüfen, benennen und lokal
+                    speichern. Der eigentliche Teamkalender bleibt dabei vorerst unberührt. Erst
+                    wenn alles sauber getestet ist, kann die spätere Zusammenführung in einer
+                    gemeinsamen Download-Datei folgen.
                 </p>
 
-                <div className="mt-3 rounded-xl border border-[#F29420] bg-white px-3 py-2 text-xs font-medium text-slate-800">
+                <div className="mt-3 rounded-xl border border-[#D7B1B1] bg-white px-3 py-2 text-xs font-medium text-slate-800">
                     Gespeicherte Zusatzkalender:{' '}
-                    <span className="font-semibold text-[#F29420]">{storedCalendars.length}</span>{' '}
+                    <span className="font-semibold text-[#990000]">{storedCalendars.length}</span>{' '}
                     · aktiv für spätere Nutzung:{' '}
-                    <span className="font-semibold text-[#F29420]">{activeCalendarCount}</span>
+                    <span className="font-semibold text-[#990000]">{activeCalendarCount}</span>
                 </div>
             </div>
 
-            <div className="rounded-2xl border-2 border-[#F29420] bg-white p-5">
+            <div className="rounded-2xl border-2 border-[#990000] bg-white p-5">
                 <div className="text-lg font-semibold text-slate-900">1. Quelle auswählen</div>
                 <p className="mt-2 text-sm leading-relaxed text-slate-700">
                     Wählen Sie zuerst, wie der Zusatzkalender eingebunden werden soll.
@@ -498,22 +498,22 @@ export default function AdditionalCalendarImportAssistant() {
                     {renderSourceCard(
                         'url',
                         'ICS-Link einfügen',
-                        'Für Nutzer*innen, die bereits eine direkte Kalender-URL haben.'
+                        'Für Nutzer*innen, die bereits eine direkte Kalender-URL haben.',
                     )}
                     {renderSourceCard(
                         'file',
                         'ICS-Datei hochladen',
-                        'Für Nutzer*innen, die eine .ics-Datei bereits heruntergeladen haben.'
+                        'Für Nutzer*innen, die eine .ics-Datei bereits heruntergeladen haben.',
                     )}
                     {renderSourceCard(
                         'help',
                         'Hilfe zum Finden',
-                        'Für Nutzer*innen, die noch nicht wissen, wo sie einen passenden Zusatzkalender bekommen.'
+                        'Für Nutzer*innen, die noch nicht wissen, wo sie einen passenden Zusatzkalender bekommen.',
                     )}
                 </div>
             </div>
 
-            <div className="rounded-2xl border-2 border-[#F29420] bg-white p-5">
+            <div className="rounded-2xl border-2 border-[#990000] bg-white p-5">
                 <div className="text-lg font-semibold text-slate-900">2. Quelle vorbereiten</div>
 
                 <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
@@ -527,7 +527,7 @@ export default function AdditionalCalendarImportAssistant() {
                                 value={calendarLabel}
                                 onChange={(event) => setCalendarLabel(event.target.value)}
                                 placeholder="z. B. Schulferien Niedersachsen"
-                                className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#F29420] focus:ring-2 focus:ring-[#F29420]/20"
+                                className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
                             />
                         </div>
 
@@ -537,8 +537,10 @@ export default function AdditionalCalendarImportAssistant() {
                             </label>
                             <select
                                 value={category}
-                                onChange={(event) => setCategory(event.target.value as AdditionalCalendarCategory)}
-                                className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#F29420] focus:ring-2 focus:ring-[#F29420]/20"
+                                onChange={(event) =>
+                                    setCategory(event.target.value as AdditionalCalendarCategory)
+                                }
+                                className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
                             >
                                 <option value="schoolHolidays">Schulferien</option>
                                 <option value="nationalHolidays">nationale Feiertage</option>
@@ -551,21 +553,24 @@ export default function AdditionalCalendarImportAssistant() {
                         {sourceType === 'url' ? (
                             <div
                                 ref={urlSectionRef}
-                                className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                                className="space-y-3 rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4"
                             >
-                                <div className="text-sm font-semibold text-slate-900">ICS-Link einfügen</div>
+                                <div className="text-sm font-semibold text-slate-900">
+                                    ICS-Link einfügen
+                                </div>
 
                                 <input
                                     type="url"
                                     value={sourceUrl}
                                     onChange={(event) => setSourceUrl(event.target.value)}
                                     placeholder="https://..."
-                                    className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#F29420] focus:ring-2 focus:ring-[#F29420]/20"
+                                    className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
                                 />
 
                                 <div className="text-xs leading-relaxed text-slate-600">
-                                    Manche Anbieter blockieren direkte Browser-Zugriffe. Wenn die Prüfung per Link
-                                    nicht klappt, laden Sie die Datei bitte herunter und nutzen Sie den Datei-Upload.
+                                    Manche Anbieter blockieren direkte Browser-Zugriffe. Wenn die
+                                    Prüfung per Link nicht klappt, laden Sie die Datei bitte
+                                    herunter und nutzen Sie den Datei-Upload.
                                 </div>
 
                                 <div className="flex flex-wrap gap-2">
@@ -592,9 +597,11 @@ export default function AdditionalCalendarImportAssistant() {
                         {sourceType === 'file' ? (
                             <div
                                 ref={fileSectionRef}
-                                className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                                className="space-y-3 rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4"
                             >
-                                <div className="text-sm font-semibold text-slate-900">ICS-Datei hochladen</div>
+                                <div className="text-sm font-semibold text-slate-900">
+                                    ICS-Datei hochladen
+                                </div>
 
                                 <input
                                     type="file"
@@ -602,12 +609,12 @@ export default function AdditionalCalendarImportAssistant() {
                                     onChange={(event) =>
                                         setSelectedFile(event.target.files?.[0] ?? null)
                                     }
-                                    className="block w-full text-sm text-slate-700 file:mr-4 file:cursor-pointer file:rounded-xl file:border file:border-[#F29420] file:bg-[#F29420] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#E4891E]"
+                                    className="block w-full text-sm text-slate-700 file:mr-4 file:cursor-pointer file:rounded-xl file:border file:border-[#990000] file:bg-[#990000] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#7A0000]"
                                 />
 
                                 <div className="text-xs leading-relaxed text-slate-600">
-                                    Für den Teststand eignet sich der Datei-Upload besonders gut, weil die Vorschau
-                                    direkt im Browser erzeugt werden kann.
+                                    Für den Teststand eignet sich der Datei-Upload besonders gut,
+                                    weil die Vorschau direkt im Browser erzeugt werden kann.
                                 </div>
 
                                 <div className="flex flex-wrap gap-2">
@@ -634,15 +641,17 @@ export default function AdditionalCalendarImportAssistant() {
                         {sourceType === 'help' ? (
                             <div
                                 ref={helpSectionRef}
-                                className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                                className="space-y-4 rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4"
                             >
                                 <div className="flex flex-wrap items-start justify-between gap-2">
-                                    <div className="text-sm font-semibold text-slate-900">Hilfe zum Finden</div>
+                                    <div className="text-sm font-semibold text-slate-900">
+                                        Hilfe zum Finden
+                                    </div>
 
                                     <button
                                         type="button"
                                         onClick={() => setSourceType('url')}
-                                        className={SECONDARY_BUTTON_CLASS}
+                                        className={OUTLINE_RED_BUTTON_CLASS}
                                     >
                                         schließen
                                     </button>
@@ -650,31 +659,40 @@ export default function AdditionalCalendarImportAssistant() {
 
                                 <div className="space-y-3 text-sm leading-relaxed text-slate-700">
                                     <div>
-                                        <div className="font-semibold text-slate-900">Worauf Sie achten sollten</div>
+                                        <div className="font-semibold text-slate-900">
+                                            Worauf Sie achten sollten
+                                        </div>
                                         <div className="mt-1">
-                                            Suchen Sie möglichst nach offiziellen oder gut erkennbaren Quellen,
-                                            einer aktuellen .ics-Datei und einem klar passenden Geltungsbereich.
+                                            Suchen Sie möglichst nach offiziellen oder gut
+                                            erkennbaren Quellen, einer aktuellen .ics-Datei und
+                                            einem klar passenden Geltungsbereich.
                                         </div>
                                     </div>
 
                                     <div>
-                                        <div className="font-semibold text-slate-900">Woran Sie eine gute Quelle erkennen</div>
+                                        <div className="font-semibold text-slate-900">
+                                            Woran Sie eine gute Quelle erkennen
+                                        </div>
                                         <div className="mt-1">
-                                            Der Kalendername ist nachvollziehbar, die Termine wirken stimmig,
-                                            und die Vorschau zeigt sinnvolle Einträge.
+                                            Der Kalendername ist nachvollziehbar, die Termine wirken
+                                            stimmig, und die Vorschau zeigt sinnvolle Einträge.
                                         </div>
                                     </div>
 
                                     <div>
-                                        <div className="font-semibold text-slate-900">Was Sie besser vermeiden</div>
+                                        <div className="font-semibold text-slate-900">
+                                            Was Sie besser vermeiden
+                                        </div>
                                         <div className="mt-1">
-                                            Unklare Sammelseiten, veraltete Dateien oder Quellen ohne erkennbare Herkunft.
+                                            Unklare Sammelseiten, veraltete Dateien oder Quellen ohne
+                                            erkennbare Herkunft.
                                         </div>
                                     </div>
 
-                                    <div className="rounded-xl border border-[#F29420] bg-white px-3 py-3 text-xs leading-relaxed text-slate-700">
-                                        Für den ersten Test ist oft der einfachste Weg:
-                                        Datei herunterladen → hier hochladen → Vorschau prüfen → Zusatzkalender übernehmen.
+                                    <div className="rounded-xl border border-[#D7B1B1] bg-white px-3 py-3 text-xs leading-relaxed text-slate-700">
+                                        Für den ersten Test ist oft der einfachste Weg: Datei
+                                        herunterladen → hier hochladen → Vorschau prüfen →
+                                        Zusatzkalender übernehmen.
                                     </div>
                                 </div>
                             </div>
@@ -694,22 +712,25 @@ export default function AdditionalCalendarImportAssistant() {
                             </div>
                         ) : null}
 
-                        <div className="rounded-2xl border border-[#F29420] bg-white p-4">
+                        <div className="rounded-2xl border border-[#990000] bg-white p-4">
                             <div className="text-sm font-semibold text-slate-900">Prüfvorschau</div>
 
                             {!preview ? (
-                                <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                                    Nach dem Prüfen einer Quelle erscheint hier die Vorschau mit ersten Einträgen,
-                                    Anzahl der Termine und der Möglichkeit zur Übernahme.
+                                <div className="mt-3 rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
+                                    Nach dem Prüfen einer Quelle erscheint hier die Vorschau mit
+                                    ersten Einträgen, Anzahl der Termine und der Möglichkeit zur
+                                    Übernahme.
                                 </div>
                             ) : (
                                 <div className="mt-3 space-y-4">
-                                    <div className="rounded-xl border border-[#F29420] bg-amber-50 px-3 py-3 text-sm text-slate-800">
+                                    <div className="rounded-xl border border-[#990000] bg-[#FFF4F4] px-3 py-3 text-sm text-slate-800">
                                         <div>
-                                            <span className="font-semibold">Quelle:</span> {preview.sourceLabel}
+                                            <span className="font-semibold">Quelle:</span>{' '}
+                                            {preview.sourceLabel}
                                         </div>
                                         <div className="mt-1">
-                                            <span className="font-semibold">Einträge:</span> {preview.eventCount}
+                                            <span className="font-semibold">Einträge:</span>{' '}
+                                            {preview.eventCount}
                                         </div>
                                     </div>
 
@@ -717,7 +738,7 @@ export default function AdditionalCalendarImportAssistant() {
                                         {preview.previewEvents.map((event) => (
                                             <div
                                                 key={event.uid}
-                                                className="rounded-xl border border-slate-200 bg-slate-50 p-3"
+                                                className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] p-3"
                                             >
                                                 <div className="text-sm font-semibold text-slate-900">
                                                     {event.summary || 'Ohne Titel'}
@@ -741,7 +762,7 @@ export default function AdditionalCalendarImportAssistant() {
                                         <button
                                             type="button"
                                             onClick={handleTakeOverPreview}
-                                            className={SUCCESS_BUTTON_CLASS}
+                                            className={EMPHASIS_BUTTON_CLASS}
                                         >
                                             Zusatzkalender übernehmen
                                         </button>
@@ -755,9 +776,10 @@ export default function AdditionalCalendarImportAssistant() {
                                         </button>
                                     </div>
 
-                                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs leading-relaxed text-slate-600">
-                                        Mit „Zusatzkalender übernehmen“ wird die geprüfte Quelle lokal gespeichert.
-                                        Sie wird noch nicht automatisch in den Teamkalender eingebaut.
+                                    <div className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-3 py-3 text-xs leading-relaxed text-slate-600">
+                                        Mit „Zusatzkalender übernehmen“ wird die geprüfte Quelle
+                                        lokal gespeichert. Sie wird noch nicht automatisch in den
+                                        Teamkalender eingebaut.
                                     </div>
                                 </div>
                             )}
@@ -766,19 +788,22 @@ export default function AdditionalCalendarImportAssistant() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border-2 border-[#F29420] bg-white p-5">
+            <div className="rounded-2xl border-2 border-[#990000] bg-white p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <div className="text-lg font-semibold text-slate-900">3. Gespeicherte Zusatzkalender</div>
+                        <div className="text-lg font-semibold text-slate-900">
+                            3. Gespeicherte Zusatzkalender
+                        </div>
                         <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                            Hier sehen Sie alle lokal vorbereiteten Zusatzkalender. Aktiv bedeutet: für die spätere
-                            Zusammenführung vorgemerkt. Noch nicht aktiv bedeutet: gespeichert, aber vorerst nicht vorgesehen.
+                            Hier sehen Sie alle lokal vorbereiteten Zusatzkalender. Aktiv bedeutet:
+                            für die spätere Zusammenführung vorgemerkt. Noch nicht aktiv bedeutet:
+                            gespeichert, aber vorerst nicht vorgesehen.
                         </p>
                     </div>
                 </div>
 
                 {storedCalendars.length === 0 ? (
-                    <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                    <div className="mt-4 rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
                         Noch keine Zusatzkalender gespeichert.
                     </div>
                 ) : (
@@ -789,11 +814,13 @@ export default function AdditionalCalendarImportAssistant() {
                             return (
                                 <div
                                     key={calendar.id}
-                                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                                    className="rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4"
                                 >
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div>
-                                            <div className="text-sm font-semibold text-slate-900">{calendar.label}</div>
+                                            <div className="text-sm font-semibold text-slate-900">
+                                                {calendar.label}
+                                            </div>
                                             <div className="mt-1 text-xs text-slate-600">
                                                 Kategorie: {categoryLabel(calendar.category)}
                                             </div>
@@ -801,7 +828,8 @@ export default function AdditionalCalendarImportAssistant() {
                                                 Quelle: {calendar.sourceLabel}
                                             </div>
                                             <div className="mt-1 text-xs text-slate-600">
-                                                Gespeichert: {new Date(calendar.importedAt).toLocaleString('de-DE')}
+                                                Gespeichert:{' '}
+                                                {new Date(calendar.importedAt).toLocaleString('de-DE')}
                                             </div>
                                             <div className="mt-1 text-xs text-slate-600">
                                                 Einträge: {calendar.eventCount}
@@ -813,27 +841,37 @@ export default function AdditionalCalendarImportAssistant() {
                                                 className={[
                                                     'inline-flex min-h-[36px] items-center justify-center rounded-xl border px-3 py-1.5 text-xs font-semibold',
                                                     calendar.isEnabled
-                                                        ? 'border-[#4EA72E] bg-green-50 text-[#2f6a1c]'
+                                                        ? 'border-[#990000] bg-[#FCEEEE] text-[#7A0000]'
                                                         : 'border-slate-300 bg-white text-slate-600',
                                                 ].join(' ')}
                                             >
-                                                {calendar.isEnabled ? 'aktiv vorbereitet' : 'derzeit deaktiviert'}
+                                                {calendar.isEnabled
+                                                    ? 'aktiv vorbereitet'
+                                                    : 'derzeit deaktiviert'}
                                             </span>
 
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    setExpandedCalendarId(isExpanded ? null : calendar.id)
+                                                    setExpandedCalendarId(
+                                                        isExpanded ? null : calendar.id,
+                                                    )
                                                 }
                                                 className={SECONDARY_BUTTON_CLASS}
                                             >
-                                                {isExpanded ? 'Vorschau ausblenden' : 'Vorschau prüfen'}
+                                                {isExpanded
+                                                    ? 'Vorschau ausblenden'
+                                                    : 'Vorschau prüfen'}
                                             </button>
 
                                             <button
                                                 type="button"
                                                 onClick={() => handleToggleCalendar(calendar.id)}
-                                                className={calendar.isEnabled ? SECONDARY_BUTTON_CLASS : SUCCESS_BUTTON_CLASS}
+                                                className={
+                                                    calendar.isEnabled
+                                                        ? SECONDARY_BUTTON_CLASS
+                                                        : PRIMARY_BUTTON_CLASS
+                                                }
                                             >
                                                 {calendar.isEnabled ? 'deaktivieren' : 'aktivieren'}
                                             </button>
@@ -841,7 +879,7 @@ export default function AdditionalCalendarImportAssistant() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteCalendar(calendar.id)}
-                                                className={PRIMARY_BUTTON_CLASS}
+                                                className={OUTLINE_RED_BUTTON_CLASS}
                                             >
                                                 entfernen
                                             </button>
@@ -853,7 +891,7 @@ export default function AdditionalCalendarImportAssistant() {
                                             {calendar.previewEvents.map((event) => (
                                                 <div
                                                     key={event.uid}
-                                                    className="rounded-xl border border-white bg-white p-3 shadow-sm"
+                                                    className="rounded-xl border border-[#D7B1B1] bg-white p-3 shadow-sm"
                                                 >
                                                     <div className="text-sm font-semibold text-slate-900">
                                                         {event.summary || 'Ohne Titel'}
