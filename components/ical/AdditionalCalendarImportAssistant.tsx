@@ -218,7 +218,13 @@ function parseIcsPreview(icsText: string): {
     };
 }
 
-export default function AdditionalCalendarImportAssistant() {
+type AdditionalCalendarImportAssistantProps = {
+    onOpenFindingAssistant?: () => void;
+};
+
+export default function AdditionalCalendarImportAssistant({
+    onOpenFindingAssistant,
+}: AdditionalCalendarImportAssistantProps) {
     const [sourceType, setSourceType] = useState<SourceType | null>(null);
     const [calendarLabel, setCalendarLabel] = useState('');
     const [category, setCategory] = useState<AdditionalCalendarCategory>('custom');
@@ -522,11 +528,24 @@ export default function AdditionalCalendarImportAssistant() {
                         'ICS-Datei hochladen',
                         'Für Nutzer*innen, die eine .ics-Datei bereits lokal heruntergeladen haben.',
                     )}
-                    {renderSourceCard(
-                        'help',
-                        'Hilfe zum Finden',
-                        'Für Nutzer*innen, die noch nicht wissen, wo sie einen passenden Zusatzkalender finden.',
-                    )}
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSourceType(null);
+                            resetMessages();
+                            setPreview(null);
+                            onOpenFindingAssistant?.();
+                        }}
+                        className="w-full cursor-pointer rounded-2xl border border-[#990000] bg-white p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#FFF8F8] hover:shadow-md"
+                    >
+                        <div className="text-sm font-semibold text-slate-900">
+                            Assistent öffnen
+                        </div>
+                        <div className="mt-2 text-xs leading-relaxed text-slate-600">
+                            Öffnet den Zusatzkalender-Assistenten mit den 5 Kategorien.
+                        </div>
+                    </button>
                 </div>
             </div>
 
