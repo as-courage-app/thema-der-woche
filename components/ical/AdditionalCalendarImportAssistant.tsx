@@ -219,7 +219,7 @@ function parseIcsPreview(icsText: string): {
 }
 
 export default function AdditionalCalendarImportAssistant() {
-    const [sourceType, setSourceType] = useState<SourceType>('url');
+    const [sourceType, setSourceType] = useState<SourceType | null>(null);
     const [calendarLabel, setCalendarLabel] = useState('');
     const [category, setCategory] = useState<AdditionalCalendarCategory>('custom');
     const [sourceUrl, setSourceUrl] = useState('');
@@ -233,6 +233,7 @@ export default function AdditionalCalendarImportAssistant() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    const sourceSelectionSectionRef = useRef<HTMLDivElement | null>(null);
     const urlSectionRef = useRef<HTMLDivElement | null>(null);
     const fileSectionRef = useRef<HTMLDivElement | null>(null);
     const helpSectionRef = useRef<HTMLDivElement | null>(null);
@@ -267,6 +268,19 @@ export default function AdditionalCalendarImportAssistant() {
                         : helpSectionRef;
 
             targetRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }, 0);
+    }
+
+    function handleCloseSourcePreparation() {
+        setSourceType(null);
+        setPreview(null);
+        resetMessages();
+
+        window.setTimeout(() => {
+            sourceSelectionSectionRef.current?.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
             });
@@ -488,7 +502,10 @@ export default function AdditionalCalendarImportAssistant() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border-2 border-[#990000] bg-white p-5">
+            <div
+                ref={sourceSelectionSectionRef}
+                className="rounded-2xl border-2 border-[#990000] bg-white p-5"
+            >
                 <div className="text-lg font-semibold text-slate-900">1. Quelle auswählen</div>
                 <p className="mt-2 text-sm leading-relaxed text-slate-700">
                     Wählen Sie zuerst, wie der Zusatzkalender eingebunden werden soll.
@@ -503,12 +520,12 @@ export default function AdditionalCalendarImportAssistant() {
                     {renderSourceCard(
                         'file',
                         'ICS-Datei hochladen',
-                        'Für Nutzer*innen, die eine .ics-Datei bereits heruntergeladen haben.',
+                        'Für Nutzer*innen, die eine .ics-Datei bereits lokal heruntergeladen haben.',
                     )}
                     {renderSourceCard(
                         'help',
                         'Hilfe zum Finden',
-                        'Für Nutzer*innen, die noch nicht wissen, wo sie einen passenden Zusatzkalender bekommen.',
+                        'Für Nutzer*innen, die noch nicht wissen, wo sie einen passenden Zusatzkalender finden.',
                     )}
                 </div>
             </div>
@@ -555,8 +572,18 @@ export default function AdditionalCalendarImportAssistant() {
                                 ref={urlSectionRef}
                                 className="space-y-3 rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4"
                             >
-                                <div className="text-sm font-semibold text-slate-900">
-                                    ICS-Link einfügen
+                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div className="text-sm font-semibold text-slate-900">
+                                        ICS-Link einfügen
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseSourcePreparation}
+                                        className={SECONDARY_BUTTON_CLASS}
+                                    >
+                                        schließen
+                                    </button>
                                 </div>
 
                                 <input
@@ -599,8 +626,18 @@ export default function AdditionalCalendarImportAssistant() {
                                 ref={fileSectionRef}
                                 className="space-y-3 rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4"
                             >
-                                <div className="text-sm font-semibold text-slate-900">
-                                    ICS-Datei hochladen
+                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div className="text-sm font-semibold text-slate-900">
+                                        ICS-Datei hochladen
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseSourcePreparation}
+                                        className={SECONDARY_BUTTON_CLASS}
+                                    >
+                                        schließen
+                                    </button>
                                 </div>
 
                                 <input
@@ -609,7 +646,7 @@ export default function AdditionalCalendarImportAssistant() {
                                     onChange={(event) =>
                                         setSelectedFile(event.target.files?.[0] ?? null)
                                     }
-                                    className="block w-full text-sm text-slate-700 file:mr-4 file:cursor-pointer file:rounded-xl file:border file:border-[#990000] file:bg-[#990000] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#7A0000]"
+                                    className="block w-full max-w-full text-xs text-slate-700 file:mb-2 file:block file:w-full file:cursor-pointer file:rounded-xl file:border file:border-[#990000] file:bg-[#990000] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#7A0000] sm:text-sm sm:file:inline-block sm:file:w-auto"
                                 />
 
                                 <div className="text-xs leading-relaxed text-slate-600">
