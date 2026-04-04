@@ -28,6 +28,8 @@ type StoredAdditionalCalendar = {
     category: AdditionalCalendarCategory;
     sourceType: 'url' | 'file';
     sourceLabel: string;
+    sourceName?: string;
+    validity?: string;
     sourceUrl?: string;
     fileName?: string;
     importedAt: string;
@@ -47,6 +49,27 @@ type PreviewState = {
     previewEvents: AdditionalCalendarPreviewEvent[];
 };
 
+type AssistantTileKey =
+    | 'schoolHolidays'
+    | 'regionalHolidays'
+    | 'nationalHolidays'
+    | 'internationalHolidays'
+    | 'tradeFairs'
+    | 'otherCalendars';
+
+type AssistantOption = {
+    id: string;
+    label: string;
+    subtitle: string;
+    category: AdditionalCalendarCategory;
+    sourceType: SourceType;
+    sourceName: string;
+    validity?: string;
+    sourceUrl?: string;
+    helperText?: string;
+    keywords: string[];
+};
+
 const PRIMARY_BUTTON_CLASS =
     'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#990000] bg-[#990000] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#7A0000] hover:bg-[#7A0000] hover:shadow-lg';
 
@@ -61,6 +84,408 @@ const OUTLINE_RED_BUTTON_CLASS =
 
 const DISABLED_BUTTON_CLASS =
     'inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400 shadow-sm';
+
+const ORANGE_BUTTON_CLASS =
+    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg';
+
+const ASSISTANT_TILES: Array<{
+    key: AssistantTileKey;
+    title: string;
+    description: string;
+}> = [
+        {
+            key: 'schoolHolidays',
+            title: '1. Schulferien',
+            description: 'Bundesland wählen und Ferienquelle direkt vorbereiten.',
+        },
+        {
+            key: 'regionalHolidays',
+            title: '2. regionale Feiertage',
+            description: 'Bundesland wählen und regionale Feiertage vorbereiten.',
+        },
+        {
+            key: 'nationalHolidays',
+            title: '3. nationale Feiertage',
+            description: 'Deutschland, Österreich oder Schweiz direkt übernehmen.',
+        },
+        {
+            key: 'internationalHolidays',
+            title: '4. internationale Feiertage',
+            description: 'Kleine Auswahl internationaler Kalender mit Suche.',
+        },
+        {
+            key: 'tradeFairs',
+            title: '5. Messekalender',
+            description: 'Schlanker MVP mit Standort-/Messesuche im D-A-CH-Raum.',
+        },
+        {
+            key: 'otherCalendars',
+            title: '6. sonstige Kalender',
+            description: 'Weitere Kalenderarten als Suchvorschläge vorbereiten.',
+        },
+    ];
+
+const STATE_SOURCES: Array<{
+    id: string;
+    label: string;
+    schoolUrl: string;
+    regionalUrl: string;
+}> = [
+        {
+            id: 'baden-wuerttemberg',
+            label: 'Baden-Württemberg',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-baden-wuerttemberg.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/baden-wurttemberg',
+        },
+        {
+            id: 'bayern',
+            label: 'Bayern',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-bayern.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/bavaria',
+        },
+        {
+            id: 'berlin',
+            label: 'Berlin',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-berlin.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/berlin',
+        },
+        {
+            id: 'brandenburg',
+            label: 'Brandenburg',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-brandenburg.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/brandenburg',
+        },
+        {
+            id: 'bremen',
+            label: 'Bremen',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-bremen.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/bremen',
+        },
+        {
+            id: 'hamburg',
+            label: 'Hamburg',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-hamburg.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/hamburg',
+        },
+        {
+            id: 'hessen',
+            label: 'Hessen',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-hessen.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/hesse',
+        },
+        {
+            id: 'mecklenburg-vorpommern',
+            label: 'Mecklenburg-Vorpommern',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-mecklenburg-vorpommern.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/mecklenburg-vorpommern',
+        },
+        {
+            id: 'niedersachsen',
+            label: 'Niedersachsen',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-niedersachsen.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/lower-saxony',
+        },
+        {
+            id: 'nordrhein-westfalen',
+            label: 'Nordrhein-Westfalen',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-nordrhein-westfalen.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/north-rhine-westphalia',
+        },
+        {
+            id: 'rheinland-pfalz',
+            label: 'Rheinland-Pfalz',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-rheinland-pfalz.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/rhineland-palatinate',
+        },
+        {
+            id: 'saarland',
+            label: 'Saarland',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-saarland.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/saarland',
+        },
+        {
+            id: 'sachsen',
+            label: 'Sachsen',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-sachsen.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/saxony',
+        },
+        {
+            id: 'sachsen-anhalt',
+            label: 'Sachsen-Anhalt',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-sachsen-anhalt.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/saxony-anhalt',
+        },
+        {
+            id: 'schleswig-holstein',
+            label: 'Schleswig-Holstein',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-schleswig-holstein.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/schleswig-holstein',
+        },
+        {
+            id: 'thueringen',
+            label: 'Thüringen',
+            schoolUrl:
+                'https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-thueringen.ics',
+            regionalUrl: 'https://www.officeholidays.com/ics/germany/thuringia',
+        },
+    ];
+
+const NATIONAL_HOLIDAY_OPTIONS: AssistantOption[] = [
+    {
+        id: 'national-de',
+        label: 'Deutschland',
+        subtitle: 'bundesweite Feiertage',
+        category: 'nationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/germany',
+        keywords: ['deutschland', 'bundesweit', 'feiertage', 'national'],
+    },
+    {
+        id: 'national-at',
+        label: 'Österreich',
+        subtitle: 'landesweite Feiertage',
+        category: 'nationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/austria',
+        keywords: ['österreich', 'austria', 'feiertage', 'national'],
+    },
+    {
+        id: 'national-ch',
+        label: 'Schweiz',
+        subtitle: 'landesweite Feiertage',
+        category: 'nationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/switzerland',
+        keywords: ['schweiz', 'switzerland', 'feiertage', 'national'],
+    },
+];
+
+const INTERNATIONAL_HOLIDAY_OPTIONS: AssistantOption[] = [
+    {
+        id: 'intl-various',
+        label: 'International / Various',
+        subtitle: 'übergreifender internationaler Kalender',
+        category: 'internationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/various',
+        keywords: ['international', 'various', 'aktionstage', 'weltweit'],
+    },
+    {
+        id: 'intl-usa',
+        label: 'USA',
+        subtitle: 'nationale Feiertage',
+        category: 'internationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/usa',
+        keywords: ['usa', 'vereinigte staaten', 'amerika', 'feiertage'],
+    },
+    {
+        id: 'intl-canada',
+        label: 'Kanada',
+        subtitle: 'nationale Feiertage',
+        category: 'internationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/canada',
+        keywords: ['kanada', 'canada', 'feiertage'],
+    },
+    {
+        id: 'intl-france',
+        label: 'Frankreich',
+        subtitle: 'nationale Feiertage',
+        category: 'internationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/france',
+        keywords: ['frankreich', 'france', 'feiertage'],
+    },
+    {
+        id: 'intl-italy',
+        label: 'Italien',
+        subtitle: 'nationale Feiertage',
+        category: 'internationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/italy',
+        keywords: ['italien', 'italy', 'feiertage'],
+    },
+    {
+        id: 'intl-spain',
+        label: 'Spanien',
+        subtitle: 'nationale Feiertage',
+        category: 'internationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/spain',
+        keywords: ['spanien', 'spain', 'feiertage'],
+    },
+    {
+        id: 'intl-australia',
+        label: 'Australien',
+        subtitle: 'nationale Feiertage',
+        category: 'internationalHolidays',
+        sourceType: 'url',
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: 'https://www.officeholidays.com/ics/australia',
+        keywords: ['australien', 'australia', 'feiertage'],
+    },
+];
+
+const TRADE_FAIR_OPTIONS: AssistantOption[] = [
+    {
+        id: 'tradefair-duesseldorf',
+        label: 'Messe Düsseldorf',
+        subtitle: 'alle Events in Düsseldorf',
+        category: 'businessCalendar',
+        sourceType: 'url',
+        sourceName: 'Messe Düsseldorf',
+        validity: 'laufende Synchronisierung',
+        sourceUrl: 'https://www.messe-duesseldorf.de/static/mdhome/cal_md_EN.ics',
+        helperText: 'Offizieller Messekalender für den Standort Düsseldorf.',
+        keywords: ['messe', 'duesseldorf', 'düsseldorf', 'standort', 'rheinland'],
+    },
+    {
+        id: 'tradefair-international',
+        label: 'Messe Düsseldorf International',
+        subtitle: 'internationale Events des Messeverbunds',
+        category: 'businessCalendar',
+        sourceType: 'url',
+        sourceName: 'Messe Düsseldorf',
+        validity: 'laufende Synchronisierung',
+        sourceUrl: 'https://www.messe-duesseldorf.de/static/mdhome/cal_mdi_EN.ics',
+        helperText: 'Offizieller internationaler Messekalender von Messe Düsseldorf.',
+        keywords: ['messe', 'international', 'duesseldorf', 'düsseldorf', 'global'],
+    },
+    {
+        id: 'tradefair-hannover',
+        label: 'Hannover',
+        subtitle: 'Suchvorschlag für Messekalender',
+        category: 'businessCalendar',
+        sourceType: 'help',
+        sourceName: 'offizielle Messe-Website Hannover',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Suchen Sie auf der offiziellen Standortseite nach iCal, ICS oder Online-Kalender.',
+        keywords: ['hannover', 'messe', 'industrie', 'messegelände'],
+    },
+    {
+        id: 'tradefair-frankfurt',
+        label: 'Frankfurt am Main',
+        subtitle: 'Suchvorschlag für Messekalender',
+        category: 'businessCalendar',
+        sourceType: 'help',
+        sourceName: 'offizielle Messe-Website Frankfurt',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Suchen Sie auf der offiziellen Standortseite nach iCal, ICS oder Eventkalender.',
+        keywords: ['frankfurt', 'messe', 'buchmesse', 'ambiente', 'veranstaltungen'],
+    },
+    {
+        id: 'tradefair-wien',
+        label: 'Wien',
+        subtitle: 'Suchvorschlag für Messekalender',
+        category: 'businessCalendar',
+        sourceType: 'help',
+        sourceName: 'offizielle Messe-Website Wien',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Für Wien bitte nach offiziellem Messekalender, iCal oder ICS suchen.',
+        keywords: ['wien', 'vienna', 'messe', 'österreich'],
+    },
+    {
+        id: 'tradefair-zuerich',
+        label: 'Zürich',
+        subtitle: 'Suchvorschlag für Messekalender',
+        category: 'businessCalendar',
+        sourceType: 'help',
+        sourceName: 'offizielle Messe-Website Zürich',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Für Zürich bitte nach offiziellem Messekalender, iCal oder ICS suchen.',
+        keywords: ['zürich', 'zurich', 'messe', 'schweiz'],
+    },
+];
+
+const OTHER_CALENDAR_OPTIONS: AssistantOption[] = [
+    {
+        id: 'other-waste',
+        label: 'Abfallkalender / Entsorgung',
+        subtitle: 'kommunale oder städtische Kalender',
+        category: 'custom',
+        sourceType: 'help',
+        sourceName: 'offizielle Kommune oder Entsorger',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Geeignet für Müllabfuhr, Wertstofftermine oder kommunale Abholpläne.',
+        keywords: ['abfall', 'muell', 'müll', 'entsorgung', 'kommune', 'stadt'],
+    },
+    {
+        id: 'other-cultural',
+        label: 'Kultur- und Veranstaltungskalender',
+        subtitle: 'z. B. Theater, Stadtmarketing, Bürgerhaus',
+        category: 'custom',
+        sourceType: 'help',
+        sourceName: 'offizielle Veranstaltungsseite',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Suchen Sie nach offiziellem iCal-, ICS- oder Kalenderabo-Angebot.',
+        keywords: ['kultur', 'veranstaltung', 'theater', 'stadtmarketing'],
+    },
+    {
+        id: 'other-club',
+        label: 'Vereinskalender',
+        subtitle: 'z. B. Sport, Ehrenamt, Bildungsarbeit',
+        category: 'custom',
+        sourceType: 'help',
+        sourceName: 'offizielle Vereins- oder Verbandsseite',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Suchen Sie nach Vereinskalender, Termin-Feed, iCal oder ICS.',
+        keywords: ['verein', 'verband', 'ehrenamt', 'termine'],
+    },
+    {
+        id: 'other-school',
+        label: 'Schul- oder Campuskalender',
+        subtitle: 'z. B. Schule, Volkshochschule, Hochschule',
+        category: 'custom',
+        sourceType: 'help',
+        sourceName: 'offizielle Bildungsseite',
+        validity: 'Quelle bitte im nächsten Schritt prüfen',
+        helperText:
+            'Suchen Sie nach Semesterkalender, Terminfeed, iCal oder ICS.',
+        keywords: ['schule', 'campus', 'hochschule', 'seminare', 'bildung'],
+    },
+];
 
 function readStoredCalendars(): StoredAdditionalCalendar[] {
     try {
@@ -119,7 +544,7 @@ function categoryLabel(category: AdditionalCalendarCategory): string {
         case 'internationalHolidays':
             return 'internationale Feiertage';
         case 'businessCalendar':
-            return 'Betriebskalender';
+            return 'Messekalender / Betriebskalender';
         case 'custom':
             return 'eigener Zusatzkalender';
         default:
@@ -221,11 +646,61 @@ function parseIcsPreview(icsText: string): {
     };
 }
 
+function matchesSearch(option: AssistantOption, query: string): boolean {
+    const trimmedQuery = query.trim().toLowerCase();
+    if (!trimmedQuery) return true;
+
+    const haystack = [
+        option.label,
+        option.subtitle,
+        option.sourceName,
+        option.validity ?? '',
+        option.helperText ?? '',
+        ...option.keywords,
+    ]
+        .join(' ')
+        .toLowerCase();
+
+    return haystack.includes(trimmedQuery);
+}
+
+function buildSchoolHolidayOptions(): AssistantOption[] {
+    return STATE_SOURCES.map((state) => ({
+        id: `school-${state.id}`,
+        label: state.label,
+        subtitle: 'Schulferien',
+        category: 'schoolHolidays' as const,
+        sourceType: 'url' as const,
+        sourceName: 'feiertage-deutschland.de',
+        validity: 'Kalenderabo bis 2029',
+        sourceUrl: state.schoolUrl,
+        keywords: [state.label.toLowerCase(), 'schulferien', 'ferien', state.id],
+    }));
+}
+
+function buildRegionalHolidayOptions(): AssistantOption[] {
+    return STATE_SOURCES.map((state) => ({
+        id: `regional-${state.id}`,
+        label: state.label,
+        subtitle: 'regionale Feiertage',
+        category: 'regionalHolidays' as const,
+        sourceType: 'url' as const,
+        sourceName: 'Office Holidays',
+        validity: 'laufendes Kalenderabo',
+        sourceUrl: state.regionalUrl,
+        keywords: [state.label.toLowerCase(), 'regionale feiertage', 'landesweite feiertage', state.id],
+    }));
+}
+
 type AssistantPreset = {
     token: string;
     calendarLabel: string;
     category: AdditionalCalendarCategory;
     sourceType: SourceType;
+    sourceName?: string;
+    sourceUrl?: string;
+    validity?: string;
+    helperText?: string;
 };
 
 type AdditionalCalendarImportAssistantProps = {
@@ -234,7 +709,7 @@ type AdditionalCalendarImportAssistantProps = {
 };
 
 export default function AdditionalCalendarImportAssistant({
-    onOpenFindingAssistant,
+    onOpenFindingAssistant: _onOpenFindingAssistant,
     preset = null,
 }: AdditionalCalendarImportAssistantProps) {
     const [sourceType, setSourceType] = useState<SourceType | null>(null);
@@ -242,6 +717,9 @@ export default function AdditionalCalendarImportAssistant({
     const [category, setCategory] = useState<AdditionalCalendarCategory>('custom');
     const [sourceUrl, setSourceUrl] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [preparedSourceName, setPreparedSourceName] = useState('');
+    const [preparedValidity, setPreparedValidity] = useState('');
+    const [preparedHelperText, setPreparedHelperText] = useState('');
 
     const [preview, setPreview] = useState<PreviewState | null>(null);
     const [storedCalendars, setStoredCalendars] = useState<StoredAdditionalCalendar[]>([]);
@@ -251,10 +729,53 @@ export default function AdditionalCalendarImportAssistant({
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    const [findingAssistantOpen, setFindingAssistantOpen] = useState(false);
+    const [activeAssistantTile, setActiveAssistantTile] =
+        useState<AssistantTileKey>('schoolHolidays');
+    const [assistantSearch, setAssistantSearch] = useState('');
+
     const sourceSelectionSectionRef = useRef<HTMLDivElement | null>(null);
+    const findingAssistantSectionRef = useRef<HTMLDivElement | null>(null);
+    const assistantResultsSectionRef = useRef<HTMLDivElement | null>(null);
     const urlSectionRef = useRef<HTMLDivElement | null>(null);
     const fileSectionRef = useRef<HTMLDivElement | null>(null);
     const helpSectionRef = useRef<HTMLDivElement | null>(null);
+
+    const schoolHolidayOptions = useMemo(() => buildSchoolHolidayOptions(), []);
+    const regionalHolidayOptions = useMemo(() => buildRegionalHolidayOptions(), []);
+
+    const filteredSchoolHolidayOptions = useMemo(
+        () => schoolHolidayOptions.filter((option) => matchesSearch(option, assistantSearch)),
+        [assistantSearch, schoolHolidayOptions],
+    );
+
+    const filteredRegionalHolidayOptions = useMemo(
+        () => regionalHolidayOptions.filter((option) => matchesSearch(option, assistantSearch)),
+        [assistantSearch, regionalHolidayOptions],
+    );
+
+    const filteredNationalHolidayOptions = useMemo(
+        () => NATIONAL_HOLIDAY_OPTIONS.filter((option) => matchesSearch(option, assistantSearch)),
+        [assistantSearch],
+    );
+
+    const filteredInternationalHolidayOptions = useMemo(
+        () =>
+            INTERNATIONAL_HOLIDAY_OPTIONS.filter((option) =>
+                matchesSearch(option, assistantSearch),
+            ),
+        [assistantSearch],
+    );
+
+    const filteredTradeFairOptions = useMemo(
+        () => TRADE_FAIR_OPTIONS.filter((option) => matchesSearch(option, assistantSearch)),
+        [assistantSearch],
+    );
+
+    const filteredOtherCalendarOptions = useMemo(
+        () => OTHER_CALENDAR_OPTIONS.filter((option) => matchesSearch(option, assistantSearch)),
+        [assistantSearch],
+    );
 
     useEffect(() => {
         setStoredCalendars(readStoredCalendars());
@@ -266,9 +787,18 @@ export default function AdditionalCalendarImportAssistant({
         setCalendarLabel(preset.calendarLabel);
         setCategory(preset.category);
         setSourceType(preset.sourceType);
+        setSourceUrl(preset.sourceUrl ?? '');
+        setSelectedFile(null);
+        setPreparedSourceName(preset.sourceName ?? '');
+        setPreparedValidity(preset.validity ?? '');
+        setPreparedHelperText(preset.helperText ?? '');
         setPreview(null);
         setErrorMessage(null);
-        setSuccessMessage('Die Auswahl aus dem Assistenten wurde in die Vorbereitung übernommen.');
+        setSuccessMessage(
+            preset.sourceUrl
+                ? 'Die Auswahl aus dem Assistenten wurde in die Vorbereitung übernommen. Der ICS-Link wurde bereits eingetragen.'
+                : 'Die Auswahl aus dem Assistenten wurde in die Vorbereitung übernommen.',
+        );
 
         window.setTimeout(() => {
             const targetRef =
@@ -299,6 +829,9 @@ export default function AdditionalCalendarImportAssistant({
         setPreview(null);
         setSourceUrl('');
         setSelectedFile(null);
+        setPreparedSourceName('');
+        setPreparedValidity('');
+        setPreparedHelperText('');
     }
 
     function scrollToSelectedSource(targetType: SourceType) {
@@ -319,7 +852,7 @@ export default function AdditionalCalendarImportAssistant({
 
     function handleCloseSourcePreparation() {
         setSourceType(null);
-        setPreview(null);
+        resetSourceInputs();
         resetMessages();
 
         window.setTimeout(() => {
@@ -328,6 +861,62 @@ export default function AdditionalCalendarImportAssistant({
                 block: 'start',
             });
         }, 0);
+    }
+
+    function handleOpenFindingAssistant() {
+        setFindingAssistantOpen(true);
+        resetMessages();
+
+        window.setTimeout(() => {
+            findingAssistantSectionRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }, 0);
+    }
+
+    function handleCloseFindingAssistant() {
+        setFindingAssistantOpen(false);
+        setAssistantSearch('');
+
+        window.setTimeout(() => {
+            sourceSelectionSectionRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }, 0);
+    }
+
+    function handleOpenAssistantTile(tileKey: AssistantTileKey) {
+        setActiveAssistantTile(tileKey);
+        setAssistantSearch('');
+
+        window.setTimeout(() => {
+            assistantResultsSectionRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }, 0);
+    }
+
+    function applyAssistantOption(option: AssistantOption) {
+        setCalendarLabel(option.label);
+        setCategory(option.category);
+        setSourceType(option.sourceType);
+        setSourceUrl(option.sourceUrl ?? '');
+        setSelectedFile(null);
+        setPreparedSourceName(option.sourceName);
+        setPreparedValidity(option.validity ?? '');
+        setPreparedHelperText(option.helperText ?? '');
+        setPreview(null);
+        setErrorMessage(null);
+        setSuccessMessage(
+            option.sourceUrl
+                ? 'Die Auswahl aus dem Assistenten wurde in die Vorbereitung übernommen. Der ICS-Link wurde bereits eingetragen.'
+                : 'Die Auswahl aus dem Assistenten wurde in die Vorbereitung übernommen. Bitte prüfen oder ergänzen Sie die Quelle im nächsten Schritt.',
+        );
+
+        scrollToSelectedSource(option.sourceType);
     }
 
     async function handleCheckUrlSource() {
@@ -350,10 +939,25 @@ export default function AdditionalCalendarImportAssistant({
         setIsBusy(true);
 
         try {
-            const response = await fetch(trimmedUrl);
+            const proxyUrl = `/api/ical-proxy?url=${encodeURIComponent(trimmedUrl)}`;
+            const response = await fetch(proxyUrl, {
+                method: 'GET',
+                cache: 'no-store',
+            });
 
             if (!response.ok) {
-                throw new Error(`Die Quelle antwortet mit Status ${response.status}.`);
+                let errorMessageFromProxy = `Die Quelle antwortet mit Status ${response.status}.`;
+
+                try {
+                    const errorPayload = (await response.json()) as { error?: string };
+                    if (errorPayload?.error) {
+                        errorMessageFromProxy = errorPayload.error;
+                    }
+                } catch {
+                    // Antwort war kein JSON, Standardmeldung bleibt bestehen
+                }
+
+                throw new Error(errorMessageFromProxy);
             }
 
             const icsText = await response.text();
@@ -453,6 +1057,8 @@ export default function AdditionalCalendarImportAssistant({
             category,
             sourceType: preview.sourceType,
             sourceLabel: preview.sourceLabel,
+            sourceName: preparedSourceName || undefined,
+            validity: preparedValidity || undefined,
             sourceUrl: preview.sourceUrl,
             fileName: preview.fileName,
             importedAt: new Date().toISOString(),
@@ -508,7 +1114,7 @@ export default function AdditionalCalendarImportAssistant({
                 onClick={() => {
                     setSourceType(key);
                     resetMessages();
-                    setPreview(null);
+                    resetSourceInputs();
                     scrollToSelectedSource(key);
                 }}
                 className={[
@@ -521,6 +1127,240 @@ export default function AdditionalCalendarImportAssistant({
                 <div className="text-sm font-semibold text-slate-900">{title}</div>
                 <div className="mt-2 text-xs leading-relaxed text-slate-600">{description}</div>
             </button>
+        );
+    }
+
+    function renderAssistantTileButton(tile: {
+        key: AssistantTileKey;
+        title: string;
+        description: string;
+    }) {
+        const isActive = activeAssistantTile === tile.key;
+
+        return (
+            <button
+                key={tile.key}
+                type="button"
+                onClick={() => handleOpenAssistantTile(tile.key)}
+                className={[
+                    'w-full rounded-2xl border p-4 text-left shadow-sm transition duration-200',
+                    isActive
+                        ? 'cursor-pointer border-[#990000] bg-[#FFF4F4] shadow-md'
+                        : 'cursor-pointer border-slate-200 bg-white hover:-translate-y-0.5 hover:scale-[1.01] hover:border-[#C88F8F] hover:bg-[#FFF8F8] hover:shadow-md',
+                ].join(' ')}
+            >
+                <div className="text-sm font-semibold text-slate-900">{tile.title}</div>
+                <div className="mt-2 text-xs leading-relaxed text-slate-600">
+                    {tile.description}
+                </div>
+            </button>
+        );
+    }
+
+    function renderAssistantOptionCard(option: AssistantOption) {
+        return (
+            <div
+                key={option.id}
+                className="rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4 shadow-sm"
+            >
+                <div className="text-sm font-semibold text-slate-900">{option.label}</div>
+                <div className="mt-1 text-xs text-slate-600">{option.subtitle}</div>
+                <div className="mt-2 text-xs text-slate-600">
+                    Quelle: <span className="font-medium text-slate-800">{option.sourceName}</span>
+                </div>
+                {option.validity ? (
+                    <div className="mt-1 text-xs text-slate-600">
+                        Gültigkeitszeitraum:{' '}
+                        <span className="font-medium text-slate-800">{option.validity}</span>
+                    </div>
+                ) : null}
+                {option.helperText ? (
+                    <div className="mt-3 rounded-xl border border-[#E9CFCF] bg-white px-3 py-3 text-xs leading-relaxed text-slate-700">
+                        {option.helperText}
+                    </div>
+                ) : null}
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        onClick={() => applyAssistantOption(option)}
+                        className={EMPHASIS_BUTTON_CLASS}
+                    >
+                        in Quelle vorbereiten übernehmen
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    function renderAssistantResults() {
+        if (activeAssistantTile === 'schoolHolidays') {
+            return (
+                <div className="space-y-4">
+                    <div className="text-sm leading-relaxed text-slate-700">
+                        Bundesland auswählen oder im Suchfeld filtern.
+                    </div>
+
+                    <input
+                        type="text"
+                        value={assistantSearch}
+                        onChange={(event) => setAssistantSearch(event.target.value)}
+                        placeholder="Bundesland suchen …"
+                        className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
+                    />
+
+                    {filteredSchoolHolidayOptions.length === 0 ? (
+                        <div className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
+                            Kein Bundesland passend zur Suche gefunden.
+                        </div>
+                    ) : (
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {filteredSchoolHolidayOptions.map(renderAssistantOptionCard)}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (activeAssistantTile === 'regionalHolidays') {
+            return (
+                <div className="space-y-4">
+                    <div className="text-sm leading-relaxed text-slate-700">
+                        Bundesland auswählen oder im Suchfeld filtern.
+                    </div>
+
+                    <input
+                        type="text"
+                        value={assistantSearch}
+                        onChange={(event) => setAssistantSearch(event.target.value)}
+                        placeholder="Bundesland suchen …"
+                        className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
+                    />
+
+                    {filteredRegionalHolidayOptions.length === 0 ? (
+                        <div className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
+                            Kein Bundesland passend zur Suche gefunden.
+                        </div>
+                    ) : (
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {filteredRegionalHolidayOptions.map(renderAssistantOptionCard)}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (activeAssistantTile === 'nationalHolidays') {
+            return (
+                <div className="space-y-4">
+                    <div className="text-sm leading-relaxed text-slate-700">
+                        Land auswählen oder im Suchfeld filtern.
+                    </div>
+
+                    <input
+                        type="text"
+                        value={assistantSearch}
+                        onChange={(event) => setAssistantSearch(event.target.value)}
+                        placeholder="Deutschland, Österreich oder Schweiz suchen …"
+                        className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
+                    />
+
+                    {filteredNationalHolidayOptions.length === 0 ? (
+                        <div className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
+                            Kein Land passend zur Suche gefunden.
+                        </div>
+                    ) : (
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {filteredNationalHolidayOptions.map(renderAssistantOptionCard)}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (activeAssistantTile === 'internationalHolidays') {
+            return (
+                <div className="space-y-4">
+                    <div className="text-sm leading-relaxed text-slate-700">
+                        Kleine internationale Vorauswahl für den MVP. Per Suchfeld können Sie nach
+                        Ländern filtern.
+                    </div>
+
+                    <input
+                        type="text"
+                        value={assistantSearch}
+                        onChange={(event) => setAssistantSearch(event.target.value)}
+                        placeholder="z. B. USA, Frankreich, Various …"
+                        className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
+                    />
+
+                    {filteredInternationalHolidayOptions.length === 0 ? (
+                        <div className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
+                            Kein internationaler Kalender passend zur Suche gefunden.
+                        </div>
+                    ) : (
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {filteredInternationalHolidayOptions.map(renderAssistantOptionCard)}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (activeAssistantTile === 'tradeFairs') {
+            return (
+                <div className="space-y-4">
+                    <div className="text-sm leading-relaxed text-slate-700">
+                        Schlanker MVP: zunächst mit einer kleinen, überschaubaren Auswahl. Über das
+                        Suchfeld können Standort oder Messetyp gefiltert werden.
+                    </div>
+
+                    <input
+                        type="text"
+                        value={assistantSearch}
+                        onChange={(event) => setAssistantSearch(event.target.value)}
+                        placeholder="z. B. Düsseldorf, Hannover, Wien …"
+                        className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
+                    />
+
+                    {filteredTradeFairOptions.length === 0 ? (
+                        <div className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
+                            Kein Messekalender passend zur Suche gefunden.
+                        </div>
+                    ) : (
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {filteredTradeFairOptions.map(renderAssistantOptionCard)}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-4">
+                <div className="text-sm leading-relaxed text-slate-700">
+                    Sonstige Kalender bleiben bewusst offen. Hier bereiten Sie zunächst
+                    Suchvorschläge vor und ergänzen die Quelle anschließend manuell.
+                </div>
+
+                <input
+                    type="text"
+                    value={assistantSearch}
+                    onChange={(event) => setAssistantSearch(event.target.value)}
+                    placeholder="z. B. Abfall, Kultur, Verein, Campus …"
+                    className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
+                />
+
+                {filteredOtherCalendarOptions.length === 0 ? (
+                    <div className="rounded-xl border border-[#D7B1B1] bg-[#FFF8F8] px-4 py-4 text-sm text-slate-500">
+                        Kein Suchvorschlag passend zur Suche gefunden.
+                    </div>
+                ) : (
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {filteredOtherCalendarOptions.map(renderAssistantOptionCard)}
+                    </div>
+                )}
+            </div>
         );
     }
 
@@ -568,23 +1408,61 @@ export default function AdditionalCalendarImportAssistant({
 
                     <button
                         type="button"
-                        onClick={() => {
-                            setSourceType(null);
-                            resetMessages();
-                            setPreview(null);
-                            onOpenFindingAssistant?.();
-                        }}
+                        onClick={handleOpenFindingAssistant}
                         className="w-full cursor-pointer rounded-2xl border border-[#990000] bg-white p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#FFF8F8] hover:shadow-md"
                     >
                         <div className="text-sm font-semibold text-slate-900">
                             Assistent öffnen
                         </div>
                         <div className="mt-2 text-xs leading-relaxed text-slate-600">
-                            Öffnet den Zusatzkalender-Assistenten mit den 5 Kategorien.
+                            Öffnet den Zusatzkalender-Assistenten mit 6 Kategorien.
                         </div>
                     </button>
                 </div>
             </div>
+
+            {findingAssistantOpen ? (
+                <div
+                    ref={findingAssistantSectionRef}
+                    className="rounded-2xl border-2 border-[#990000] bg-white p-5"
+                >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <div className="text-lg font-semibold text-slate-900">
+                                Zusatzkalender-Assistent
+                            </div>
+                            <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                                Die Kacheln führen direkt zu einer schlanken Vorauswahl. Über
+                                „in Quelle vorbereiten übernehmen“ wandert die Auswahl zurück in
+                                „2. Quelle vorbereiten“.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleCloseFindingAssistant}
+                            className={SECONDARY_BUTTON_CLASS}
+                        >
+                            schließen
+                        </button>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {ASSISTANT_TILES.map(renderAssistantTileButton)}
+                    </div>
+
+                    <div
+                        ref={assistantResultsSectionRef}
+                        className="mt-5 rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4"
+                    >
+                        <div className="text-sm font-semibold text-slate-900">
+                            {ASSISTANT_TILES.find((tile) => tile.key === activeAssistantTile)?.title}
+                        </div>
+
+                        <div className="mt-4">{renderAssistantResults()}</div>
+                    </div>
+                </div>
+            ) : null}
 
             <div className="rounded-2xl border-2 border-[#990000] bg-white p-5">
                 <div className="text-lg font-semibold text-slate-900">2. Quelle vorbereiten</div>
@@ -619,10 +1497,35 @@ export default function AdditionalCalendarImportAssistant({
                                 <option value="regionalHolidays">regionale Feiertage</option>
                                 <option value="nationalHolidays">nationale Feiertage</option>
                                 <option value="internationalHolidays">internationale Feiertage</option>
-                                <option value="businessCalendar">Betriebskalender</option>
+                                <option value="businessCalendar">Messekalender / Betriebskalender</option>
                                 <option value="custom">eigener Zusatzkalender</option>
                             </select>
                         </div>
+
+                        {preparedSourceName || preparedValidity || preparedHelperText ? (
+                            <div className="rounded-2xl border border-[#D7B1B1] bg-[#FFF8F8] p-4 text-sm text-slate-800">
+                                {preparedSourceName ? (
+                                    <div>
+                                        <span className="font-semibold">Vorbereitete Quelle:</span>{' '}
+                                        {preparedSourceName}
+                                    </div>
+                                ) : null}
+
+                                {preparedValidity ? (
+                                    <div className="mt-2">
+                                        <span className="font-semibold">Gültigkeitszeitraum:</span>{' '}
+                                        {preparedValidity}
+                                    </div>
+                                ) : null}
+
+                                {preparedHelperText ? (
+                                    <div className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-700">
+                                        <span className="font-semibold text-sm">Hinweis:</span>{' '}
+                                        {preparedHelperText}
+                                    </div>
+                                ) : null}
+                            </div>
+                        ) : null}
 
                         {sourceType === 'url' ? (
                             <div
@@ -744,12 +1647,18 @@ export default function AdditionalCalendarImportAssistant({
 
                                     <button
                                         type="button"
-                                        onClick={() => setSourceType('url')}
-                                        className={OUTLINE_RED_BUTTON_CLASS}
+                                        onClick={handleCloseSourcePreparation}
+                                        className={SECONDARY_BUTTON_CLASS}
                                     >
                                         schließen
                                     </button>
                                 </div>
+
+                                {preparedHelperText ? (
+                                    <div className="rounded-xl border border-[#D7B1B1] bg-white px-3 py-3 text-xs leading-relaxed text-slate-700">
+                                        {preparedHelperText}
+                                    </div>
+                                ) : null}
 
                                 <div className="space-y-3 text-sm leading-relaxed text-slate-700">
                                     <div>
@@ -784,9 +1693,10 @@ export default function AdditionalCalendarImportAssistant({
                                     </div>
 
                                     <div className="rounded-xl border border-[#D7B1B1] bg-white px-3 py-3 text-xs leading-relaxed text-slate-700">
-                                        Für den ersten Test ist oft der einfachste Weg: Datei
-                                        herunterladen → hier hochladen → Vorschau prüfen →
-                                        Zusatzkalender übernehmen.
+                                        Für den ersten Test ist oft der einfachste Weg: Quelle
+                                        suchen → ICS-Link kopieren oder Datei herunterladen → hier
+                                        einfügen bzw. hochladen → Vorschau prüfen → Zusatzkalender
+                                        übernehmen.
                                     </div>
                                 </div>
                             </div>
@@ -818,10 +1728,29 @@ export default function AdditionalCalendarImportAssistant({
                             ) : (
                                 <div className="mt-3 space-y-4">
                                     <div className="rounded-xl border border-[#990000] bg-[#FFF4F4] px-3 py-3 text-sm text-slate-800">
-                                        <div>
+                                        {preparedSourceName ? (
+                                            <div>
+                                                <span className="font-semibold">
+                                                    Vorbereitete Quelle:
+                                                </span>{' '}
+                                                {preparedSourceName}
+                                            </div>
+                                        ) : null}
+
+                                        <div className={preparedSourceName ? 'mt-1' : ''}>
                                             <span className="font-semibold">Quelle:</span>{' '}
                                             {preview.sourceLabel}
                                         </div>
+
+                                        {preparedValidity ? (
+                                            <div className="mt-1">
+                                                <span className="font-semibold">
+                                                    Gültigkeitszeitraum:
+                                                </span>{' '}
+                                                {preparedValidity}
+                                            </div>
+                                        ) : null}
+
                                         <div className="mt-1">
                                             <span className="font-semibold">Einträge:</span>{' '}
                                             {preview.eventCount}
@@ -918,9 +1847,19 @@ export default function AdditionalCalendarImportAssistant({
                                             <div className="mt-1 text-xs text-slate-600">
                                                 Kategorie: {categoryLabel(calendar.category)}
                                             </div>
+                                            {calendar.sourceName ? (
+                                                <div className="mt-1 text-xs text-slate-600">
+                                                    Vorbereitete Quelle: {calendar.sourceName}
+                                                </div>
+                                            ) : null}
                                             <div className="mt-1 text-xs text-slate-600">
                                                 Quelle: {calendar.sourceLabel}
                                             </div>
+                                            {calendar.validity ? (
+                                                <div className="mt-1 text-xs text-slate-600">
+                                                    Gültigkeitszeitraum: {calendar.validity}
+                                                </div>
+                                            ) : null}
                                             <div className="mt-1 text-xs text-slate-600">
                                                 Gespeichert:{' '}
                                                 {new Date(calendar.importedAt).toLocaleString('de-DE')}
@@ -976,6 +1915,16 @@ export default function AdditionalCalendarImportAssistant({
                                                 className={OUTLINE_RED_BUTTON_CLASS}
                                             >
                                                 entfernen
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    window.location.href = '/ical-editor';
+                                                }}
+                                                className={ORANGE_BUTTON_CLASS}
+                                            >
+                                                zum iCal-Editor
                                             </button>
                                         </div>
                                     </div>

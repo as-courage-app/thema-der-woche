@@ -66,8 +66,212 @@ type PreparedSourceCard = {
     title: string;
     description: string;
     validity: string;
+    sourceName: string;
+    sourceType: 'url' | 'file';
+    sourceUrl?: string;
     sourceHint: string;
+    reviewNote?: string;
 };
+
+const CURRENT_YEAR = new Date().getFullYear();
+const NEXT_YEAR = CURRENT_YEAR + 1;
+
+const DIRECT_SOURCE_CARDS: Record<
+    Exclude<ZusatzkalenderKategorieId, 'schoolHolidays' | 'regionalHolidays'>,
+    PreparedSourceCard[]
+> = {
+    nationalHolidays: [
+        {
+            title: `Bundesweite Feiertage Deutschland ${CURRENT_YEAR}`,
+            description:
+                'Feste abonnierbare iCal-Quelle für Feiertage in Deutschland mit deutschen Feiertagsnamen.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Office Holidays',
+            sourceType: 'url',
+            sourceUrl: 'https://www.officeholidays.com/ics-local-name/germany',
+            sourceHint:
+                'Gut lesbar, weil die Feiertage mit deutscher Namensvariante ausgegeben werden.',
+            reviewNote:
+                'Sehr passend als erste echte Standardquelle für nationale Feiertage.',
+        },
+        {
+            title: 'Deutschland-Feiertage als laufendes Kalenderabo',
+            description:
+                'Feste abonnierbare iCal-Quelle für Feiertage in Deutschland ohne Ländernamen im Titel der Termine.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Office Holidays',
+            sourceType: 'url',
+            sourceUrl: 'https://www.officeholidays.com/ics-clean/germany',
+            sourceHint:
+                'Praktisch, wenn die Terminüberschriften möglichst kurz und sauber bleiben sollen.',
+            reviewNote:
+                'Sinnvolle zweite Vergleichsquelle mit derselben fachlichen Grundlage, aber anderer Benennung.',
+        },
+    ],
+    internationalHolidays: [
+        {
+            title: `Internationale Feiertage ${CURRENT_YEAR}`,
+            description:
+                'Feste abonnierbare iCal-Quelle für internationale Feiertage mit Ländernamen im Titel der Termine.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Office Holidays',
+            sourceType: 'url',
+            sourceUrl: 'https://www.officeholidays.com/ics/various',
+            sourceHint:
+                'Geeignet, wenn in den Terminüberschriften der jeweilige Länderbezug sichtbar bleiben soll.',
+            reviewNote:
+                'Sinnvoll als internationale Sammelquelle mit klarem Abo-Charakter.',
+        },
+        {
+            title: 'Internationale Feiertage ohne Ländernamen',
+            description:
+                'Feste abonnierbare iCal-Quelle für internationale Feiertage mit kürzeren Terminüberschriften ohne Ländernamen.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Office Holidays',
+            sourceType: 'url',
+            sourceUrl: 'https://www.officeholidays.com/ics-clean/various',
+            sourceHint:
+                'Praktisch, wenn die Titel im Kalender möglichst kurz und ruhig bleiben sollen.',
+            reviewNote:
+                'Gute zweite Vergleichsquelle mit derselben fachlichen Grundlage, aber reduzierter Benennung.',
+        },
+    ],
+    otherCalendars: [
+        {
+            title: 'Messe Düsseldorf – alle Veranstaltungen in Düsseldorf',
+            description:
+                'Feste abonnierbare iCal-Quelle für alle aktuellen und zukünftigen Veranstaltungen der Messe Düsseldorf am Standort Düsseldorf.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Messe Düsseldorf',
+            sourceType: 'url',
+            sourceUrl: 'https://www.messe-duesseldorf.de/static/mdhome/cal_md_DE.ics',
+            sourceHint:
+                'Geeignet als öffentliches Beispiel für einen Messe- und Veranstaltungskalender mit laufender Aktualisierung.',
+            reviewNote:
+                'Sehr passend als reale Beispielquelle für sonstige öffentliche Zusatzkalender.',
+        },
+        {
+            title: 'Messe Düsseldorf – internationale Veranstaltungen',
+            description:
+                'Feste abonnierbare iCal-Quelle für internationale Veranstaltungen der Messe Düsseldorf.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Messe Düsseldorf',
+            sourceType: 'url',
+            sourceUrl: 'https://www.messe-duesseldorf.de/static/mdhome/cal_mdi_DE.ics',
+            sourceHint:
+                'Geeignet als zweites reales Beispiel für einen öffentlich abonnierbaren Veranstaltungskalender.',
+            reviewNote:
+                'Sinnvolle Vergleichsquelle, weil sie denselben Anbieter mit internationalem Fokus abbildet.',
+        },
+    ],
+};
+
+function getSchoolHolidaySourceUrl(bundesland: string): string {
+    const slugMap: Record<string, string> = {
+        'Baden-Württemberg': 'baden-wuerttemberg',
+        Bayern: 'bayern',
+        Berlin: 'berlin',
+        Brandenburg: 'brandenburg',
+        Bremen: 'bremen',
+        Hamburg: 'hamburg',
+        Hessen: 'hessen',
+        'Mecklenburg-Vorpommern': 'mecklenburg-vorpommern',
+        Niedersachsen: 'niedersachsen',
+        'Nordrhein-Westfalen': 'nordrhein-westfalen',
+        'Rheinland-Pfalz': 'rheinland-pfalz',
+        Saarland: 'saarland',
+        Sachsen: 'sachsen',
+        'Sachsen-Anhalt': 'sachsen-anhalt',
+        'Schleswig-Holstein': 'schleswig-holstein',
+        Thüringen: 'thueringen',
+    };
+
+    return `https://www.feiertage-deutschland.de/kalender-download/ics/schulferien-${slugMap[bundesland]}.ics`;
+}
+
+function getRegionalHolidaySourceUrl(bundesland: string): string {
+    const slugMap: Record<string, string> = {
+        'Baden-Württemberg': 'baden-wurttemberg',
+        Bayern: 'bavaria',
+        Berlin: 'berlin',
+        Brandenburg: 'brandenburg',
+        Bremen: 'bremen',
+        Hamburg: 'hamburg',
+        Hessen: 'hesse',
+        'Mecklenburg-Vorpommern': 'mecklenburg-western-pomerania',
+        Niedersachsen: 'lower-saxony',
+        'Nordrhein-Westfalen': 'north-rhine-westphalia',
+        'Rheinland-Pfalz': 'rhineland-palatinate',
+        Saarland: 'saarland',
+        Sachsen: 'saxony',
+        'Sachsen-Anhalt': 'saxony-anhalt',
+        'Schleswig-Holstein': 'schleswig-holstein',
+        Thüringen: 'thuringia',
+    };
+
+    return `https://www.officeholidays.com/ics/germany/${slugMap[bundesland]}`;
+}
+
+function createBundeslandCards(
+    categoryId: 'schoolHolidays' | 'regionalHolidays',
+    bundesland: string,
+): PreparedSourceCard[] {
+    if (categoryId === 'schoolHolidays') {
+        return [
+            {
+                title: `Schulferien ${bundesland}`,
+                description:
+                    'Feste abonnierbare iCal-Quelle für die Schulferien dieses Bundeslandes.',
+                validity: `laufendes Kalenderabo bis 2029, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+                sourceName: 'feiertage-deutschland.de',
+                sourceType: 'url',
+                sourceUrl: getSchoolHolidaySourceUrl(bundesland),
+                sourceHint: `Geeignet für ${bundesland}; der Kalender ist als Ferien-Abo je Bundesland veröffentlicht.`,
+                reviewNote:
+                    'Gute Standardquelle für Schulferien, weil die URL direkt je Bundesland aufgebaut ist.',
+            },
+            {
+                title: `Schulferien ${bundesland} als direkte Vergleichsquelle`,
+                description:
+                    'Zweite vorbereitete Karte mit derselben echten Ferienquelle, damit die Übernahme-Logik im Assistenten konsistent bleibt.',
+                validity: `laufendes Kalenderabo bis 2029, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+                sourceName: 'feiertage-deutschland.de',
+                sourceType: 'url',
+                sourceUrl: getSchoolHolidaySourceUrl(bundesland),
+                sourceHint: `Direkter ICS-Link für ${bundesland}.`,
+                reviewNote:
+                    'Technisch dieselbe belastbare Quelle; die zweite Karte dient hier zunächst als stabile Arbeitskarte.',
+            },
+        ];
+    }
+
+    return [
+        {
+            title: `Regionale Feiertage ${bundesland}`,
+            description:
+                'Feste abonnierbare iCal-Quelle für Feiertage mit Bundesland-Bezug.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Office Holidays',
+            sourceType: 'url',
+            sourceUrl: getRegionalHolidaySourceUrl(bundesland),
+            sourceHint: `Geeignet für ${bundesland}; die Quelle ist als Bundesland-Abo veröffentlicht.`,
+            reviewNote:
+                'Sinnvoll für regionale Feiertage, weil die Quelle je Bundesland getrennt angeboten wird.',
+        },
+        {
+            title: `Regionale Feiertage ${bundesland} ohne weitere Zusätze`,
+            description:
+                'Zweite vorbereitete Karte mit derselben echten Feiertagsquelle für dieses Bundesland.',
+            validity: `laufendes Kalenderabo, nutzbar im Jahr ${CURRENT_YEAR} und darüber hinaus`,
+            sourceName: 'Office Holidays',
+            sourceType: 'url',
+            sourceUrl: getRegionalHolidaySourceUrl(bundesland),
+            sourceHint: `Direkter ICS-Link für ${bundesland}.`,
+            reviewNote:
+                'Technisch dieselbe belastbare Quelle; die zweite Karte dient hier zunächst als stabile Arbeitskarte.',
+        },
+    ];
+}
 
 type AssistantPresetState = {
     token: string;
@@ -80,158 +284,77 @@ type AssistantPresetState = {
     | 'businessCalendar'
     | 'custom';
     sourceType: 'url' | 'file' | 'help';
+    sourceName?: string;
+    sourceUrl?: string;
+    validity?: string;
 } | null;
 
 const WHITE_CLOSE_BUTTON_CLASS =
     'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#990000] bg-white px-4 py-2 text-sm font-semibold text-[#990000] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#FFF5F5] hover:shadow-md';
 
-const DIRECT_SOURCE_CARDS: Record<
-    Exclude<ZusatzkalenderKategorieId, 'schoolHolidays' | 'regionalHolidays'>,
-    PreparedSourceCard[]
-> = {
-    nationalHolidays: [
-        {
-            title: 'Bundesweite Feiertage Deutschland',
-            description:
-                'Vorbereiteter Trefferbereich für bundesweit geltende Feiertage. Hier sollen im nächsten Ausbauschritt passende ICS-Quellen oder direkt prüfbare Kalenderquellen erscheinen.',
-            validity: 'meist kalenderjährlich, z. B. 01.01.2026 bis 31.12.2026',
-            sourceHint:
-                'Bevorzugt: offizielle oder klar gepflegte Kalenderquelle mit Deutschland-Bezug',
-        },
-        {
-            title: 'Feiertagskalender Deutschland mit Jahresbezug',
-            description:
-                'Geeignet für wiederkehrende Feiertagsübersichten, wenn der Geltungszeitraum klar erkennbar ist und die Quelle echte VEVENT-Einträge liefert.',
-            validity: 'pro Kalenderjahr prüfen',
-            sourceHint: 'Auf klare Jahresangabe und vollständige Feiertagsliste achten',
-        },
-    ],
-    internationalHolidays: [
-        {
-            title: 'Internationale Gedenk- und Feiertage',
-            description:
-                'Vorbereiteter Trefferbereich für internationale Feiertage, Welttage oder grenzüberschreitende Kalendereinträge mit öffentlichem Bezug.',
-            validity: 'je nach Quelle kalenderjährlich oder mehrjährig',
-            sourceHint:
-                'Nur Quellen mit klarem Geltungsbereich und sinnvoller Terminstruktur verwenden',
-        },
-        {
-            title: 'Internationale Kalender mit Europa- oder Weltbezug',
-            description:
-                'Geeignet für Quellen, die internationale Aktionstage oder öffentliche internationale Termine in iCal-Form bereitstellen.',
-            validity: 'Zeitraum immer vor Übernahme prüfen',
-            sourceHint: 'Wichtig: echte ICS-Quelle mit brauchbarer Vorschau und sauberer Datierung',
-        },
-    ],
-    otherCalendars: [
-        {
-            title: 'Betriebskalender oder öffentliche Organisationskalender',
-            description:
-                'Hier sollen später Treffer für Betriebskalender, Veranstaltungsreihen, öffentliche Messekalender oder ähnliche Zusatzkalender erscheinen.',
-            validity: 'oft jahresbezogen oder veranstaltungsbezogen',
-            sourceHint:
-                'Nur öffentlich zugängliche Kalender mit nachvollziehbarer Quelle übernehmen',
-        },
-        {
-            title: 'Sonstige öffentliche Zusatzkalender',
-            description:
-                'Geeignet für thematische Kalender, wenn sie offen zugänglich sind, einen klaren Zeitraum haben und technisch als iCal-Quelle geprüft werden können.',
-            validity: 'Zeitraum laut Quelle vor Übernahme sichtbar prüfen',
-            sourceHint: 'Unklare Sammelseiten ohne echten Kalender besser vermeiden',
-        },
-    ],
-};
-
-function createBundeslandCards(
-    categoryId: 'schoolHolidays' | 'regionalHolidays',
-    bundesland: string,
-): PreparedSourceCard[] {
-    if (categoryId === 'schoolHolidays') {
-        return [
-            {
-                title: `Schulferien ${bundesland}`,
-                description:
-                    'Vorbereiteter Trefferbereich für Ferienkalender dieses Bundeslandes. Hier sollen im nächsten Ausbauschritt passende Ferienquellen und prüfbare ICS-Treffer erscheinen.',
-                validity: 'in der Regel schuljahres- oder kalenderjahresbezogen',
-                sourceHint: `Auf eindeutigen Bezug zu ${bundesland} und auf den sichtbaren Zeitraum achten`,
-            },
-            {
-                title: `Ferienübersicht ${bundesland} mit Kalenderbezug`,
-                description:
-                    'Geeignet für Quellen, die Ferienzeiten klar datiert aufführen und als iCal-Quelle oder herunterladbare ICS-Datei bereitstellen.',
-                validity: 'Ferienjahr bzw. Kalenderjahr laut Quelle',
-                sourceHint: 'Wichtig: offizielle oder verlässlich gepflegte Quelle bevorzugen',
-            },
-        ];
-    }
-
-    return [
-        {
-            title: `Regionale Feiertage ${bundesland}`,
-            description:
-                'Vorbereiteter Trefferbereich für Feiertage mit Bundesland-Bezug. Hier sollen im nächsten Ausbauschritt passende Quellen oder direkte Treffer erscheinen.',
-            validity: 'meist kalenderjährlich',
-            sourceHint: `Nur Quellen verwenden, die klar für ${bundesland} gelten`,
-        },
-        {
-            title: `Gesetzliche Feiertage ${bundesland} mit Jahresbezug`,
-            description:
-                'Geeignet für regionale Feiertagskalender, wenn die Einträge als VEVENT vorliegen und der Zeitraum eindeutig sichtbar ist.',
-            validity: 'Kalenderjahr laut Quelle',
-            sourceHint:
-                'Vor Übernahme prüfen, ob die Feiertage tatsächlich regional und nicht bundesweit sind',
-        },
-    ];
-}
-
 function buildAssistantPreset(params: {
     categoryId: ZusatzkalenderKategorieId;
-    cardTitle: string;
+    card: PreparedSourceCard;
     bundesland: string | null;
 }): NonNullable<AssistantPresetState> {
-    const { categoryId, cardTitle, bundesland } = params;
+    const { categoryId, card, bundesland } = params;
 
     if (categoryId === 'schoolHolidays') {
         return {
-            token: `${Date.now()}-school-${cardTitle}`,
-            calendarLabel: bundesland ? `Schulferien ${bundesland}` : cardTitle,
+            token: `${Date.now()}-school-${card.title}`,
+            calendarLabel: bundesland ? `Schulferien ${bundesland}` : card.title,
             category: 'schoolHolidays',
             sourceType: 'url',
+            sourceName: card.sourceName,
+            sourceUrl: card.sourceUrl,
+            validity: card.validity,
         };
     }
 
     if (categoryId === 'regionalHolidays') {
         return {
-            token: `${Date.now()}-regional-${cardTitle}`,
-            calendarLabel: bundesland ? `Regionale Feiertage ${bundesland}` : cardTitle,
+            token: `${Date.now()}-regional-${card.title}`,
+            calendarLabel: bundesland ? `Regionale Feiertage ${bundesland}` : card.title,
             category: 'regionalHolidays',
             sourceType: 'url',
+            sourceName: card.sourceName,
+            sourceUrl: card.sourceUrl,
+            validity: card.validity,
         };
     }
 
     if (categoryId === 'nationalHolidays') {
         return {
-            token: `${Date.now()}-national-${cardTitle}`,
+            token: `${Date.now()}-national-${card.title}`,
             calendarLabel: 'Nationale Feiertage Deutschland',
             category: 'nationalHolidays',
             sourceType: 'url',
+            sourceName: card.sourceName,
+            sourceUrl: card.sourceUrl,
+            validity: card.validity,
         };
     }
 
     if (categoryId === 'internationalHolidays') {
         return {
-            token: `${Date.now()}-international-${cardTitle}`,
+            token: `${Date.now()}-international-${card.title}`,
             calendarLabel: 'Internationale Feiertage',
             category: 'internationalHolidays',
             sourceType: 'url',
+            sourceName: card.sourceName,
+            sourceUrl: card.sourceUrl,
+            validity: card.validity,
         };
     }
 
     return {
-        token: `${Date.now()}-business-${cardTitle}`,
+        token: `${Date.now()}-business-${card.title}`,
         calendarLabel: 'Sonstiger öffentlicher Zusatzkalender',
         category: 'businessCalendar',
         sourceType: 'url',
+        sourceName: card.sourceName,
+        sourceUrl: card.sourceUrl,
+        validity: card.validity,
     };
 }
 
@@ -349,12 +472,12 @@ export default function ICalAdditionalCalendarsPage() {
         setSelectedBundesland(null);
     }
 
-    function handleTakePreparedSource(cardTitle: string) {
+    function handleTakePreparedSource(card: PreparedSourceCard) {
         if (!selectedCategory) return;
 
         const nextPreset = buildAssistantPreset({
             categoryId: selectedCategory,
-            cardTitle,
+            card,
             bundesland: selectedBundesland,
         });
 
@@ -393,15 +516,32 @@ export default function ICalAdditionalCalendarsPage() {
                     <div>
                         <span className="font-semibold">Gültigkeitszeitraum:</span> {card.validity}
                     </div>
+
+                    <div className="mt-2">
+                        <span className="font-semibold">Quelle:</span> {card.sourceName}
+                    </div>
+
+                    {card.sourceUrl ? (
+                        <div className="mt-2 break-all">
+                            <span className="font-semibold">ICS-Link:</span> {card.sourceUrl}
+                        </div>
+                    ) : null}
+
                     <div className="mt-2">
                         <span className="font-semibold">Hinweis zur Quelle:</span> {card.sourceHint}
                     </div>
+
+                    {card.reviewNote ? (
+                        <div className="mt-2">
+                            <span className="font-semibold">Prüfhinweis:</span> {card.reviewNote}
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="mt-4">
                     <button
                         type="button"
-                        onClick={() => handleTakePreparedSource(card.title)}
+                        onClick={() => handleTakePreparedSource(card)}
                         className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#990000] bg-[#990000] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#7A0000] hover:bg-[#7A0000] hover:shadow-lg"
                     >
                         in Quelle vorbereiten übernehmen
