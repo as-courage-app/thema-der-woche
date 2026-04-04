@@ -8,6 +8,7 @@ type SourceType = 'url' | 'file' | 'help';
 
 type AdditionalCalendarCategory =
     | 'schoolHolidays'
+    | 'regionalHolidays'
     | 'nationalHolidays'
     | 'internationalHolidays'
     | 'businessCalendar'
@@ -111,6 +112,8 @@ function categoryLabel(category: AdditionalCalendarCategory): string {
     switch (category) {
         case 'schoolHolidays':
             return 'Schulferien';
+        case 'regionalHolidays':
+            return 'regionale Feiertage';
         case 'nationalHolidays':
             return 'nationale Feiertage';
         case 'internationalHolidays':
@@ -218,12 +221,21 @@ function parseIcsPreview(icsText: string): {
     };
 }
 
+type AssistantPreset = {
+    token: string;
+    calendarLabel: string;
+    category: AdditionalCalendarCategory;
+    sourceType: SourceType;
+};
+
 type AdditionalCalendarImportAssistantProps = {
     onOpenFindingAssistant?: () => void;
+    preset?: AssistantPreset | null;
 };
 
 export default function AdditionalCalendarImportAssistant({
     onOpenFindingAssistant,
+    preset = null,
 }: AdditionalCalendarImportAssistantProps) {
     const [sourceType, setSourceType] = useState<SourceType | null>(null);
     const [calendarLabel, setCalendarLabel] = useState('');
@@ -247,6 +259,31 @@ export default function AdditionalCalendarImportAssistant({
     useEffect(() => {
         setStoredCalendars(readStoredCalendars());
     }, []);
+
+    useEffect(() => {
+        if (!preset) return;
+
+        setCalendarLabel(preset.calendarLabel);
+        setCategory(preset.category);
+        setSourceType(preset.sourceType);
+        setPreview(null);
+        setErrorMessage(null);
+        setSuccessMessage('Die Auswahl aus dem Assistenten wurde in die Vorbereitung übernommen.');
+
+        window.setTimeout(() => {
+            const targetRef =
+                preset.sourceType === 'url'
+                    ? urlSectionRef
+                    : preset.sourceType === 'file'
+                        ? fileSectionRef
+                        : helpSectionRef;
+
+            targetRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }, 120);
+    }, [preset]);
 
     const activeCalendarCount = useMemo(
         () => storedCalendars.filter((calendar) => calendar.isEnabled).length,
@@ -579,6 +616,7 @@ export default function AdditionalCalendarImportAssistant({
                                 className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[#990000] focus:ring-2 focus:ring-[#990000]/20"
                             >
                                 <option value="schoolHolidays">Schulferien</option>
+                                <option value="regionalHolidays">regionale Feiertage</option>
                                 <option value="nationalHolidays">nationale Feiertage</option>
                                 <option value="internationalHolidays">internationale Feiertage</option>
                                 <option value="businessCalendar">Betriebskalender</option>
