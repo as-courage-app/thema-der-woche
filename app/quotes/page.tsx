@@ -13,6 +13,7 @@ import RequireAuth from '@/components/RequireAuth';
 import MediathekMenu from './MediathekMenu';
 import { SELECTED_PLAN_KEY } from '@/lib/storageKeys';
 import { EmbeddedNotesHistoryCard } from '@/components/notes/NotesHistoryCard';
+import IcalEditor2Panel from '@/components/ical/IcalEditor2Panel';
 
 const LS_SETUP = 'as-courage.themeSetup.v1';
 
@@ -809,7 +810,7 @@ export default function QuotesPage() {
                               iCal direkt herunterladen
                             </span>
                             <span className="block text-xs text-slate-600">
-                              Standard-iCal sofort als Datei herunterladen
+                              Teamkalender sofort als Datei herunterladen
                             </span>
                           </span>
                         </button>
@@ -826,33 +827,10 @@ export default function QuotesPage() {
                           </span>
                           <span>
                             <span className="block font-semibold text-slate-900">
-                              iCal aktuelle Woche schnell bearbeiten
+                              Editor 2 unterhalb öffnen
                             </span>
                             <span className="block text-xs text-slate-600">
-                              Schnellbearbeitung direkt unterhalb der Quotes-Seite öffnen
-                            </span>
-                          </span>
-                        </button>
-
-                        <div className="border-t border-slate-100" />
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowIcalMenu(false);
-                            router.push('/ical-editor');
-                          }}
-                          className="flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left text-sm text-slate-900 transition hover:bg-slate-50"
-                        >
-                          <span aria-hidden="true" className="pt-0.5 text-base leading-none">
-                            🗂️
-                          </span>
-                          <span>
-                            <span className="block font-semibold text-slate-900">
-                              iCal mehrere Wochen im iCal-Editor bearbeiten
-                            </span>
-                            <span className="block text-xs text-slate-600">
-                              Vollständigen Editor für mehrere Wochen und gemeinsamen Download öffnen
+                              Schlanken Bearbeitungsweg direkt unter der Quotes-Seite öffnen
                             </span>
                           </span>
                         </button>
@@ -1050,155 +1028,21 @@ export default function QuotesPage() {
               if (section === 'ical') {
                 return (
                   <div key="ical" ref={icalBlockRef} className="px-5 pb-5 sm:px-7 sm:pb-7">
-                    <div className="rounded-2xl border border-[#F29420] bg-white p-5 shadow-sm">
-                      <div className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                              <div>
-                                <h3 className="text-2xl font-semibold text-slate-900">
-                                  iCal-Schnellbearbeitung <span className="text-slate-600"><br />
-                                    (Variante C)</span>
-                                </h3>
-                                <div className="mt-2 text-base text-slate-900">
-                                  Aktuell: <span className="font-semibold text-[#F29420]">Aktuelle Woche</span>
-                                </div>
-                              </div>
-
-                              <div className="flex flex-wrap gap-2 xl:justify-end">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    localStorage.setItem(
-                                      'as-courage.inlineIcalDrafts.v1',
-                                      JSON.stringify(inlineIcalDrafts),
-                                    );
-                                    setIcalNotice('Änderungen lokal gespeichert.');
-                                  }}
-                                  className={[
-                                    'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02]',
-                                    icalNotice === 'Änderungen lokal gespeichert.'
-                                      ? 'bg-[#4EA72E] hover:bg-[#3f8a25] hover:shadow-xl'
-                                      : 'bg-[#F29420] hover:bg-[#E4891E] hover:shadow-xl',
-                                  ].join(' ')}
-                                >
-                                  {icalNotice === 'Änderungen lokal gespeichert.'
-                                    ? 'Änderungen lokal gespeichert'
-                                    : 'Änderungen speichern'}
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={downloadIcalDirectly}
-                                  className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg"
-                                >
-                                  bearbeiteten iCal herunterladen
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    pendingIcalScrollRef.current = false;
-                                    setShowInlineIcal(false);
-                                    setBottomSectionOrder((prev) => prev.filter((entry) => entry !== 'ical'));
-                                  }}
-                                  className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl bg-[#F29420] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-xl"
-                                >
-                                  Schließen
-                                </button>
-                              </div>
-                            </div>
-
-                            <div className="rounded-2xl border border-[#F29420] bg-white p-5">
-                              <h4 className="text-xl font-semibold text-slate-900">
-                                Aktuelle Woche mit bewusster Speicherung bearbeiten
-                              </h4>
-                              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                                Diese Schnellbearbeitung gilt für die aktuell sichtbare Woche. Für mehrere Wochen mit gemeinsamem iCal-Download steht im iCal-Menü zusätzlich der iCal-Editor zur Verfügung.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="rounded-2xl border-2 border-[#F29420] bg-slate-50 p-4">
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                              <div className="text-lg font-semibold text-slate-900">{currentTitle || '—'}</div>
-                              <div className="mt-1 text-sm font-medium text-slate-600">{dateRangeText || '—'}</div>
-                            </div>
-
-                            <div className="rounded-xl border border-[#F29420] bg-white px-3 py-2 text-sm text-slate-700">
-                              Woche {clampedIndex + 1}
-                            </div>
-                          </div>
-
-                          <div className="mt-3 rounded-xl border border-[#F29420] bg-white p-4">
-                            <div className="text-sm font-semibold text-slate-900">Wochenzitat</div>
-                            <div className="mt-2 text-sm leading-relaxed text-slate-700">„{current?.quote ?? '—'}“</div>
-                          </div>
-
-                          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                            {currentInlineIcalEntries.map((entry) => {
-                              const defaultText =
-                                entry.questionIndex !== null
-                                  ? current?.questions?.[entry.questionIndex] ?? '—'
-                                  : 'Schönes Wochenende';
-
-                              const isEdited = entry.text !== defaultText;
-
-                              return (
-                                <div
-                                  key={entry.key}
-                                  className="rounded-2xl border border-slate-200 bg-white p-4"
-                                >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="text-sm font-semibold text-slate-900">{entry.label}</div>
-                                    <div className="text-xs text-slate-500">{entry.dateText}</div>
-                                  </div>
-
-                                  <textarea
-                                    value={entry.text}
-                                    onChange={(event) => {
-                                      if (icalNotice === 'Änderungen lokal gespeichert.') {
-                                        setIcalNotice(null);
-                                      }
-
-                                      updateInlineIcalDraft(current!.id, clampedIndex, entry.key, event.target.value);
-                                    }}
-                                    rows={4}
-                                    className="mt-3 min-h-[112px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition focus:border-[#F29420] focus:ring-2 focus:ring-[#F29420]/20"
-                                  />
-
-                                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                    <div className="text-xs text-slate-500">Standard: {defaultText}</div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (icalNotice === 'Änderungen lokal gespeichert.') {
-                                          setIcalNotice(null);
-                                        }
-
-                                        updateInlineIcalDraft(current!.id, clampedIndex, entry.key, defaultText);
-                                      }}
-                                      disabled={!isEdited}
-                                      className={[
-                                        'inline-flex min-h-[36px] items-center justify-center rounded-xl border px-3 py-1.5 text-xs font-semibold shadow-sm transition duration-200',
-                                        isEdited
-                                          ? 'cursor-pointer border-slate-300 bg-white text-slate-700 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-50 hover:shadow-md'
-                                          : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400',
-                                      ].join(' ')}
-                                    >
-                                      Standard
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <IcalEditor2Panel
+                      embedded
+                      initialThemeId={current?.id ?? null}
+                      initialWeekIndex={clampedIndex}
+                      onEmbeddedWeekChange={({ weekIndex }) => {
+                        setPageIndex(weekIndex);
+                        setImgFallbackToDemo(false);
+                        setShowPodcast(false);
+                      }}
+                      onCloseEmbedded={() => {
+                        pendingIcalScrollRef.current = false;
+                        setShowInlineIcal(false);
+                        setBottomSectionOrder((prev) => prev.filter((entry) => entry !== 'ical'));
+                      }}
+                    />
                   </div>
                 );
               }
