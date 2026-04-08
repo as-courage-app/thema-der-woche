@@ -921,124 +921,373 @@ export default function QuotesPage() {
                           </div>
 
                           <div className="mt-4 space-y-2">
-                            <div className="grid grid-cols-5 gap-2">
-                              {DISPLAY_DAYS.slice(0, 5).map((d) => {
-                                const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
-                                const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
-                                const isActiveDay = dayIndex === d.index;
+                            <div className="hidden space-y-2 md:block">
+                              <div className="grid grid-cols-5 gap-2">
+                                {DISPLAY_DAYS.slice(0, 5).map((d) => {
+                                  const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
+                                  const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
+                                  const isActiveDay = dayIndex === d.index;
 
-                                return (
-                                  <div
-                                    key={d.key}
-                                    className={[
-                                      'flex w-full items-stretch rounded-2xl border text-sm shadow-sm transition duration-200',
-                                      isEditMode
-                                        ? isActiveDay
-                                          ? 'border-[#8B1E2D] bg-[#8B1E2D] text-white'
-                                          : isVisibleInExport
-                                            ? 'border-[#8B1E2D]/40 bg-[#8B1E2D]/12 text-[#8B1E2D]'
-                                            : 'border-slate-200 bg-white text-slate-700'
-                                        : isActiveDay
-                                          ? 'border-[#4EA72E] bg-[#4EA72E] text-white'
-                                          : 'border-slate-200 bg-white text-slate-700',
-                                    ].join(' ')}
-                                  >
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setActiveDay((prev) => ({
-                                          ...prev,
-                                          [current.id]: d.index,
-                                        }))
-                                      }
-                                      className="flex min-h-[56px] flex-1 cursor-pointer items-center px-3 py-2 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02]"
+                                  return (
+                                    <div
+                                      key={d.key}
+                                      className={[
+                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        isEditMode
+                                          ? isActiveDay
+                                            ? 'border-[#8B1E2D]'
+                                            : isVisibleInExport
+                                              ? 'border-[#8B1E2D]/40'
+                                              : 'border-slate-200'
+                                          : isActiveDay
+                                            ? 'border-[#4EA72E]'
+                                            : 'border-slate-200',
+                                      ].join(' ')}
                                     >
-                                      <span className="font-medium">{d.key}</span>
-                                    </button>
-
-                                    {isEditMode ? (
                                       <button
                                         type="button"
-                                        onClick={() => toggleInlineIcalVisibility(current.id, clampedIndex, d.key)}
-                                        className={[
-                                          'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
-                                          isVisibleInExport
-                                            ? 'border-[#2563EB] bg-[#2563EB] text-white hover:bg-[#1D4ED8]'
-                                            : 'border-slate-300 bg-white text-transparent hover:border-[#2563EB] hover:bg-slate-50',
-                                        ].join(' ')}
-                                        title={
-                                          isVisibleInExport
-                                            ? 'Im Export ausgewählt – zum Ausblenden klicken'
-                                            : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                        onClick={() =>
+                                          setActiveDay((prev) => ({
+                                            ...prev,
+                                            [current.id]: d.index,
+                                          }))
                                         }
-                                        aria-pressed={isVisibleInExport}
+                                        className={[
+                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          isEditMode
+                                            ? isActiveDay
+                                              ? 'bg-[#8B1E2D] text-white'
+                                              : isVisibleInExport
+                                                ? 'bg-[#8B1E2D]/8 text-[#8B1E2D]'
+                                                : 'bg-white text-slate-700'
+                                            : isActiveDay
+                                              ? 'bg-[#4EA72E] text-white'
+                                              : 'bg-white text-slate-700',
+                                        ].join(' ')}
                                       >
-                                        ✓
+                                        <span className="font-medium">{d.key}</span>
                                       </button>
-                                    ) : null}
-                                  </div>
-                                );
-                              })}
+
+                                      {isEditMode ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                          }
+                                          className={[
+                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                            isVisibleInExport
+                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                          ].join(' ')}
+                                          title={
+                                            isVisibleInExport
+                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                          }
+                                          aria-pressed={isVisibleInExport}
+                                        >
+                                          ✓
+                                        </button>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="grid max-w-[40%] grid-cols-2 gap-2">
+                                {DISPLAY_DAYS.slice(5).map((d) => {
+                                  const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
+                                  const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
+                                  const isActiveDay = dayIndex === d.index;
+
+                                  return (
+                                    <div
+                                      key={d.key}
+                                      className={[
+                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        isEditMode
+                                          ? isActiveDay
+                                            ? 'border-[#8B1E2D]'
+                                            : isVisibleInExport
+                                              ? 'border-[#8B1E2D]/40'
+                                              : 'border-slate-200'
+                                          : isActiveDay
+                                            ? 'border-[#4EA72E]'
+                                            : 'border-slate-200',
+                                      ].join(' ')}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setActiveDay((prev) => ({
+                                            ...prev,
+                                            [current.id]: d.index,
+                                          }))
+                                        }
+                                        className={[
+                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          isEditMode
+                                            ? isActiveDay
+                                              ? 'bg-[#8B1E2D] text-white'
+                                              : isVisibleInExport
+                                                ? 'bg-[#8B1E2D]/8 text-[#8B1E2D]'
+                                                : 'bg-white text-slate-700'
+                                            : isActiveDay
+                                              ? 'bg-[#4EA72E] text-white'
+                                              : 'bg-white text-slate-700',
+                                        ].join(' ')}
+                                      >
+                                        <span className="font-medium">{d.key}</span>
+                                      </button>
+
+                                      {isEditMode ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                          }
+                                          className={[
+                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                            isVisibleInExport
+                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                          ].join(' ')}
+                                          title={
+                                            isVisibleInExport
+                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                          }
+                                          aria-pressed={isVisibleInExport}
+                                        >
+                                          ✓
+                                        </button>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 sm:max-w-[40%]">
-                              {DISPLAY_DAYS.slice(5).map((d) => {
-                                const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
-                                const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
-                                const isActiveDay = dayIndex === d.index;
+                            <div className="space-y-2 md:hidden">
+                              <div className="grid grid-cols-3 gap-2">
+                                {DISPLAY_DAYS.slice(0, 3).map((d) => {
+                                  const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
+                                  const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
+                                  const isActiveDay = dayIndex === d.index;
 
-                                return (
-                                  <div
-                                    key={d.key}
-                                    className={[
-                                      'flex w-full items-stretch rounded-2xl border text-sm shadow-sm transition duration-200',
-                                      isEditMode
-                                        ? isActiveDay
-                                          ? 'border-[#8B1E2D] bg-[#8B1E2D] text-white'
-                                          : isVisibleInExport
-                                            ? 'border-[#8B1E2D]/40 bg-[#8B1E2D]/12 text-[#8B1E2D]'
-                                            : 'border-slate-200 bg-white text-slate-700'
-                                        : isActiveDay
-                                          ? 'border-[#4EA72E] bg-[#4EA72E] text-white'
-                                          : 'border-slate-200 bg-white text-slate-700',
-                                    ].join(' ')}
-                                  >
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setActiveDay((prev) => ({
-                                          ...prev,
-                                          [current.id]: d.index,
-                                        }))
-                                      }
-                                      className="flex min-h-[56px] flex-1 cursor-pointer items-center px-3 py-2 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02]"
+                                  return (
+                                    <div
+                                      key={d.key}
+                                      className={[
+                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        isEditMode
+                                          ? isActiveDay
+                                            ? 'border-[#8B1E2D]'
+                                            : isVisibleInExport
+                                              ? 'border-[#8B1E2D]/40'
+                                              : 'border-slate-200'
+                                          : isActiveDay
+                                            ? 'border-[#4EA72E]'
+                                            : 'border-slate-200',
+                                      ].join(' ')}
                                     >
-                                      <span className="font-medium">{d.key}</span>
-                                    </button>
-
-                                    {isEditMode ? (
                                       <button
                                         type="button"
-                                        onClick={() => toggleInlineIcalVisibility(current.id, clampedIndex, d.key)}
-                                        className={[
-                                          'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
-                                          isVisibleInExport
-                                            ? 'border-[#2563EB] bg-[#2563EB] text-white hover:bg-[#1D4ED8]'
-                                            : 'border-slate-300 bg-white text-transparent hover:border-[#2563EB] hover:bg-slate-50',
-                                        ].join(' ')}
-                                        title={
-                                          isVisibleInExport
-                                            ? 'Im Export ausgewählt – zum Ausblenden klicken'
-                                            : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                        onClick={() =>
+                                          setActiveDay((prev) => ({
+                                            ...prev,
+                                            [current.id]: d.index,
+                                          }))
                                         }
-                                        aria-pressed={isVisibleInExport}
+                                        className={[
+                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          isEditMode
+                                            ? isActiveDay
+                                              ? 'bg-[#8B1E2D] text-white'
+                                              : isVisibleInExport
+                                                ? 'bg-[#8B1E2D]/8 text-[#8B1E2D]'
+                                                : 'bg-white text-slate-700'
+                                            : isActiveDay
+                                              ? 'bg-[#4EA72E] text-white'
+                                              : 'bg-white text-slate-700',
+                                        ].join(' ')}
                                       >
-                                        ✓
+                                        <span className="font-medium">{d.key}</span>
                                       </button>
-                                    ) : null}
-                                  </div>
-                                );
-                              })}
+
+                                      {isEditMode ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                          }
+                                          className={[
+                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                            isVisibleInExport
+                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                          ].join(' ')}
+                                          title={
+                                            isVisibleInExport
+                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                          }
+                                          aria-pressed={isVisibleInExport}
+                                        >
+                                          ✓
+                                        </button>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                {DISPLAY_DAYS.slice(3, 5).map((d) => {
+                                  const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
+                                  const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
+                                  const isActiveDay = dayIndex === d.index;
+
+                                  return (
+                                    <div
+                                      key={d.key}
+                                      className={[
+                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        isEditMode
+                                          ? isActiveDay
+                                            ? 'border-[#8B1E2D]'
+                                            : isVisibleInExport
+                                              ? 'border-[#8B1E2D]/40'
+                                              : 'border-slate-200'
+                                          : isActiveDay
+                                            ? 'border-[#4EA72E]'
+                                            : 'border-slate-200',
+                                      ].join(' ')}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setActiveDay((prev) => ({
+                                            ...prev,
+                                            [current.id]: d.index,
+                                          }))
+                                        }
+                                        className={[
+                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          isEditMode
+                                            ? isActiveDay
+                                              ? 'bg-[#8B1E2D] text-white'
+                                              : isVisibleInExport
+                                                ? 'bg-[#8B1E2D]/8 text-[#8B1E2D]'
+                                                : 'bg-white text-slate-700'
+                                            : isActiveDay
+                                              ? 'bg-[#4EA72E] text-white'
+                                              : 'bg-white text-slate-700',
+                                        ].join(' ')}
+                                      >
+                                        <span className="font-medium">{d.key}</span>
+                                      </button>
+
+                                      {isEditMode ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                          }
+                                          className={[
+                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                            isVisibleInExport
+                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                          ].join(' ')}
+                                          title={
+                                            isVisibleInExport
+                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                          }
+                                          aria-pressed={isVisibleInExport}
+                                        >
+                                          ✓
+                                        </button>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                {DISPLAY_DAYS.slice(5, 7).map((d) => {
+                                  const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
+                                  const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
+                                  const isActiveDay = dayIndex === d.index;
+
+                                  return (
+                                    <div
+                                      key={d.key}
+                                      className={[
+                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        isEditMode
+                                          ? isActiveDay
+                                            ? 'border-[#8B1E2D]'
+                                            : isVisibleInExport
+                                              ? 'border-[#8B1E2D]/40'
+                                              : 'border-slate-200'
+                                          : isActiveDay
+                                            ? 'border-[#4EA72E]'
+                                            : 'border-slate-200',
+                                      ].join(' ')}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setActiveDay((prev) => ({
+                                            ...prev,
+                                            [current.id]: d.index,
+                                          }))
+                                        }
+                                        className={[
+                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          isEditMode
+                                            ? isActiveDay
+                                              ? 'bg-[#8B1E2D] text-white'
+                                              : isVisibleInExport
+                                                ? 'bg-[#8B1E2D]/8 text-[#8B1E2D]'
+                                                : 'bg-white text-slate-700'
+                                            : isActiveDay
+                                              ? 'bg-[#4EA72E] text-white'
+                                              : 'bg-white text-slate-700',
+                                        ].join(' ')}
+                                      >
+                                        <span className="font-medium">{d.key}</span>
+                                      </button>
+
+                                      {isEditMode ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                          }
+                                          className={[
+                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                            isVisibleInExport
+                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                          ].join(' ')}
+                                          title={
+                                            isVisibleInExport
+                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                          }
+                                          aria-pressed={isVisibleInExport}
+                                        >
+                                          ✓
+                                        </button>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
                           <div
