@@ -204,6 +204,8 @@ function buildIcsFromPlan(
   }
 
   const countWeeks = Math.min(weeksCount, selectedThemes.length);
+  const exportRangeStart = new Date(baseDate);
+  const exportRangeEndExclusive = addDays(baseDate, countWeeks * 7);
 
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -249,6 +251,115 @@ function buildIcsFromPlan(
       lines.push('END:VEVENT');
 
       eventIndex++;
+    }
+  }
+
+  type AppliedLocalAdditionalCalendar = {
+    id: string;
+    fileName: string;
+    rawIcs: string;
+    importedAt: string;
+    isApplied?: boolean;
+  };
+
+  const appliedAdditionalCalendars = readLocalJson<AppliedLocalAdditionalCalendar[]>(
+    'as-courage.additionalLocalCalendars.v1',
+    [],
+  ).filter((calendar) => calendar?.isApplied && calendar?.rawIcs);
+
+  const unfoldIcsLines = (rawIcs: string): string[] =>
+    String(rawIcs ?? '')
+      .replace(/\r\n[ \t]/g, '')
+      .replace(/\n[ \t]/g, '')
+      .split(/\r?\n/);
+
+  const readIcsDateAsLocalDay = (rawValue?: string): Date | null => {
+    const match = String(rawValue ?? '')
+      .trim()
+      .match(/^(\d{4})(\d{2})(\d{2})/);
+
+    if (!match) return null;
+
+    const [, year, month, day] = match;
+    const parsed = new Date(`${year}-${month}-${day}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const ensureTransparentEvent = (eventLines: string[]): string[] => {
+    const result: string[] = [];
+    let hasTransp = false;
+
+    for (const line of eventLines) {
+      if (line.startsWith('TRANSP')) {
+        result.push('TRANSP:TRANSPARENT');
+        hasTransp = true;
+        continue;
+      }
+
+      if (line === 'END:VEVENT' && !hasTransp) {
+        result.push('TRANSP:TRANSPARENT');
+        hasTransp = true;
+      }
+
+      result.push(line);
+    }
+
+    return result;
+  };
+
+  for (const calendar of appliedAdditionalCalendars) {
+    const linesFromCalendar = unfoldIcsLines(calendar.rawIcs);
+
+    let insideEvent = false;
+    let eventLines: string[] = [];
+    let dtStartDate: Date | null = null;
+    let dtEndDate: Date | null = null;
+
+    for (const line of linesFromCalendar) {
+      if (line === 'BEGIN:VEVENT') {
+        insideEvent = true;
+        eventLines = ['BEGIN:VEVENT'];
+        dtStartDate = null;
+        dtEndDate = null;
+        continue;
+      }
+
+      if (!insideEvent) continue;
+
+      eventLines.push(line);
+
+      if (line.startsWith('DTSTART')) {
+        dtStartDate = readIcsDateAsLocalDay(line.split(':').slice(1).join(':'));
+        continue;
+      }
+
+      if (line.startsWith('DTEND')) {
+        dtEndDate = readIcsDateAsLocalDay(line.split(':').slice(1).join(':'));
+        continue;
+      }
+
+      if (line === 'END:VEVENT') {
+        if (dtStartDate) {
+          const normalizedEndExclusive =
+            dtEndDate && dtEndDate.getTime() !== dtStartDate.getTime()
+              ? dtEndDate
+              : addDays(dtStartDate, 1);
+
+          const overlapsExportRange =
+            dtStartDate < exportRangeEndExclusive &&
+            normalizedEndExclusive > exportRangeStart;
+
+          if (overlapsExportRange) {
+            const transparentEventLines = ensureTransparentEvent(eventLines);
+            lines.push(...transparentEventLines);
+          }
+        }
+
+        insideEvent = false;
+        eventLines = [];
+        dtStartDate = null;
+        dtEndDate = null;
+      }
     }
   }
 
@@ -564,7 +675,7 @@ export default function QuotesPage() {
                     <button
                       type="button"
                       onClick={() => router.push('/themes')}
-                      className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg"
+                      className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-lg"
                     >
                       zurück zur Themenauswahl
                     </button>
@@ -721,7 +832,7 @@ export default function QuotesPage() {
                         setIcalNotice(null);
                         downloadTeamCalendar();
                       }}
-                      className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#2563EB] bg-[#2563EB] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#1D4ED8] hover:bg-[#1D4ED8] hover:shadow-lg"
+                      className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3F8A25] hover:bg-[#3F8A25] hover:shadow-lg"
                       title={isEditMode ? 'Bearbeiteten Teamkalender herunterladen' : 'Teamkalender als Standard herunterladen'}
                     >
                       <span aria-hidden="true" className="text-base leading-none">
@@ -851,36 +962,242 @@ export default function QuotesPage() {
                         </div>
 
                         {isEditMode ? (
-                          <div className="space-y-4 p-4 lg:p-5">
-                            <div className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm">
-                              <div className="text-sm font-semibold uppercase tracking-wide text-[#8B1E2D]">
-                                Schulferien
-                              </div>
-                              <div className="mt-3 text-sm leading-relaxed text-slate-700">
-                                Dieser Bereich ist als ruhiger Hinweisbereich vorbereitet. Er gehört nicht automatisch
-                                zum Export und soll später eine bewusste Übernahme unterstützen.
-                              </div>
-                            </div>
+                          <div className="p-4 lg:p-5">
+                            {(() => {
+                              const LS_ADDITIONAL_LOCAL_CALENDARS = 'as-courage.additionalLocalCalendars.v1';
+                              const LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE =
+                                'as-courage.additionalLocalCalendarNotice.v1';
 
-                            <div className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm">
-                              <div className="text-sm font-semibold uppercase tracking-wide text-[#8B1E2D]">
-                                Nationale Feiertage
-                              </div>
-                              <div className="mt-3 text-sm leading-relaxed text-slate-700">
-                                Feiertage werden hier bewusst nur als zusätzliche Orientierung gedacht. Exportiert wird
-                                weiterhin nur der aktive Text im Tagesbereich oben.
-                              </div>
-                            </div>
+                              type LocalAdditionalCalendar = {
+                                id: string;
+                                fileName: string;
+                                rawIcs: string;
+                                importedAt: string;
+                                isApplied: boolean;
+                              };
 
-                            <div className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm">
-                              <div className="text-sm font-semibold uppercase tracking-wide text-[#8B1E2D]">
-                                Interkulturelle Hinweise
-                              </div>
-                              <div className="mt-3 text-sm leading-relaxed text-slate-700">
-                                Auch dieser Bereich ist als getrennte Hinweisfläche vorbereitet. So bleibt klar
-                                sichtbar, was exportiert wird und was nur als Denkstütze dient.
-                              </div>
-                            </div>
+                              const legacySchoolHolidayCalendar = readLocalJson<{
+                                fileName?: string;
+                                rawIcs?: string;
+                                importedAt?: string;
+                                status?: 'loaded' | 'error';
+                                message?: string;
+                              }>('as-courage.schoolHolidayCalendar.v1', {});
+
+                              const storedAdditionalCalendars = readLocalJson<
+                                Array<{
+                                  id: string;
+                                  fileName: string;
+                                  rawIcs: string;
+                                  importedAt: string;
+                                  isApplied?: boolean;
+                                }>
+                              >(LS_ADDITIONAL_LOCAL_CALENDARS, []);
+
+                              const storedCalendarNotice = readLocalJson<{
+                                status?: 'error';
+                                message?: string;
+                              }>(LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE, {});
+
+                              const legacyCalendars: LocalAdditionalCalendar[] =
+                                legacySchoolHolidayCalendar.status === 'loaded' &&
+                                  !!legacySchoolHolidayCalendar.fileName &&
+                                  !!legacySchoolHolidayCalendar.rawIcs
+                                  ? [
+                                    {
+                                      id: 'legacy-school-holidays',
+                                      fileName: legacySchoolHolidayCalendar.fileName,
+                                      rawIcs: legacySchoolHolidayCalendar.rawIcs,
+                                      importedAt:
+                                        legacySchoolHolidayCalendar.importedAt ||
+                                        new Date().toISOString(),
+                                      isApplied: false,
+                                    },
+                                  ]
+                                  : [];
+
+                              const normalizedStoredCalendars: LocalAdditionalCalendar[] =
+                                storedAdditionalCalendars.map((calendar) => ({
+                                  id: calendar.id,
+                                  fileName: calendar.fileName,
+                                  rawIcs: calendar.rawIcs,
+                                  importedAt: calendar.importedAt,
+                                  isApplied: calendar.isApplied ?? false,
+                                }));
+
+                              const visibleCalendars: LocalAdditionalCalendar[] = [
+                                ...legacyCalendars,
+                                ...normalizedStoredCalendars,
+                              ];
+
+                              const normalizeCalendars = (
+                                calendars: LocalAdditionalCalendar[],
+                              ): LocalAdditionalCalendar[] =>
+                                calendars.map((calendar, index) => ({
+                                  ...calendar,
+                                  id:
+                                    calendar.id === 'legacy-school-holidays'
+                                      ? `calendar-${Date.now()}-${index}`
+                                      : calendar.id,
+                                }));
+
+                              const persistCalendars = (calendars: LocalAdditionalCalendar[]) => {
+                                if (calendars.length > 0) {
+                                  localStorage.setItem(
+                                    LS_ADDITIONAL_LOCAL_CALENDARS,
+                                    JSON.stringify(calendars),
+                                  );
+                                } else {
+                                  localStorage.removeItem(LS_ADDITIONAL_LOCAL_CALENDARS);
+                                }
+
+                                localStorage.removeItem('as-courage.schoolHolidayCalendar.v1');
+                              };
+
+                              return (
+                                <div className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm">
+                                  <div className="text-sm font-semibold uppercase tracking-wide text-[#8B1E2D]">
+                                    Zusatzkalender
+                                  </div>
+
+                                  <div className="mt-3 text-sm leading-relaxed text-slate-700">
+                                    Hier kannst du lokal heruntergeladene Zusatzkalender im ICS-Format
+                                    einlesen und bei Bedarf in den Teamkalender übernehmen.
+                                  </div>
+
+                                  <div className="mt-4">
+                                    <label className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-[#8B1E2D] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg">
+                                      ICS-Kalender auswählen
+                                      <input
+                                        type="file"
+                                        accept=".ics,text/calendar"
+                                        className="hidden"
+                                        onChange={async (event) => {
+                                          const input = event.target as HTMLInputElement;
+                                          const file = input.files?.[0];
+                                          if (!file) return;
+
+                                          try {
+                                            const rawIcs = await file.text();
+
+                                            const nextCalendars = normalizeCalendars([
+                                              ...visibleCalendars,
+                                              {
+                                                id: `calendar-${Date.now()}-${Math.random()
+                                                  .toString(16)
+                                                  .slice(2)}`,
+                                                fileName: file.name,
+                                                rawIcs,
+                                                importedAt: new Date().toISOString(),
+                                                isApplied: false,
+                                              },
+                                            ]);
+
+                                            persistCalendars(nextCalendars);
+                                            localStorage.removeItem(LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE);
+                                          } catch {
+                                            localStorage.setItem(
+                                              LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE,
+                                              JSON.stringify({
+                                                status: 'error',
+                                                message:
+                                                  'Die ausgewählte ICS-Datei konnte nicht gelesen werden.',
+                                              }),
+                                            );
+                                          } finally {
+                                            input.value = '';
+                                            setActiveDay((prev) => ({ ...prev }));
+                                          }
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
+
+                                  {storedCalendarNotice.status === 'error' ? (
+                                    <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-xs leading-relaxed text-red-800">
+                                      {storedCalendarNotice.message ||
+                                        'Die ausgewählte ICS-Datei konnte nicht gelesen werden.'}
+                                    </div>
+                                  ) : null}
+
+                                  {visibleCalendars.length > 0 ? (
+                                    <div className="mt-4 space-y-3">
+                                      {visibleCalendars.map((calendar) => (
+                                        <div
+                                          key={calendar.id}
+                                          className="rounded-2xl border border-[#8B1E2D]/20 bg-white px-4 py-4 shadow-sm"
+                                        >
+                                          <div className="text-base font-semibold text-slate-900">
+                                            {calendar.fileName}
+                                          </div>
+
+                                          <div className="mt-2 text-sm leading-relaxed text-slate-600">
+                                            {calendar.isApplied
+                                              ? 'Dieser Kalender ist aktuell übernommen.'
+                                              : 'Dieser Kalender ist lokal geladen und noch nicht übernommen.'}
+                                          </div>
+
+                                          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                                            <button
+                                              type="button"
+                                              disabled={calendar.isApplied}
+                                              onClick={() => {
+                                                if (calendar.isApplied) return;
+
+                                                const nextCalendars = normalizeCalendars(
+                                                  visibleCalendars.map((entry) =>
+                                                    entry.id === calendar.id
+                                                      ? {
+                                                        ...entry,
+                                                        isApplied: true,
+                                                      }
+                                                      : entry,
+                                                  ),
+                                                );
+
+                                                persistCalendars(nextCalendars);
+                                                localStorage.removeItem(
+                                                  LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE,
+                                                );
+                                                setActiveDay((prev) => ({ ...prev }));
+                                              }}
+                                              className={[
+                                                'inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200 sm:w-auto',
+                                                calendar.isApplied
+                                                  ? 'cursor-default border-[#8B1E2D] bg-[#8B1E2D] text-white opacity-80'
+                                                  : 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg',
+                                              ].join(' ')}
+                                            >
+                                              {calendar.isApplied ? 'übernommen' : 'übernehmen'}
+                                            </button>
+
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const nextCalendars = normalizeCalendars(
+                                                  visibleCalendars.filter(
+                                                    (entry) => entry.id !== calendar.id,
+                                                  ),
+                                                );
+
+                                                persistCalendars(nextCalendars);
+                                                localStorage.removeItem(
+                                                  LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE,
+                                                );
+                                                setActiveDay((prev) => ({ ...prev }));
+                                              }}
+                                              className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg sm:w-auto"
+                                            >
+                                              Kalender entfernen
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
                           </div>
                         ) : null}
                       </div>
@@ -903,8 +1220,8 @@ export default function QuotesPage() {
                             <div className="mt-4 rounded-2xl border border-[#8B1E2D] bg-[#8B1E2D]/10 px-4 py-3 text-sm text-slate-900">
                               <div className="font-semibold text-[#8B1E2D]">Bearbeitungsmodus</div>
                               <div className="mt-1">
-                                Die Quotes-Ansicht bleibt die Hauptbühne. Du bearbeitest jetzt direkt den exportierten
-                                Tagesimpuls oder den Wochenendhinweis.
+                                Hier kannst du den Teamkalender anpassen und bei Bedarf um weitere Ereignisse (Zusatzkalender) ergänzen.
+
                               </div>
                             </div>
                           ) : null}
@@ -1296,67 +1613,230 @@ export default function QuotesPage() {
                               isEditMode ? 'border-[#8B1E2D] bg-white' : 'border-[#F29420] bg-slate-50',
                             ].join(' ')}
                           >
-                            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                              <div>
-                                <div className="text-lg font-semibold text-slate-900">{currentDayConfig.label}</div>
+                            <div>
+                              <div className="text-lg font-semibold text-slate-900">{currentDayConfig.label}</div>
 
-                                <div className="mt-2 text-sm text-slate-600">
-                                  {weekdayDateText(currentDayConfig.index)}
-                                </div>
+                              <div className="mt-2 text-sm text-slate-600">
+                                {weekdayDateText(currentDayConfig.index)}
                               </div>
-
-                              {isEditMode ? (
-                                <div className="flex flex-wrap gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={resetCurrentDay}
-                                    disabled={!currentDayEdited}
-                                    className={[
-                                      'inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-white px-4 py-2 text-sm font-semibold text-[#8B1E2D] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-slate-50 hover:shadow-lg',
-                                      !currentDayEdited
-                                        ? 'cursor-not-allowed opacity-40 hover:translate-y-0 hover:scale-100 hover:bg-white hover:shadow-sm'
-                                        : '',
-                                    ].join(' ')}
-                                  >
-                                    Standard wiederherstellen
-                                  </button>
-                                </div>
-                              ) : null}
                             </div>
 
-                            {isEditMode ? (
-                              <div className="mt-4 rounded-xl border border-[#8B1E2D] bg-[#8B1E2D]/5 p-4">
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {currentDayConfig.key === 'Sa' || currentDayConfig.key === 'So'
-                                    ? 'Wochenendhinweis'
-                                    : 'Tagesimpuls'}
-                                </div>
+                            {(() => {
+                              type AppliedLocalAdditionalCalendar = {
+                                id: string;
+                                fileName: string;
+                                rawIcs: string;
+                                importedAt: string;
+                                isApplied?: boolean;
+                              };
 
-                                <textarea
-                                  value={currentDisplayText}
-                                  onChange={(event) => {
-                                    if (!current) return;
-                                    updateInlineIcalDraft(
-                                      current.id,
-                                      clampedIndex,
-                                      currentDayConfig.key,
-                                      event.target.value,
-                                    );
-                                  }}
-                                  rows={7}
-                                  className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition focus:border-[#8B1E2D] focus:ring-2 focus:ring-[#8B1E2D]/20"
-                                />
+                              type AdditionalCalendarEntry = {
+                                calendarId: string;
+                                fileName: string;
+                                summary: string;
+                              };
 
-                                <div className="mt-3 text-xs text-slate-600">
-                                  Standard:{' '}
-                                  <span className="font-semibold text-slate-900">
-                                    {currentDefaultText || '—'}
-                                  </span>
+                              const unfoldIcsLines = (rawIcs: string): string[] =>
+                                String(rawIcs ?? '')
+                                  .replace(/\r\n[ \t]/g, '')
+                                  .replace(/\n[ \t]/g, '')
+                                  .split(/\r?\n/);
+
+                              const readIcsDateValue = (rawValue?: string): string | null => {
+                                if (!rawValue) return null;
+                                const match = rawValue.trim().match(/^(\d{8})/);
+                                return match ? match[1] : null;
+                              };
+
+                              const unescapeIcsValue = (rawValue?: string): string =>
+                                String(rawValue ?? '')
+                                  .replace(/\\n/g, ' · ')
+                                  .replace(/\\,/g, ',')
+                                  .replace(/\\;/g, ';')
+                                  .replace(/\\\\/g, '\\')
+                                  .trim();
+
+                              const getAppliedAdditionalEntriesForDay = (
+                                targetDate: string,
+                              ): AdditionalCalendarEntry[] => {
+                                const storedCalendars = readLocalJson<AppliedLocalAdditionalCalendar[]>(
+                                  'as-courage.additionalLocalCalendars.v1',
+                                  [],
+                                );
+
+                                const matches: AdditionalCalendarEntry[] = [];
+
+                                for (const calendar of storedCalendars) {
+                                  if (!calendar?.isApplied || !calendar?.rawIcs) continue;
+
+                                  const lines = unfoldIcsLines(calendar.rawIcs);
+
+                                  let insideEvent = false;
+                                  let summary = '';
+                                  let dtStart: string | null = null;
+                                  let dtEnd: string | null = null;
+
+                                  for (const line of lines) {
+                                    if (line === 'BEGIN:VEVENT') {
+                                      insideEvent = true;
+                                      summary = '';
+                                      dtStart = null;
+                                      dtEnd = null;
+                                      continue;
+                                    }
+
+                                    if (line === 'END:VEVENT') {
+                                      if (insideEvent && dtStart) {
+                                        const hasMatch = dtEnd
+                                          ? dtStart <= targetDate && targetDate < dtEnd
+                                          : dtStart === targetDate;
+
+                                        if (hasMatch) {
+                                          matches.push({
+                                            calendarId: calendar.id,
+                                            fileName: calendar.fileName,
+                                            summary: unescapeIcsValue(summary) || calendar.fileName,
+                                          });
+                                        }
+                                      }
+
+                                      insideEvent = false;
+                                      continue;
+                                    }
+
+                                    if (!insideEvent) continue;
+
+                                    if (line.startsWith('SUMMARY')) {
+                                      summary = line.split(':').slice(1).join(':');
+                                      continue;
+                                    }
+
+                                    if (line.startsWith('DTSTART')) {
+                                      dtStart = readIcsDateValue(line.split(':').slice(1).join(':'));
+                                      continue;
+                                    }
+
+                                    if (line.startsWith('DTEND')) {
+                                      dtEnd = readIcsDateValue(line.split(':').slice(1).join(':'));
+                                    }
+                                  }
+                                }
+
+                                return matches;
+                              };
+
+                              const currentAdditionalEntries = weekMondayDate
+                                ? getAppliedAdditionalEntriesForDay(
+                                  yyyymmdd(addDays(weekMondayDate, currentDayConfig.index)),
+                                )
+                                : [];
+
+                              return isEditMode ? (
+                                <div className="mt-4 rounded-xl border border-[#8B1E2D] bg-[#8B1E2D]/5 p-4">
+                                  <div className="text-sm font-semibold text-slate-900">
+                                    {currentDayConfig.key === 'Sa' || currentDayConfig.key === 'So'
+                                      ? 'Wochenendhinweis'
+                                      : 'Tagesimpuls'}
+                                  </div>
+
+                                  <textarea
+                                    value={currentDisplayText}
+                                    onChange={(event) => {
+                                      if (!current) return;
+                                      updateInlineIcalDraft(
+                                        current.id,
+                                        clampedIndex,
+                                        currentDayConfig.key,
+                                        event.target.value,
+                                      );
+                                    }}
+                                    rows={7}
+                                    className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition focus:border-[#8B1E2D] focus:ring-2 focus:ring-[#8B1E2D]/20"
+                                  />
+
+                                  {currentAdditionalEntries.length > 0 ? (
+                                    <div className="mt-4 rounded-xl border border-[#8B1E2D]/20 bg-white/90 px-3 py-3">
+                                      <div className="text-sm font-semibold text-slate-900">
+                                        Übernommene Zusatzhinweise
+                                      </div>
+
+                                      <div className="mt-2 space-y-2">
+                                        {currentAdditionalEntries.map((entry, index) => (
+                                          <div
+                                            key={`${entry.calendarId}-${entry.summary}-${index}`}
+                                            className="rounded-xl border border-[#8B1E2D]/10 bg-[#8B1E2D]/5 px-3 py-2 text-sm leading-relaxed text-slate-700"
+                                          >
+                                            <div className="font-medium text-slate-900">
+                                              {entry.summary}
+                                            </div>
+                                            <div className="mt-1 text-xs text-slate-500">
+                                              {entry.fileName}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="mt-4 rounded-xl border border-dashed border-[#8B1E2D]/20 bg-white/70 px-3 py-3 text-xs leading-relaxed text-slate-500">
+                                      Für diesen Tag liegen aktuell keine übernommenen Zusatzhinweise vor.
+                                    </div>
+                                  )}
+
+                                  <div className="mt-3 flex flex-col gap-2 rounded-xl border border-[#8B1E2D]/20 bg-white/80 px-3 py-3 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                      Standard:{' '}
+                                      <span className="font-semibold text-slate-900">
+                                        {currentDefaultText || '—'}
+                                      </span>
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={resetCurrentDay}
+                                      disabled={!currentDayEdited}
+                                      className={[
+                                        'inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-white px-3 py-2 text-xs font-semibold text-[#8B1E2D] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-slate-50 hover:shadow-lg',
+                                        !currentDayEdited
+                                          ? 'cursor-not-allowed opacity-40 hover:translate-y-0 hover:scale-100 hover:bg-white hover:shadow-sm'
+                                          : '',
+                                      ].join(' ')}
+                                    >
+                                      wiederherstellen
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="mt-2 text-lg leading-relaxed text-slate-900">{currentDisplayText}</div>
-                            )}
+                              ) : (
+                                <div className="mt-2 space-y-3">
+                                  <div className="text-lg leading-relaxed text-slate-900">
+                                    {currentDisplayText}
+                                  </div>
+
+                                  {currentAdditionalEntries.length > 0 ? (
+                                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                      <div className="text-sm font-semibold text-slate-900">
+                                        Übernommene Zusatzhinweise
+                                      </div>
+
+                                      <div className="mt-2 space-y-2">
+                                        {currentAdditionalEntries.map((entry, index) => (
+                                          <div
+                                            key={`${entry.calendarId}-${entry.summary}-${index}`}
+                                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700"
+                                          >
+                                            <div className="font-medium text-slate-900">
+                                              {entry.summary}
+                                            </div>
+                                            <div className="mt-1 text-xs text-slate-500">
+                                              {entry.fileName}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           <div className="h-6" />
