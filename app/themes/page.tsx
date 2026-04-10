@@ -360,7 +360,7 @@ export default function ThemesPage() {
     <RequireAuth>
       <BackgroundLayout>
         <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl px-2 py-2 sm:px-4 sm:py-3 lg:px-6">
-          <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#F29420] bg-white/85 shadow-xl backdrop-blur-md">
+          <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-orange-300 bg-white/85 shadow-xl ring-2 ring-orange-200 backdrop-blur-md">
             <div className="shrink-0 p-4 sm:p-6 lg:p-7">
               <header>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

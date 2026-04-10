@@ -16,6 +16,9 @@ import { EmbeddedNotesHistoryCard } from '@/components/notes/NotesHistoryCard';
 const LS_SETUP = 'as-courage.themeSetup.v1';
 const LS_EDITOR2_DRAFTS = 'as-courage.icalEditor2Drafts.v1';
 const LS_EDITOR2_VISIBILITY = 'as-courage.icalEditor2Visibility.v1';
+const LS_ADDITIONAL_LOCAL_CALENDARS = 'as-courage.additionalLocalCalendars.v1';
+const LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE = 'as-courage.additionalLocalCalendarNotice.v1';
+const LS_LEGACY_SCHOOL_HOLIDAY_CALENDAR = 'as-courage.schoolHolidayCalendar.v1';
 
 type EditionRow = {
   id: string;
@@ -42,12 +45,37 @@ type DayKey = 'Mo' | 'Di' | 'Mi' | 'Do' | 'Fr' | 'Sa' | 'So';
 
 type InlineIcalDraftState = Record<string, string>;
 type InlineIcalVisibilityState = Record<string, boolean>;
+type AdditionalCalendarApplyMode = 'none' | 'full' | 'selected-range';
+
+type LocalAdditionalCalendar = {
+  id: string;
+  fileName: string;
+  rawIcs: string;
+  importedAt: string;
+  applyMode: AdditionalCalendarApplyMode;
+  rangeStart: string | null;
+  rangeEnd: string | null;
+};
+
+type AdditionalCalendarEntry = {
+  calendarId: string;
+  fileName: string;
+  summary: string;
+};
+
+type StoredNoticeState = {
+  status?: 'error';
+  message?: string;
+};
+
+type InclusiveIsoRange = {
+  startIso: string;
+  endIso: string;
+};
 
 const THEMES: EditionRow[] = edition1 as unknown as EditionRow[];
 
-const BRAND_ORANGE = '#F3910A';
 const EDITOR_RED = '#8B1E2D';
-const EXPORT_BLUE = '#2563EB';
 
 const DISPLAY_DAYS: { key: DayKey; label: string; index: number }[] = [
   { key: 'Mo', label: 'Montag', index: 0 },
@@ -94,7 +122,7 @@ function readLocalJson<T>(key: string, fallback: T): T {
   }
 }
 
-function parseIsoDate(iso?: string): Date | null {
+function parseIsoDate(iso?: string | null): Date | null {
   if (!iso || iso.length !== 10) return null;
   const d = new Date(iso + 'T00:00:00');
   return Number.isNaN(d.getTime()) ? null : d;
@@ -111,6 +139,13 @@ function formatDE(date: Date): string {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const yyyy = date.getFullYear();
   return `${dd}.${mm}.${yyyy}`;
+}
+
+function formatIso(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function prettifyId(id: string): string {
@@ -177,19 +212,342 @@ function getDefaultDayText(theme: EditionRow, day: { key: DayKey; index: number 
   return theme.questions?.[day.index] ?? '—';
 }
 
+function sanitizeStorageIdPart(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '')
+    .slice(0, 40);
+}
+
+function createAdditionalCalendarId(fileName: string, importedAt: string, fallbackIndex = 0) {
+  const filePart = sanitizeStorageIdPart(fileName || 'kalender') || 'kalender';
+  const datePart = sanitizeStorageIdPart(importedAt || String(fallbackIndex)) || String(fallbackIndex);
+  return `calendar-${filePart}-${datePart}`;
+}
+
+function normalizeAdditionalCalendar(
+  raw: Partial<LocalAdditionalCalendar> & { isApplied?: boolean },
+  fallbackIndex: number,
+): LocalAdditionalCalendar {
+  const importedAt =
+    typeof raw.importedAt === 'string' && raw.importedAt.trim().length > 0
+      ? raw.importedAt
+      : new Date().toISOString();
+
+  const fileName =
+    typeof raw.fileName === 'string' && raw.fileName.trim().length > 0
+      ? raw.fileName
+      : `Zusatzkalender ${fallbackIndex + 1}.ics`;
+
+  const initialApplyMode =
+    raw.applyMode === 'full' || raw.applyMode === 'selected-range' || raw.applyMode === 'none'
+      ? raw.applyMode
+      : raw.isApplied
+        ? 'full'
+        : 'none';
+
+  const rangeStart =
+    typeof raw.rangeStart === 'string' && raw.rangeStart.length === 10 ? raw.rangeStart : null;
+
+  const rangeEnd =
+    typeof raw.rangeEnd === 'string' && raw.rangeEnd.length === 10 ? raw.rangeEnd : null;
+
+  const applyMode =
+    initialApplyMode === 'selected-range' && (!rangeStart || !rangeEnd)
+      ? 'none'
+      : initialApplyMode;
+
+  return {
+    id:
+      typeof raw.id === 'string' && raw.id.trim().length > 0
+        ? raw.id
+        : createAdditionalCalendarId(fileName, importedAt, fallbackIndex),
+    fileName,
+    rawIcs: typeof raw.rawIcs === 'string' ? raw.rawIcs : '',
+    importedAt,
+    applyMode,
+    rangeStart: applyMode === 'selected-range' ? rangeStart : null,
+    rangeEnd: applyMode === 'selected-range' ? rangeEnd : null,
+  };
+}
+
+function readStoredAdditionalCalendars(): LocalAdditionalCalendar[] {
+  const stored = readLocalJson<Array<Partial<LocalAdditionalCalendar> & { isApplied?: boolean }>>(
+    LS_ADDITIONAL_LOCAL_CALENDARS,
+    [],
+  );
+
+  const normalizedStored = stored
+    .map((calendar, index) => normalizeAdditionalCalendar(calendar, index))
+    .filter((calendar) => calendar.rawIcs.trim().length > 0);
+
+  const legacySchoolHolidayCalendar = readLocalJson<{
+    fileName?: string;
+    rawIcs?: string;
+    importedAt?: string;
+    status?: 'loaded' | 'error';
+  }>(LS_LEGACY_SCHOOL_HOLIDAY_CALENDAR, {});
+
+  const legacyCalendars: LocalAdditionalCalendar[] =
+    legacySchoolHolidayCalendar.status === 'loaded' &&
+      !!legacySchoolHolidayCalendar.fileName &&
+      !!legacySchoolHolidayCalendar.rawIcs
+      ? [
+        normalizeAdditionalCalendar(
+          {
+            id: createAdditionalCalendarId(
+              legacySchoolHolidayCalendar.fileName,
+              legacySchoolHolidayCalendar.importedAt || 'legacy',
+            ),
+            fileName: legacySchoolHolidayCalendar.fileName,
+            rawIcs: legacySchoolHolidayCalendar.rawIcs,
+            importedAt: legacySchoolHolidayCalendar.importedAt || new Date().toISOString(),
+            applyMode: 'none',
+            rangeStart: null,
+            rangeEnd: null,
+          },
+          normalizedStored.length,
+        ),
+      ]
+      : [];
+
+  const merged = [...legacyCalendars, ...normalizedStored];
+  const seen = new Set<string>();
+
+  return merged.filter((calendar) => {
+    if (seen.has(calendar.id)) return false;
+    seen.add(calendar.id);
+    return true;
+  });
+}
+
+function persistAdditionalCalendars(calendars: LocalAdditionalCalendar[]) {
+  if (calendars.length > 0) {
+    localStorage.setItem(LS_ADDITIONAL_LOCAL_CALENDARS, JSON.stringify(calendars));
+  } else {
+    localStorage.removeItem(LS_ADDITIONAL_LOCAL_CALENDARS);
+  }
+
+  localStorage.removeItem(LS_LEGACY_SCHOOL_HOLIDAY_CALENDAR);
+}
+
+function readStoredAdditionalCalendarNotice(): string | null {
+  const notice = readLocalJson<StoredNoticeState>(LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE, {});
+  if (notice.status === 'error' && notice.message) return notice.message;
+  return null;
+}
+
+function persistAdditionalCalendarNotice(message: string | null) {
+  if (message) {
+    localStorage.setItem(
+      LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE,
+      JSON.stringify({
+        status: 'error',
+        message,
+      }),
+    );
+    return;
+  }
+
+  localStorage.removeItem(LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE);
+}
+
+function unfoldIcsLines(rawIcs: string): string[] {
+  return String(rawIcs ?? '')
+    .replace(/\r\n[ \t]/g, '')
+    .replace(/\n[ \t]/g, '')
+    .split(/\r?\n/);
+}
+
+function readIcsDateAsLocalDay(rawValue?: string): Date | null {
+  const match = String(rawValue ?? '')
+    .trim()
+    .match(/^(\d{4})(\d{2})(\d{2})/);
+
+  if (!match) return null;
+
+  const [, year, month, day] = match;
+  const parsed = new Date(`${year}-${month}-${day}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function unescapeIcsValue(rawValue?: string): string {
+  return String(rawValue ?? '')
+    .replace(/\\n/g, ' · ')
+    .replace(/\\,/g, ',')
+    .replace(/\\;/g, ';')
+    .replace(/\\\\/g, '\\')
+    .trim();
+}
+
+function ensureTransparentEvent(eventLines: string[]): string[] {
+  const result: string[] = [];
+  let hasTransp = false;
+
+  for (const line of eventLines) {
+    if (line.startsWith('TRANSP')) {
+      result.push('TRANSP:TRANSPARENT');
+      hasTransp = true;
+      continue;
+    }
+
+    if (line === 'END:VEVENT' && !hasTransp) {
+      result.push('TRANSP:TRANSPARENT');
+      hasTransp = true;
+    }
+
+    result.push(line);
+  }
+
+  return result;
+}
+
+function getSelectedWeeksRange(
+  setup: SetupState | null,
+  selectedThemes: EditionRow[],
+): InclusiveIsoRange | null {
+  const weeksCount = setup?.weeksCount ?? 0;
+  const startDate = parseIsoDate(setup?.startMonday);
+
+  if (!startDate || weeksCount < 1 || selectedThemes.length === 0) return null;
+
+  const countWeeks = Math.min(weeksCount, selectedThemes.length);
+  if (countWeeks < 1) return null;
+
+  const endDate = addDays(startDate, countWeeks * 7 - 1);
+
+  return {
+    startIso: formatIso(startDate),
+    endIso: formatIso(endDate),
+  };
+}
+
+function isDateWithinInclusiveIsoRange(
+  targetDate: Date,
+  rangeStart: string | null,
+  rangeEnd: string | null,
+): boolean {
+  const startDate = parseIsoDate(rangeStart);
+  const endDate = parseIsoDate(rangeEnd);
+
+  if (!startDate || !endDate) return false;
+
+  return targetDate.getTime() >= startDate.getTime() && targetDate.getTime() <= endDate.getTime();
+}
+
+function getAppliedAdditionalCalendars(calendars: LocalAdditionalCalendar[]): LocalAdditionalCalendar[] {
+  return calendars.filter((calendar) => calendar.applyMode !== 'none' && calendar.rawIcs.trim().length > 0);
+}
+
+function formatAdditionalCalendarStatus(calendar: LocalAdditionalCalendar): string {
+  if (calendar.applyMode === 'full') return 'vollständig übernommen';
+
+  if (calendar.applyMode === 'selected-range') {
+    const startDate = parseIsoDate(calendar.rangeStart);
+    const endDate = parseIsoDate(calendar.rangeEnd);
+
+    if (startDate && endDate) {
+      return `übernommen für ausgewählte Wochen: ${formatDE(startDate)} – ${formatDE(endDate)}`;
+    }
+
+    return 'übernommen für ausgewählte Wochen';
+  }
+
+  return 'nicht übernommen';
+}
+
+function getAppliedAdditionalEntriesForDay(
+  targetDate: Date,
+  calendars: LocalAdditionalCalendar[],
+): AdditionalCalendarEntry[] {
+  const matches: AdditionalCalendarEntry[] = [];
+  const appliedCalendars = getAppliedAdditionalCalendars(calendars);
+
+  for (const calendar of appliedCalendars) {
+    if (
+      calendar.applyMode === 'selected-range' &&
+      !isDateWithinInclusiveIsoRange(targetDate, calendar.rangeStart, calendar.rangeEnd)
+    ) {
+      continue;
+    }
+
+    const lines = unfoldIcsLines(calendar.rawIcs);
+
+    let insideEvent = false;
+    let summary = '';
+    let dtStartDate: Date | null = null;
+    let dtEndDate: Date | null = null;
+
+    for (const line of lines) {
+      if (line === 'BEGIN:VEVENT') {
+        insideEvent = true;
+        summary = '';
+        dtStartDate = null;
+        dtEndDate = null;
+        continue;
+      }
+
+      if (!insideEvent) continue;
+
+      if (line.startsWith('SUMMARY')) {
+        summary = line.split(':').slice(1).join(':');
+        continue;
+      }
+
+      if (line.startsWith('DTSTART')) {
+        dtStartDate = readIcsDateAsLocalDay(line.split(':').slice(1).join(':'));
+        continue;
+      }
+
+      if (line.startsWith('DTEND')) {
+        dtEndDate = readIcsDateAsLocalDay(line.split(':').slice(1).join(':'));
+        continue;
+      }
+
+      if (line === 'END:VEVENT') {
+        if (dtStartDate) {
+          const normalizedEndExclusive =
+            dtEndDate && dtEndDate.getTime() !== dtStartDate.getTime()
+              ? dtEndDate
+              : addDays(dtStartDate, 1);
+
+          const hasMatch =
+            targetDate.getTime() >= dtStartDate.getTime() &&
+            targetDate.getTime() < normalizedEndExclusive.getTime();
+
+          if (hasMatch) {
+            matches.push({
+              calendarId: calendar.id,
+              fileName: calendar.fileName,
+              summary: unescapeIcsValue(summary) || calendar.fileName,
+            });
+          }
+        }
+
+        insideEvent = false;
+      }
+    }
+  }
+
+  return matches;
+}
+
 function buildIcsFromPlan(
   setup: SetupState | null,
   selectedThemes: EditionRow[],
   inlineDrafts: InlineIcalDraftState = {},
   inlineVisibility: InlineIcalVisibilityState = {},
+  additionalCalendars: LocalAdditionalCalendar[] = [],
 ): string {
   const stamp = dtstampUtc();
   const uidBase = `tdw-${stamp}-${Math.random().toString(16).slice(2)}`;
 
   const weeksCount = setup?.weeksCount ?? 0;
   const startIso = setup?.startMonday;
-
   const baseDate = parseIsoDate(startIso);
+
   if (!baseDate || weeksCount < 1 || selectedThemes.length === 0) {
     return [
       'BEGIN:VCALENDAR',
@@ -204,8 +562,6 @@ function buildIcsFromPlan(
   }
 
   const countWeeks = Math.min(weeksCount, selectedThemes.length);
-  const exportRangeStart = new Date(baseDate);
-  const exportRangeEndExclusive = addDays(baseDate, countWeeks * 7);
 
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -254,58 +610,7 @@ function buildIcsFromPlan(
     }
   }
 
-  type AppliedLocalAdditionalCalendar = {
-    id: string;
-    fileName: string;
-    rawIcs: string;
-    importedAt: string;
-    isApplied?: boolean;
-  };
-
-  const appliedAdditionalCalendars = readLocalJson<AppliedLocalAdditionalCalendar[]>(
-    'as-courage.additionalLocalCalendars.v1',
-    [],
-  ).filter((calendar) => calendar?.isApplied && calendar?.rawIcs);
-
-  const unfoldIcsLines = (rawIcs: string): string[] =>
-    String(rawIcs ?? '')
-      .replace(/\r\n[ \t]/g, '')
-      .replace(/\n[ \t]/g, '')
-      .split(/\r?\n/);
-
-  const readIcsDateAsLocalDay = (rawValue?: string): Date | null => {
-    const match = String(rawValue ?? '')
-      .trim()
-      .match(/^(\d{4})(\d{2})(\d{2})/);
-
-    if (!match) return null;
-
-    const [, year, month, day] = match;
-    const parsed = new Date(`${year}-${month}-${day}T00:00:00`);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  };
-
-  const ensureTransparentEvent = (eventLines: string[]): string[] => {
-    const result: string[] = [];
-    let hasTransp = false;
-
-    for (const line of eventLines) {
-      if (line.startsWith('TRANSP')) {
-        result.push('TRANSP:TRANSPARENT');
-        hasTransp = true;
-        continue;
-      }
-
-      if (line === 'END:VEVENT' && !hasTransp) {
-        result.push('TRANSP:TRANSPARENT');
-        hasTransp = true;
-      }
-
-      result.push(line);
-    }
-
-    return result;
-  };
+  const appliedAdditionalCalendars = getAppliedAdditionalCalendars(additionalCalendars);
 
   for (const calendar of appliedAdditionalCalendars) {
     const linesFromCalendar = unfoldIcsLines(calendar.rawIcs);
@@ -345,11 +650,23 @@ function buildIcsFromPlan(
               ? dtEndDate
               : addDays(dtStartDate, 1);
 
-          const overlapsExportRange =
-            dtStartDate < exportRangeEndExclusive &&
-            normalizedEndExclusive > exportRangeStart;
+          let shouldInclude = false;
 
-          if (overlapsExportRange) {
+          if (calendar.applyMode === 'full') {
+            shouldInclude = true;
+          } else if (calendar.applyMode === 'selected-range') {
+            const rangeStartDate = parseIsoDate(calendar.rangeStart);
+            const rangeEndDate = parseIsoDate(calendar.rangeEnd);
+            const rangeEndExclusive = rangeEndDate ? addDays(rangeEndDate, 1) : null;
+
+            shouldInclude =
+              !!rangeStartDate &&
+              !!rangeEndExclusive &&
+              dtStartDate.getTime() < rangeEndExclusive.getTime() &&
+              normalizedEndExclusive.getTime() > rangeStartDate.getTime();
+          }
+
+          if (shouldInclude) {
             const transparentEventLines = ensureTransparentEvent(eventLines);
             lines.push(...transparentEventLines);
           }
@@ -383,12 +700,14 @@ export default function QuotesPage() {
   const [notesNotice, setNotesNotice] = useState<string | null>(null);
 
   const [showEmbeddedNotes, setShowEmbeddedNotes] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const [inlineIcalDrafts, setInlineIcalDrafts] = useState<InlineIcalDraftState>({});
   const [inlineIcalVisibility, setInlineIcalVisibility] = useState<InlineIcalVisibilityState>({});
   const [editorStateLoaded, setEditorStateLoaded] = useState(false);
+
+  const [additionalCalendars, setAdditionalCalendars] = useState<LocalAdditionalCalendar[]>([]);
+  const [additionalCalendarNotice, setAdditionalCalendarNotice] = useState<string | null>(null);
 
   const notesBlockRef = useRef<HTMLDivElement | null>(null);
   const pendingNotesScrollRef = useRef(false);
@@ -402,6 +721,8 @@ export default function QuotesPage() {
       const plan = await readCurrentUserPlan();
       const storedDrafts = readLocalJson<InlineIcalDraftState>(LS_EDITOR2_DRAFTS, {});
       const storedVisibility = readLocalJson<InlineIcalVisibilityState>(LS_EDITOR2_VISIBILITY, {});
+      const storedAdditionalCalendars = readStoredAdditionalCalendars();
+      const storedAdditionalCalendarNotice = readStoredAdditionalCalendarNotice();
 
       if (!alive) return;
 
@@ -409,6 +730,8 @@ export default function QuotesPage() {
       setCurrentUserPlan(plan);
       setInlineIcalDrafts(storedDrafts);
       setInlineIcalVisibility(storedVisibility);
+      setAdditionalCalendars(storedAdditionalCalendars);
+      setAdditionalCalendarNotice(storedAdditionalCalendarNotice);
       setEditorStateLoaded(true);
 
       const ids = s?.themeIds ?? [];
@@ -419,6 +742,8 @@ export default function QuotesPage() {
       const initialIndex = themeIdFromUrl ? ids.findIndex((id) => id === themeIdFromUrl) : -1;
       setPageIndex(initialIndex >= 0 ? initialIndex : 0);
       setImgFallbackToDemo(false);
+
+      persistAdditionalCalendars(storedAdditionalCalendars);
     }
 
     loadPageData();
@@ -426,10 +751,6 @@ export default function QuotesPage() {
     return () => {
       alive = false;
     };
-  }, []);
-
-  useEffect(() => {
-    setHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -468,6 +789,41 @@ export default function QuotesPage() {
 
     return ids.map((id) => map.get(id)).filter(Boolean) as EditionRow[];
   }, [setup]);
+
+  const selectedWeeksRange = useMemo(
+    () => getSelectedWeeksRange(setup, selectedThemes),
+    [setup, selectedThemes],
+  );
+
+  useEffect(() => {
+    if (!editorStateLoaded) return;
+    if (!selectedWeeksRange) return;
+
+    let changed = false;
+
+    const nextCalendars = additionalCalendars.map((calendar) => {
+      if (calendar.applyMode !== 'selected-range') return calendar;
+
+      const hasChangedRange =
+        calendar.rangeStart !== selectedWeeksRange.startIso ||
+        calendar.rangeEnd !== selectedWeeksRange.endIso;
+
+      if (!hasChangedRange) return calendar;
+
+      changed = true;
+
+      return {
+        ...calendar,
+        rangeStart: selectedWeeksRange.startIso,
+        rangeEnd: selectedWeeksRange.endIso,
+      };
+    });
+
+    if (!changed) return;
+
+    setAdditionalCalendars(nextCalendars);
+    persistAdditionalCalendars(nextCalendars);
+  }, [additionalCalendars, editorStateLoaded, selectedWeeksRange]);
 
   const totalPages = selectedThemes.length;
   const clampedIndex = totalPages > 0 ? Math.min(pageIndex, totalPages - 1) : 0;
@@ -559,7 +915,6 @@ export default function QuotesPage() {
   const currentDisplayText =
     currentDraftKey && current ? inlineIcalDrafts[currentDraftKey] ?? currentDefaultText : '—';
 
-  const currentDayVisible = currentDraftKey ? (inlineIcalVisibility[currentDraftKey] ?? true) : true;
   const currentDayEdited = currentDisplayText !== currentDefaultText;
 
   const currentTitle = current ? displayTitle(current) : '';
@@ -573,14 +928,16 @@ export default function QuotesPage() {
   const canPrev = clampedIndex > 0;
   const canNext = clampedIndex < totalPages - 1;
 
-  const activeExportDays = useMemo(() => {
-    if (!current) return [];
+  const appliedAdditionalCalendars = useMemo(
+    () => getAppliedAdditionalCalendars(additionalCalendars),
+    [additionalCalendars],
+  );
 
-    return DISPLAY_DAYS.filter((day) => {
-      const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, day.key);
-      return inlineIcalVisibility[draftKey] ?? true;
-    });
-  }, [current, clampedIndex, inlineIcalVisibility]);
+  const currentAdditionalEntries = useMemo(() => {
+    if (!weekMondayDate) return [];
+    const currentDate = addDays(weekMondayDate, currentDayConfig.index);
+    return getAppliedAdditionalEntriesForDay(currentDate, additionalCalendars);
+  }, [weekMondayDate, currentDayConfig.index, additionalCalendars]);
 
   function updateInlineIcalDraft(themeId: string, weekIndex: number, dayKey: DayKey, value: string) {
     const draftKey = buildInlineIcalDraftKey(themeId, weekIndex, dayKey);
@@ -602,7 +959,6 @@ export default function QuotesPage() {
 
   function resetCurrentDay() {
     if (!current) return;
-
     updateInlineIcalDraft(current.id, clampedIndex, currentDayConfig.key, currentDefaultText);
   }
 
@@ -631,8 +987,99 @@ export default function QuotesPage() {
   }
 
   function downloadTeamCalendar() {
-    const ics = buildIcsFromPlan(setup, selectedThemes, inlineIcalDrafts, inlineIcalVisibility);
+    const ics = buildIcsFromPlan(
+      setup,
+      selectedThemes,
+      inlineIcalDrafts,
+      inlineIcalVisibility,
+      additionalCalendars,
+    );
     downloadTextFile('Teamkalender.ics', ics, 'text/calendar;charset=utf-8');
+  }
+
+  function updateAndPersistAdditionalCalendars(nextCalendars: LocalAdditionalCalendar[]) {
+    setAdditionalCalendars(nextCalendars);
+    persistAdditionalCalendars(nextCalendars);
+  }
+
+  function clearAdditionalCalendarNotice() {
+    setAdditionalCalendarNotice(null);
+    persistAdditionalCalendarNotice(null);
+  }
+
+  function setAdditionalCalendarError(message: string) {
+    setAdditionalCalendarNotice(message);
+    persistAdditionalCalendarNotice(message);
+  }
+
+  function handleAdditionalCalendarImport(file: File, rawIcs: string) {
+    const importedAt = new Date().toISOString();
+
+    const nextCalendars = [
+      ...additionalCalendars,
+      normalizeAdditionalCalendar(
+        {
+          id: createAdditionalCalendarId(file.name, importedAt, additionalCalendars.length),
+          fileName: file.name,
+          rawIcs,
+          importedAt,
+          applyMode: 'none',
+          rangeStart: null,
+          rangeEnd: null,
+        },
+        additionalCalendars.length,
+      ),
+    ];
+
+    updateAndPersistAdditionalCalendars(nextCalendars);
+    clearAdditionalCalendarNotice();
+  }
+
+  function applyAdditionalCalendarMode(calendarId: string, nextMode: AdditionalCalendarApplyMode) {
+    if (nextMode === 'selected-range' && !selectedWeeksRange) {
+      setAdditionalCalendarError(
+        'Für die Übernahme auf ausgewählte Wochen fehlt aktuell ein gültiger Zeitraum.',
+      );
+      return;
+    }
+
+    const nextCalendars = additionalCalendars.map((calendar) => {
+      if (calendar.id !== calendarId) return calendar;
+
+      if (nextMode === 'full') {
+        return {
+          ...calendar,
+          applyMode: 'full' as const,
+          rangeStart: null,
+          rangeEnd: null,
+        };
+      }
+
+      if (nextMode === 'selected-range') {
+        return {
+          ...calendar,
+          applyMode: 'selected-range' as const,
+          rangeStart: selectedWeeksRange?.startIso ?? null,
+          rangeEnd: selectedWeeksRange?.endIso ?? null,
+        };
+      }
+
+      return {
+        ...calendar,
+        applyMode: 'none' as const,
+        rangeStart: null,
+        rangeEnd: null,
+      };
+    });
+
+    updateAndPersistAdditionalCalendars(nextCalendars);
+    clearAdditionalCalendarNotice();
+  }
+
+  function removeAdditionalCalendar(calendarId: string) {
+    const nextCalendars = additionalCalendars.filter((calendar) => calendar.id !== calendarId);
+    updateAndPersistAdditionalCalendars(nextCalendars);
+    clearAdditionalCalendarNotice();
   }
 
   return (
@@ -641,8 +1088,10 @@ export default function QuotesPage() {
         <div className="mx-auto flex h-full max-w-6xl min-h-[100svh] px-10 py-3 lg:min-h-0">
           <div
             className={[
-              'flex min-h-[100dvh] w-full max-h-none flex-col overflow-visible rounded-none border-0 shadow-none backdrop-blur-md sm:min-h-0 sm:rounded-2xl sm:border sm:shadow-xl',
-              isEditMode ? 'bg-white/95 sm:border-[#8B1E2D]' : 'bg-white/98 sm:border-[#F29420] sm:bg-white/85',
+              'flex min-h-[100dvh] w-full max-h-none flex-col overflow-visible rounded-none border-0 shadow-none backdrop-blur-md sm:min-h-0 sm:rounded-2xl sm:shadow-xl',
+              isEditMode
+                ? 'bg-white/95 sm:border-2 sm:border-[#8B1E2D] sm:ring-4 sm:ring-[#8B1E2D]/35'
+                : 'bg-white/98 sm:border-2 sm:border-[#4EA72E] sm:bg-white/85 sm:ring-2 sm:ring-[#4EA72E]/20',
             ].join(' ')}
           >
             <div className="shrink-0 p-5 sm:p-7">
@@ -760,7 +1209,9 @@ export default function QuotesPage() {
                   className={[
                     'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
                     canPrev
-                      ? 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
+                      ? isEditMode
+                        ? 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg'
+                        : 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
                       : 'cursor-not-allowed border-slate-200 bg-white text-slate-400',
                   ].join(' ')}
                 >
@@ -774,7 +1225,9 @@ export default function QuotesPage() {
                   className={[
                     'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
                     canNext
-                      ? 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
+                      ? isEditMode
+                        ? 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg'
+                        : 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
                       : 'cursor-not-allowed border-slate-200 bg-white text-slate-400',
                   ].join(' ')}
                 >
@@ -832,13 +1285,24 @@ export default function QuotesPage() {
                         setIcalNotice(null);
                         downloadTeamCalendar();
                       }}
-                      className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#4EA72E] bg-[#4EA72E] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3F8A25] hover:bg-[#3F8A25] hover:shadow-lg"
-                      title={isEditMode ? 'Bearbeiteten Teamkalender herunterladen' : 'Teamkalender als Standard herunterladen'}
+                      className={[
+                        'inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg',
+                        isEditMode
+                          ? 'border-[#8B1E2D] bg-[#8B1E2D] hover:border-[#741827] hover:bg-[#741827]'
+                          : 'border-[#4EA72E] bg-[#4EA72E] hover:border-[#3F8A25] hover:bg-[#3F8A25]',
+                      ].join(' ')}
+                      title={
+                        isEditMode
+                          ? 'Bearbeiteten Teamkalender herunterladen'
+                          : 'Teamkalender als Standard herunterladen'
+                      }
                     >
                       <span aria-hidden="true" className="text-base leading-none">
                         ⬇️
                       </span>
-                      {isEditMode ? 'Teamkalender herunterladen' : 'iCal herunterladen (Standard)'}
+                      {isEditMode
+                        ? 'Teamkalender herunterladen'
+                        : 'Teamkalender herunterladen (Standard)'}
                     </button>
 
                     <button
@@ -898,9 +1362,21 @@ export default function QuotesPage() {
 
                 <div className="ml-auto text-sm text-slate-700">
                   {totalPages > 0 ? (
-                    <>
-                      Thema <span className="font-semibold">{clampedIndex + 1}</span> / {totalPages}
-                    </>
+                    <div className="text-right">
+                      <div>
+                        Thema <span className="font-semibold">{clampedIndex + 1}</span> / {totalPages}
+                      </div>
+
+                      {selectedWeeksRange ? (
+                        <div className="mt-1 text-xs text-slate-600">
+                          Zeitraum{' '}
+                          <span className="font-semibold text-slate-700">
+                            {formatDE(parseIsoDate(selectedWeeksRange.startIso) as Date)} –{' '}
+                            {formatDE(parseIsoDate(selectedWeeksRange.endIso) as Date)}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
                   ) : (
                     <span className="text-slate-600">Noch keine Themen ausgewählt.</span>
                   )}
@@ -943,14 +1419,14 @@ export default function QuotesPage() {
                     className={[
                       'rounded-2xl bg-white',
                       showEmbeddedNotes || isEditMode
-                        ? 'border shadow-sm'
-                        : 'border border-slate-200 lg:h-full lg:overflow-hidden',
-                      isEditMode ? 'border-[#8B1E2D]' : 'border-slate-200',
+                        ? 'overflow-hidden border shadow-sm'
+                        : 'overflow-hidden border lg:h-full lg:overflow-hidden',
+                      isEditMode ? 'border-[#8B1E2D]' : 'border-[#4EA72E]',
                     ].join(' ')}
                   >
                     <div className="flex flex-col lg:flex-row lg:items-start">
-                      <div className="lg:w-1/2 lg:self-start">
-                        <div className="relative bg-slate-100">
+                      <div className="contents lg:block lg:w-1/2 lg:self-start">
+                        <div className="order-1 relative bg-slate-100 lg:order-none">
                           <div className="flex items-center justify-center p-4 lg:p-5">
                             <img
                               src={imageSrc}
@@ -962,249 +1438,155 @@ export default function QuotesPage() {
                         </div>
 
                         {isEditMode ? (
-                          <div className="p-4 lg:p-5">
-                            {(() => {
-                              const LS_ADDITIONAL_LOCAL_CALENDARS = 'as-courage.additionalLocalCalendars.v1';
-                              const LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE =
-                                'as-courage.additionalLocalCalendarNotice.v1';
+                          <div className="order-3 p-4 lg:order-none lg:p-5">
+                            <div className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm">
+                              <div className="text-sm font-semibold uppercase tracking-wide text-[#8B1E2D]">
+                                Zusatzkalender
+                              </div>
 
-                              type LocalAdditionalCalendar = {
-                                id: string;
-                                fileName: string;
-                                rawIcs: string;
-                                importedAt: string;
-                                isApplied: boolean;
-                              };
+                              <div className="mt-3 text-sm leading-relaxed text-slate-700">
+                                Hier kannst du lokal heruntergeladene Zusatzkalender im ICS-Format
+                                einlesen und gezielt steuern, ob sie gar nicht, vollständig oder nur
+                                für die ausgewählten Wochen übernommen werden.
+                              </div>
 
-                              const legacySchoolHolidayCalendar = readLocalJson<{
-                                fileName?: string;
-                                rawIcs?: string;
-                                importedAt?: string;
-                                status?: 'loaded' | 'error';
-                                message?: string;
-                              }>('as-courage.schoolHolidayCalendar.v1', {});
-
-                              const storedAdditionalCalendars = readLocalJson<
-                                Array<{
-                                  id: string;
-                                  fileName: string;
-                                  rawIcs: string;
-                                  importedAt: string;
-                                  isApplied?: boolean;
-                                }>
-                              >(LS_ADDITIONAL_LOCAL_CALENDARS, []);
-
-                              const storedCalendarNotice = readLocalJson<{
-                                status?: 'error';
-                                message?: string;
-                              }>(LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE, {});
-
-                              const legacyCalendars: LocalAdditionalCalendar[] =
-                                legacySchoolHolidayCalendar.status === 'loaded' &&
-                                  !!legacySchoolHolidayCalendar.fileName &&
-                                  !!legacySchoolHolidayCalendar.rawIcs
-                                  ? [
-                                    {
-                                      id: 'legacy-school-holidays',
-                                      fileName: legacySchoolHolidayCalendar.fileName,
-                                      rawIcs: legacySchoolHolidayCalendar.rawIcs,
-                                      importedAt:
-                                        legacySchoolHolidayCalendar.importedAt ||
-                                        new Date().toISOString(),
-                                      isApplied: false,
-                                    },
-                                  ]
-                                  : [];
-
-                              const normalizedStoredCalendars: LocalAdditionalCalendar[] =
-                                storedAdditionalCalendars.map((calendar) => ({
-                                  id: calendar.id,
-                                  fileName: calendar.fileName,
-                                  rawIcs: calendar.rawIcs,
-                                  importedAt: calendar.importedAt,
-                                  isApplied: calendar.isApplied ?? false,
-                                }));
-
-                              const visibleCalendars: LocalAdditionalCalendar[] = [
-                                ...legacyCalendars,
-                                ...normalizedStoredCalendars,
-                              ];
-
-                              const normalizeCalendars = (
-                                calendars: LocalAdditionalCalendar[],
-                              ): LocalAdditionalCalendar[] =>
-                                calendars.map((calendar, index) => ({
-                                  ...calendar,
-                                  id:
-                                    calendar.id === 'legacy-school-holidays'
-                                      ? `calendar-${Date.now()}-${index}`
-                                      : calendar.id,
-                                }));
-
-                              const persistCalendars = (calendars: LocalAdditionalCalendar[]) => {
-                                if (calendars.length > 0) {
-                                  localStorage.setItem(
-                                    LS_ADDITIONAL_LOCAL_CALENDARS,
-                                    JSON.stringify(calendars),
-                                  );
-                                } else {
-                                  localStorage.removeItem(LS_ADDITIONAL_LOCAL_CALENDARS);
-                                }
-
-                                localStorage.removeItem('as-courage.schoolHolidayCalendar.v1');
-                              };
-
-                              return (
-                                <div className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm">
-                                  <div className="text-sm font-semibold uppercase tracking-wide text-[#8B1E2D]">
-                                    Zusatzkalender
-                                  </div>
-
-                                  <div className="mt-3 text-sm leading-relaxed text-slate-700">
-                                    Hier kannst du lokal heruntergeladene Zusatzkalender im ICS-Format
-                                    einlesen und bei Bedarf in den Teamkalender übernehmen.
-                                  </div>
-
-                                  <div className="mt-4">
-                                    <label className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-[#8B1E2D] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg">
-                                      ICS-Kalender auswählen
-                                      <input
-                                        type="file"
-                                        accept=".ics,text/calendar"
-                                        className="hidden"
-                                        onChange={async (event) => {
-                                          const input = event.target as HTMLInputElement;
-                                          const file = input.files?.[0];
-                                          if (!file) return;
-
-                                          try {
-                                            const rawIcs = await file.text();
-
-                                            const nextCalendars = normalizeCalendars([
-                                              ...visibleCalendars,
-                                              {
-                                                id: `calendar-${Date.now()}-${Math.random()
-                                                  .toString(16)
-                                                  .slice(2)}`,
-                                                fileName: file.name,
-                                                rawIcs,
-                                                importedAt: new Date().toISOString(),
-                                                isApplied: false,
-                                              },
-                                            ]);
-
-                                            persistCalendars(nextCalendars);
-                                            localStorage.removeItem(LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE);
-                                          } catch {
-                                            localStorage.setItem(
-                                              LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE,
-                                              JSON.stringify({
-                                                status: 'error',
-                                                message:
-                                                  'Die ausgewählte ICS-Datei konnte nicht gelesen werden.',
-                                              }),
-                                            );
-                                          } finally {
-                                            input.value = '';
-                                            setActiveDay((prev) => ({ ...prev }));
-                                          }
-                                        }}
-                                      />
-                                    </label>
-                                  </div>
-
-                                  {storedCalendarNotice.status === 'error' ? (
-                                    <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-xs leading-relaxed text-red-800">
-                                      {storedCalendarNotice.message ||
-                                        'Die ausgewählte ICS-Datei konnte nicht gelesen werden.'}
-                                    </div>
-                                  ) : null}
-
-                                  {visibleCalendars.length > 0 ? (
-                                    <div className="mt-4 space-y-3">
-                                      {visibleCalendars.map((calendar) => (
-                                        <div
-                                          key={calendar.id}
-                                          className="rounded-2xl border border-[#8B1E2D]/20 bg-white px-4 py-4 shadow-sm"
-                                        >
-                                          <div className="text-base font-semibold text-slate-900">
-                                            {calendar.fileName}
-                                          </div>
-
-                                          <div className="mt-2 text-sm leading-relaxed text-slate-600">
-                                            {calendar.isApplied
-                                              ? 'Dieser Kalender ist aktuell übernommen.'
-                                              : 'Dieser Kalender ist lokal geladen und noch nicht übernommen.'}
-                                          </div>
-
-                                          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                                            <button
-                                              type="button"
-                                              disabled={calendar.isApplied}
-                                              onClick={() => {
-                                                if (calendar.isApplied) return;
-
-                                                const nextCalendars = normalizeCalendars(
-                                                  visibleCalendars.map((entry) =>
-                                                    entry.id === calendar.id
-                                                      ? {
-                                                        ...entry,
-                                                        isApplied: true,
-                                                      }
-                                                      : entry,
-                                                  ),
-                                                );
-
-                                                persistCalendars(nextCalendars);
-                                                localStorage.removeItem(
-                                                  LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE,
-                                                );
-                                                setActiveDay((prev) => ({ ...prev }));
-                                              }}
-                                              className={[
-                                                'inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200 sm:w-auto',
-                                                calendar.isApplied
-                                                  ? 'cursor-default border-[#8B1E2D] bg-[#8B1E2D] text-white opacity-80'
-                                                  : 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg',
-                                              ].join(' ')}
-                                            >
-                                              {calendar.isApplied ? 'übernommen' : 'übernehmen'}
-                                            </button>
-
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                const nextCalendars = normalizeCalendars(
-                                                  visibleCalendars.filter(
-                                                    (entry) => entry.id !== calendar.id,
-                                                  ),
-                                                );
-
-                                                persistCalendars(nextCalendars);
-                                                localStorage.removeItem(
-                                                  LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE,
-                                                );
-                                                setActiveDay((prev) => ({ ...prev }));
-                                              }}
-                                              className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg sm:w-auto"
-                                            >
-                                              Kalender entfernen
-                                            </button>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : null}
+                              {selectedWeeksRange ? (
+                                <div className="mt-3 rounded-xl border border-[#8B1E2D]/15 bg-[#8B1E2D]/5 px-3 py-3 text-xs leading-relaxed text-slate-700">
+                                  Aktueller Zeitraum für <span className="font-semibold">ausgewählte Wochen</span>:{' '}
+                                  <span className="font-semibold text-slate-900">
+                                    {formatDE(parseIsoDate(selectedWeeksRange.startIso) as Date)} –{' '}
+                                    {formatDE(parseIsoDate(selectedWeeksRange.endIso) as Date)}
+                                  </span>
                                 </div>
-                              );
-                            })()}
+                              ) : null}
+
+                              <div className="mt-4">
+                                <label className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-[#8B1E2D] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg">
+                                  ICS-Kalender auswählen
+                                  <input
+                                    type="file"
+                                    accept=".ics,text/calendar"
+                                    className="hidden"
+                                    onChange={async (event) => {
+                                      const input = event.target as HTMLInputElement;
+                                      const file = input.files?.[0];
+                                      if (!file) return;
+
+                                      try {
+                                        const rawIcs = await file.text();
+                                        handleAdditionalCalendarImport(file, rawIcs);
+                                      } catch {
+                                        setAdditionalCalendarError(
+                                          'Die ausgewählte ICS-Datei konnte nicht gelesen werden.',
+                                        );
+                                      } finally {
+                                        input.value = '';
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
+                              {additionalCalendarNotice ? (
+                                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-xs leading-relaxed text-red-800">
+                                  {additionalCalendarNotice}
+                                </div>
+                              ) : null}
+
+                              {additionalCalendars.length > 0 ? (
+                                <div className="mt-4 space-y-3">
+                                  {additionalCalendars.map((calendar) => {
+                                    const isFull = calendar.applyMode === 'full';
+                                    const isSelectedRange = calendar.applyMode === 'selected-range';
+                                    const isNone = calendar.applyMode === 'none';
+
+                                    return (
+                                      <div
+                                        key={calendar.id}
+                                        className="rounded-2xl border border-[#8B1E2D]/20 bg-white px-4 py-4 shadow-sm"
+                                      >
+                                        <div className="text-base font-semibold text-slate-900">
+                                          {calendar.fileName}
+                                        </div>
+
+                                        <div className="mt-2 text-sm leading-relaxed text-slate-600">
+                                          Status:{' '}
+                                          <span className="font-semibold text-slate-900">
+                                            {isNone
+                                              ? 'nicht übernommen'
+                                              : formatAdditionalCalendarStatus(calendar)}
+                                          </span>
+                                        </div>
+
+                                        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              applyAdditionalCalendarMode(calendar.id, 'full')
+                                            }
+                                            className={[
+                                              'inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
+                                              isFull
+                                                ? 'cursor-default border-[#8B1E2D] bg-[#8B1E2D] text-white opacity-85'
+                                                : 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg',
+                                            ].join(' ')}
+                                          >
+                                            vollständig übernehmen
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              applyAdditionalCalendarMode(
+                                                calendar.id,
+                                                'selected-range',
+                                              )
+                                            }
+                                            className={[
+                                              'inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
+                                              isSelectedRange
+                                                ? 'cursor-default border-[#8B1E2D] bg-[#8B1E2D] text-white opacity-85'
+                                                : 'cursor-pointer border-[#8B1E2D] bg-white text-[#8B1E2D] hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#8B1E2D]/5 hover:shadow-lg',
+                                            ].join(' ')}
+                                          >
+                                            ausgewählte Wochen übernehmen
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              applyAdditionalCalendarMode(calendar.id, 'none')
+                                            }
+                                            className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg"
+                                          >
+                                            Übernahme aufheben
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => removeAdditionalCalendar(calendar.id)}
+                                            className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg"
+                                          >
+                                            Kalender entfernen
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <div className="mt-4 rounded-xl border border-dashed border-[#8B1E2D]/20 bg-[#8B1E2D]/5 px-3 py-3 text-xs leading-relaxed text-slate-600">
+                                  Aktuell ist noch kein lokaler Zusatzkalender geladen.
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ) : null}
                       </div>
 
                       <div
                         className={[
-                          'lg:w-1/2 lg:overflow-auto',
+                          'order-2 lg:w-1/2 lg:overflow-auto',
                           isEditMode ? 'bg-[#8B1E2D]/5' : '',
                         ].join(' ')}
                       >
@@ -1220,8 +1602,8 @@ export default function QuotesPage() {
                             <div className="mt-4 rounded-2xl border border-[#8B1E2D] bg-[#8B1E2D]/10 px-4 py-3 text-sm text-slate-900">
                               <div className="font-semibold text-[#8B1E2D]">Bearbeitungsmodus</div>
                               <div className="mt-1">
-                                Hier kannst du den Teamkalender anpassen und bei Bedarf um weitere Ereignisse (Zusatzkalender) ergänzen.
-
+                                Hier kannst du den Teamkalender anpassen und Zusatzkalender wahlweise
+                                vollständig oder nur für die ausgewählten Wochen übernehmen.
                               </div>
                             </div>
                           ) : null}
@@ -1229,7 +1611,7 @@ export default function QuotesPage() {
                           <div
                             className="sticky top-0 z-10 mt-4 rounded-xl border-2 p-4 shadow-sm"
                             style={{
-                              borderColor: isEditMode ? EDITOR_RED : BRAND_ORANGE,
+                              borderColor: isEditMode ? EDITOR_RED : '#4EA72E',
                               backgroundColor: isEditMode ? 'rgba(139, 30, 45, 0.06)' : '#F8FAFC',
                             }}
                           >
@@ -1249,7 +1631,7 @@ export default function QuotesPage() {
                                     <div
                                       key={d.key}
                                       className={[
-                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        'w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
                                         isEditMode
                                           ? isActiveDay
                                             ? 'border-[#8B1E2D]'
@@ -1261,16 +1643,9 @@ export default function QuotesPage() {
                                             : 'border-slate-200',
                                       ].join(' ')}
                                     >
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setActiveDay((prev) => ({
-                                            ...prev,
-                                            [current.id]: d.index,
-                                          }))
-                                        }
+                                      <div
                                         className={[
-                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          'flex min-h-[56px] items-stretch',
                                           isEditMode
                                             ? isActiveDay
                                               ? 'bg-[#8B1E2D] text-white'
@@ -1282,31 +1657,42 @@ export default function QuotesPage() {
                                               : 'bg-white text-slate-700',
                                         ].join(' ')}
                                       >
-                                        <span className="font-medium">{d.key}</span>
-                                      </button>
-
-                                      {isEditMode ? (
                                         <button
                                           type="button"
                                           onClick={() =>
-                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            setActiveDay((prev) => ({
+                                              ...prev,
+                                              [current.id]: d.index,
+                                            }))
                                           }
-                                          className={[
-                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
-                                            isVisibleInExport
-                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
-                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
-                                          ].join(' ')}
-                                          title={
-                                            isVisibleInExport
-                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
-                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
-                                          }
-                                          aria-pressed={isVisibleInExport}
+                                          className="flex min-h-[56px] flex-1 cursor-pointer items-center px-4 py-2 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]"
                                         >
-                                          ✓
+                                          <span className="font-medium">{d.key}</span>
                                         </button>
-                                      ) : null}
+
+                                        {isEditMode ? (
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            }
+                                            className={[
+                                              'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                              isVisibleInExport
+                                                ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                                : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                            ].join(' ')}
+                                            title={
+                                              isVisibleInExport
+                                                ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                                : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                            }
+                                            aria-pressed={isVisibleInExport}
+                                          >
+                                            ✓
+                                          </button>
+                                        ) : null}
+                                      </div>
                                     </div>
                                   );
                                 })}
@@ -1322,7 +1708,7 @@ export default function QuotesPage() {
                                     <div
                                       key={d.key}
                                       className={[
-                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        'w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
                                         isEditMode
                                           ? isActiveDay
                                             ? 'border-[#8B1E2D]'
@@ -1334,16 +1720,9 @@ export default function QuotesPage() {
                                             : 'border-slate-200',
                                       ].join(' ')}
                                     >
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setActiveDay((prev) => ({
-                                            ...prev,
-                                            [current.id]: d.index,
-                                          }))
-                                        }
+                                      <div
                                         className={[
-                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          'flex min-h-[56px] items-stretch',
                                           isEditMode
                                             ? isActiveDay
                                               ? 'bg-[#8B1E2D] text-white'
@@ -1355,31 +1734,42 @@ export default function QuotesPage() {
                                               : 'bg-white text-slate-700',
                                         ].join(' ')}
                                       >
-                                        <span className="font-medium">{d.key}</span>
-                                      </button>
-
-                                      {isEditMode ? (
                                         <button
                                           type="button"
                                           onClick={() =>
-                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            setActiveDay((prev) => ({
+                                              ...prev,
+                                              [current.id]: d.index,
+                                            }))
                                           }
-                                          className={[
-                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
-                                            isVisibleInExport
-                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
-                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
-                                          ].join(' ')}
-                                          title={
-                                            isVisibleInExport
-                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
-                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
-                                          }
-                                          aria-pressed={isVisibleInExport}
+                                          className="flex min-h-[56px] flex-1 cursor-pointer items-center px-4 py-2 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]"
                                         >
-                                          ✓
+                                          <span className="font-medium">{d.key}</span>
                                         </button>
-                                      ) : null}
+
+                                        {isEditMode ? (
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            }
+                                            className={[
+                                              'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                              isVisibleInExport
+                                                ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                                : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                            ].join(' ')}
+                                            title={
+                                              isVisibleInExport
+                                                ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                                : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                            }
+                                            aria-pressed={isVisibleInExport}
+                                          >
+                                            ✓
+                                          </button>
+                                        ) : null}
+                                      </div>
                                     </div>
                                   );
                                 })}
@@ -1607,10 +1997,11 @@ export default function QuotesPage() {
                               </div>
                             </div>
                           </div>
+
                           <div
                             className={[
                               'mt-3 rounded-xl border-2 p-5',
-                              isEditMode ? 'border-[#8B1E2D] bg-white' : 'border-[#F29420] bg-slate-50',
+                              isEditMode ? 'border-[#8B1E2D] bg-white' : 'border-[#4EA72E] bg-slate-50',
                             ].join(' ')}
                           >
                             <div>
@@ -1621,222 +2012,167 @@ export default function QuotesPage() {
                               </div>
                             </div>
 
-                            {(() => {
-                              type AppliedLocalAdditionalCalendar = {
-                                id: string;
-                                fileName: string;
-                                rawIcs: string;
-                                importedAt: string;
-                                isApplied?: boolean;
-                              };
+                            {isEditMode ? (
+                              <div className="mt-4 rounded-xl border border-[#8B1E2D] bg-[#8B1E2D]/5 p-4">
+                                <div className="text-sm font-semibold text-slate-900">
+                                  {currentDayConfig.key === 'Sa' || currentDayConfig.key === 'So'
+                                    ? 'Wochenendhinweis'
+                                    : 'Tagesimpuls'}
+                                </div>
 
-                              type AdditionalCalendarEntry = {
-                                calendarId: string;
-                                fileName: string;
-                                summary: string;
-                              };
+                                <textarea
+                                  value={currentDisplayText}
+                                  onChange={(event) => {
+                                    if (!current) return;
+                                    updateInlineIcalDraft(
+                                      current.id,
+                                      clampedIndex,
+                                      currentDayConfig.key,
+                                      event.target.value,
+                                    );
+                                  }}
+                                  rows={7}
+                                  className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition focus:border-[#8B1E2D] focus:ring-2 focus:ring-[#8B1E2D]/20"
+                                />
 
-                              const unfoldIcsLines = (rawIcs: string): string[] =>
-                                String(rawIcs ?? '')
-                                  .replace(/\r\n[ \t]/g, '')
-                                  .replace(/\n[ \t]/g, '')
-                                  .split(/\r?\n/);
-
-                              const readIcsDateValue = (rawValue?: string): string | null => {
-                                if (!rawValue) return null;
-                                const match = rawValue.trim().match(/^(\d{8})/);
-                                return match ? match[1] : null;
-                              };
-
-                              const unescapeIcsValue = (rawValue?: string): string =>
-                                String(rawValue ?? '')
-                                  .replace(/\\n/g, ' · ')
-                                  .replace(/\\,/g, ',')
-                                  .replace(/\\;/g, ';')
-                                  .replace(/\\\\/g, '\\')
-                                  .trim();
-
-                              const getAppliedAdditionalEntriesForDay = (
-                                targetDate: string,
-                              ): AdditionalCalendarEntry[] => {
-                                const storedCalendars = readLocalJson<AppliedLocalAdditionalCalendar[]>(
-                                  'as-courage.additionalLocalCalendars.v1',
-                                  [],
-                                );
-
-                                const matches: AdditionalCalendarEntry[] = [];
-
-                                for (const calendar of storedCalendars) {
-                                  if (!calendar?.isApplied || !calendar?.rawIcs) continue;
-
-                                  const lines = unfoldIcsLines(calendar.rawIcs);
-
-                                  let insideEvent = false;
-                                  let summary = '';
-                                  let dtStart: string | null = null;
-                                  let dtEnd: string | null = null;
-
-                                  for (const line of lines) {
-                                    if (line === 'BEGIN:VEVENT') {
-                                      insideEvent = true;
-                                      summary = '';
-                                      dtStart = null;
-                                      dtEnd = null;
-                                      continue;
-                                    }
-
-                                    if (line === 'END:VEVENT') {
-                                      if (insideEvent && dtStart) {
-                                        const hasMatch = dtEnd
-                                          ? dtStart <= targetDate && targetDate < dtEnd
-                                          : dtStart === targetDate;
-
-                                        if (hasMatch) {
-                                          matches.push({
-                                            calendarId: calendar.id,
-                                            fileName: calendar.fileName,
-                                            summary: unescapeIcsValue(summary) || calendar.fileName,
-                                          });
-                                        }
-                                      }
-
-                                      insideEvent = false;
-                                      continue;
-                                    }
-
-                                    if (!insideEvent) continue;
-
-                                    if (line.startsWith('SUMMARY')) {
-                                      summary = line.split(':').slice(1).join(':');
-                                      continue;
-                                    }
-
-                                    if (line.startsWith('DTSTART')) {
-                                      dtStart = readIcsDateValue(line.split(':').slice(1).join(':'));
-                                      continue;
-                                    }
-
-                                    if (line.startsWith('DTEND')) {
-                                      dtEnd = readIcsDateValue(line.split(':').slice(1).join(':'));
-                                    }
-                                  }
-                                }
-
-                                return matches;
-                              };
-
-                              const currentAdditionalEntries = weekMondayDate
-                                ? getAppliedAdditionalEntriesForDay(
-                                  yyyymmdd(addDays(weekMondayDate, currentDayConfig.index)),
-                                )
-                                : [];
-
-                              return isEditMode ? (
-                                <div className="mt-4 rounded-xl border border-[#8B1E2D] bg-[#8B1E2D]/5 p-4">
+                                <div className="mt-4 rounded-xl border border-[#8B1E2D]/20 bg-white/90 px-3 py-3">
                                   <div className="text-sm font-semibold text-slate-900">
-                                    {currentDayConfig.key === 'Sa' || currentDayConfig.key === 'So'
-                                      ? 'Wochenendhinweis'
-                                      : 'Tagesimpuls'}
+                                    Übernommene Zusatzkalender
                                   </div>
 
-                                  <textarea
-                                    value={currentDisplayText}
-                                    onChange={(event) => {
-                                      if (!current) return;
-                                      updateInlineIcalDraft(
-                                        current.id,
-                                        clampedIndex,
-                                        currentDayConfig.key,
-                                        event.target.value,
-                                      );
-                                    }}
-                                    rows={7}
-                                    className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition focus:border-[#8B1E2D] focus:ring-2 focus:ring-[#8B1E2D]/20"
-                                  />
-
-                                  {currentAdditionalEntries.length > 0 ? (
-                                    <div className="mt-4 rounded-xl border border-[#8B1E2D]/20 bg-white/90 px-3 py-3">
-                                      <div className="text-sm font-semibold text-slate-900">
-                                        Übernommene Zusatzhinweise
-                                      </div>
-
-                                      <div className="mt-2 space-y-2">
-                                        {currentAdditionalEntries.map((entry, index) => (
-                                          <div
-                                            key={`${entry.calendarId}-${entry.summary}-${index}`}
-                                            className="rounded-xl border border-[#8B1E2D]/10 bg-[#8B1E2D]/5 px-3 py-2 text-sm leading-relaxed text-slate-700"
-                                          >
-                                            <div className="font-medium text-slate-900">
-                                              {entry.summary}
-                                            </div>
-                                            <div className="mt-1 text-xs text-slate-500">
-                                              {entry.fileName}
-                                            </div>
+                                  {appliedAdditionalCalendars.length > 0 ? (
+                                    <div className="mt-2 space-y-2">
+                                      {appliedAdditionalCalendars.map((calendar) => (
+                                        <div
+                                          key={calendar.id}
+                                          className="rounded-xl border border-[#8B1E2D]/10 bg-[#8B1E2D]/5 px-3 py-2 text-sm leading-relaxed text-slate-700"
+                                        >
+                                          <div className="font-medium text-slate-900">
+                                            {calendar.fileName}
                                           </div>
-                                        ))}
-                                      </div>
+                                          <div className="mt-1 text-xs text-slate-500">
+                                            {formatAdditionalCalendarStatus(calendar)}
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
                                   ) : (
-                                    <div className="mt-4 rounded-xl border border-dashed border-[#8B1E2D]/20 bg-white/70 px-3 py-3 text-xs leading-relaxed text-slate-500">
-                                      Für diesen Tag liegen aktuell keine übernommenen Zusatzhinweise vor.
+                                    <div className="mt-2 rounded-xl border border-dashed border-[#8B1E2D]/20 bg-white/70 px-3 py-3 text-xs leading-relaxed text-slate-500">
+                                      Aktuell ist kein Zusatzkalender übernommen.
                                     </div>
                                   )}
+                                </div>
 
-                                  <div className="mt-3 flex flex-col gap-2 rounded-xl border border-[#8B1E2D]/20 bg-white/80 px-3 py-3 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-                                    <div>
-                                      Standard:{' '}
-                                      <span className="font-semibold text-slate-900">
-                                        {currentDefaultText || '—'}
-                                      </span>
+                                {currentAdditionalEntries.length > 0 ? (
+                                  <div className="mt-4 rounded-xl border border-[#8B1E2D]/20 bg-white/90 px-3 py-3">
+                                    <div className="text-sm font-semibold text-slate-900">
+                                      Tagesbezogene Zusatzhinweise
                                     </div>
 
-                                    <button
-                                      type="button"
-                                      onClick={resetCurrentDay}
-                                      disabled={!currentDayEdited}
-                                      className={[
-                                        'inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-white px-3 py-2 text-xs font-semibold text-[#8B1E2D] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-slate-50 hover:shadow-lg',
-                                        !currentDayEdited
-                                          ? 'cursor-not-allowed opacity-40 hover:translate-y-0 hover:scale-100 hover:bg-white hover:shadow-sm'
-                                          : '',
-                                      ].join(' ')}
-                                    >
-                                      wiederherstellen
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="mt-2 space-y-3">
-                                  <div className="text-lg leading-relaxed text-slate-900">
-                                    {currentDisplayText}
-                                  </div>
-
-                                  {currentAdditionalEntries.length > 0 ? (
-                                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                                      <div className="text-sm font-semibold text-slate-900">
-                                        Übernommene Zusatzhinweise
-                                      </div>
-
-                                      <div className="mt-2 space-y-2">
-                                        {currentAdditionalEntries.map((entry, index) => (
-                                          <div
-                                            key={`${entry.calendarId}-${entry.summary}-${index}`}
-                                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700"
-                                          >
-                                            <div className="font-medium text-slate-900">
-                                              {entry.summary}
-                                            </div>
-                                            <div className="mt-1 text-xs text-slate-500">
-                                              {entry.fileName}
-                                            </div>
+                                    <div className="mt-2 space-y-2">
+                                      {currentAdditionalEntries.map((entry, index) => (
+                                        <div
+                                          key={`${entry.calendarId}-${entry.summary}-${index}`}
+                                          className="rounded-xl border border-[#8B1E2D]/10 bg-[#8B1E2D]/5 px-3 py-2 text-sm leading-relaxed text-slate-700"
+                                        >
+                                          <div className="font-medium text-slate-900">
+                                            {entry.summary}
                                           </div>
-                                        ))}
-                                      </div>
+                                          <div className="mt-1 text-xs text-slate-500">
+                                            {entry.fileName}
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
-                                  ) : null}
+                                  </div>
+                                ) : (
+                                  <div className="mt-4 rounded-xl border border-dashed border-[#8B1E2D]/20 bg-white/70 px-3 py-3 text-xs leading-relaxed text-slate-500">
+                                    Für diesen Tag liegen aktuell keine Zusatzhinweise aus übernommenen Zusatzkalendern vor.
+                                  </div>
+                                )}
+
+                                <div className="mt-3 flex flex-col gap-2 rounded-xl border border-[#8B1E2D]/20 bg-white/80 px-3 py-3 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+                                  <div>
+                                    Standard:{' '}
+                                    <span className="font-semibold text-slate-900">
+                                      {currentDefaultText || '—'}
+                                    </span>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={resetCurrentDay}
+                                    disabled={!currentDayEdited}
+                                    className={[
+                                      'inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-white px-3 py-2 text-xs font-semibold text-[#8B1E2D] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-slate-50 hover:shadow-lg',
+                                      !currentDayEdited
+                                        ? 'cursor-not-allowed opacity-40 hover:translate-y-0 hover:scale-100 hover:bg-white hover:shadow-sm'
+                                        : '',
+                                    ].join(' ')}
+                                  >
+                                    wiederherstellen
+                                  </button>
                                 </div>
-                              );
-                            })()}
+                              </div>
+                            ) : (
+                              <div className="mt-2 space-y-3">
+                                <div className="text-lg leading-relaxed text-slate-900">
+                                  {currentDisplayText}
+                                </div>
+
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                  <div className="text-sm font-semibold text-slate-900">
+                                    Übernommene Zusatzkalender
+                                  </div>
+
+                                  {appliedAdditionalCalendars.length > 0 ? (
+                                    <div className="mt-2 space-y-2">
+                                      {appliedAdditionalCalendars.map((calendar) => (
+                                        <div
+                                          key={calendar.id}
+                                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700"
+                                        >
+                                          <div className="font-medium text-slate-900">
+                                            {calendar.fileName}
+                                          </div>
+                                          <div className="mt-1 text-xs text-slate-500">
+                                            {formatAdditionalCalendarStatus(calendar)}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="mt-2 rounded-xl border border-dashed border-slate-200 bg-white px-3 py-3 text-xs leading-relaxed text-slate-500">
+                                      Aktuell ist kein Zusatzkalender übernommen.
+                                    </div>
+                                  )}
+                                </div>
+
+                                {currentAdditionalEntries.length > 0 ? (
+                                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                    <div className="text-sm font-semibold text-slate-900">
+                                      Tagesbezogene Zusatzhinweise
+                                    </div>
+
+                                    <div className="mt-2 space-y-2">
+                                      {currentAdditionalEntries.map((entry, index) => (
+                                        <div
+                                          key={`${entry.calendarId}-${entry.summary}-${index}`}
+                                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700"
+                                        >
+                                          <div className="font-medium text-slate-900">
+                                            {entry.summary}
+                                          </div>
+                                          <div className="mt-1 text-xs text-slate-500">
+                                            {entry.fileName}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : null}
+                              </div>
+                            )}
                           </div>
 
                           <div className="h-6" />

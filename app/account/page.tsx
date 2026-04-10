@@ -676,10 +676,10 @@ export default function AccountPage() {
   return (
     <BackgroundLayout>
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6">
-        <section className="rounded-[30px] border border-[#F29420] bg-white/85 p-4 shadow-xl backdrop-blur-md md:p-6">
+        <section className="rounded-[30px] border border-orange-300 bg-white/85 p-4 shadow-xl ring-2 ring-orange-200 backdrop-blur-md md:p-6">
           <div className="mb-4 flex items-start justify-end gap-2">
             {canOpenThemes ? (
-              <Link href="/themes" className={greenButtonClass}>
+              <Link href="/themes" className={orangeButtonClass}>
                 Themenauswahl
               </Link>
             ) : (
@@ -1044,7 +1044,7 @@ export default function AccountPage() {
 
                   {canOpenThemes && (
                     <div className="pt-1">
-                      <Link href="/themes" className={`${greenButtonClass} w-full`}>
+                      <Link href="/themes" className={`${orangeButtonClass} w-full`}>
                         Zur Themenauswahl
                       </Link>
                     </div>
@@ -1091,7 +1091,7 @@ export default function AccountPage() {
                     Die Auswahl der Varianten ist nach Bestätigung von AGB und Datenschutzhinweisen möglich.
                   </div>
                 ) : authed ? (
-                  <div className="rounded-[24px] bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200">
+                  <div className="rounded-[24px] border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-[#A35B06]">
                     AGB und Datenschutzhinweise sind bestätigt. Du kannst jetzt die freigeschalteten Varianten
                     auswählen. Danach erfolgt eine Weiterleitung zum Bezahldienst stripe.com
                   </div>
