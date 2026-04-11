@@ -18,6 +18,7 @@ const LS_EDITOR2_DRAFTS = 'as-courage.icalEditor2Drafts.v1';
 const LS_EDITOR2_VISIBILITY = 'as-courage.icalEditor2Visibility.v1';
 const LS_ADDITIONAL_LOCAL_CALENDARS = 'as-courage.additionalLocalCalendars.v1';
 const LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE = 'as-courage.additionalLocalCalendarNotice.v1';
+const LS_ADDITIONAL_ENTRY_VISIBILITY = 'as-courage.additionalEntryVisibility.v1';
 const LS_LEGACY_SCHOOL_HOLIDAY_CALENDAR = 'as-courage.schoolHolidayCalendar.v1';
 
 type EditionRow = {
@@ -45,6 +46,7 @@ type DayKey = 'Mo' | 'Di' | 'Mi' | 'Do' | 'Fr' | 'Sa' | 'So';
 
 type InlineIcalDraftState = Record<string, string>;
 type InlineIcalVisibilityState = Record<string, boolean>;
+type AdditionalEntryVisibilityState = Record<string, boolean>;
 type AdditionalCalendarApplyMode = 'none' | 'full' | 'selected-range';
 
 type LocalAdditionalCalendar = {
@@ -58,9 +60,12 @@ type LocalAdditionalCalendar = {
 };
 
 type AdditionalCalendarEntry = {
+  entryId: string;
   calendarId: string;
   fileName: string;
   summary: string;
+  startIso: string;
+  endIsoExclusive: string;
 };
 
 type StoredNoticeState = {
@@ -218,13 +223,27 @@ function sanitizeStorageIdPart(value: string) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+/, '')
     .replace(/-+$/, '')
-    .slice(0, 40);
+    .slice(0, 80);
 }
 
 function createAdditionalCalendarId(fileName: string, importedAt: string, fallbackIndex = 0) {
   const filePart = sanitizeStorageIdPart(fileName || 'kalender') || 'kalender';
   const datePart = sanitizeStorageIdPart(importedAt || String(fallbackIndex)) || String(fallbackIndex);
   return `calendar-${filePart}-${datePart}`;
+}
+
+function buildAdditionalEntryId(
+  calendarId: string,
+  uid: string | null,
+  startDate: Date,
+  endExclusiveDate: Date,
+  summary: string,
+) {
+  const identityPart =
+    sanitizeStorageIdPart(uid || summary || `${formatIso(startDate)}-${formatIso(endExclusiveDate)}`) ||
+    'eintrag';
+
+  return `${calendarId}__${formatIso(startDate)}__${formatIso(endExclusiveDate)}__${identityPart}`;
 }
 
 function normalizeAdditionalCalendar(
@@ -255,9 +274,7 @@ function normalizeAdditionalCalendar(
     typeof raw.rangeEnd === 'string' && raw.rangeEnd.length === 10 ? raw.rangeEnd : null;
 
   const applyMode =
-    initialApplyMode === 'selected-range' && (!rangeStart || !rangeEnd)
-      ? 'none'
-      : initialApplyMode;
+    initialApplyMode === 'selected-range' && (!rangeStart || !rangeEnd) ? 'none' : initialApplyMode;
 
   return {
     id:
@@ -352,6 +369,18 @@ function persistAdditionalCalendarNotice(message: string | null) {
   }
 
   localStorage.removeItem(LS_ADDITIONAL_LOCAL_CALENDAR_NOTICE);
+}
+
+function readStoredAdditionalEntryVisibility(): AdditionalEntryVisibilityState {
+  return readLocalJson<AdditionalEntryVisibilityState>(LS_ADDITIONAL_ENTRY_VISIBILITY, {});
+}
+
+function persistAdditionalEntryVisibility(state: AdditionalEntryVisibilityState) {
+  if (Object.keys(state).length > 0) {
+    localStorage.setItem(LS_ADDITIONAL_ENTRY_VISIBILITY, JSON.stringify(state));
+  } else {
+    localStorage.removeItem(LS_ADDITIONAL_ENTRY_VISIBILITY);
+  }
 }
 
 function unfoldIcsLines(rawIcs: string): string[] {
@@ -476,6 +505,7 @@ function getAppliedAdditionalEntriesForDay(
     const lines = unfoldIcsLines(calendar.rawIcs);
 
     let insideEvent = false;
+    let uid: string | null = null;
     let summary = '';
     let dtStartDate: Date | null = null;
     let dtEndDate: Date | null = null;
@@ -483,6 +513,7 @@ function getAppliedAdditionalEntriesForDay(
     for (const line of lines) {
       if (line === 'BEGIN:VEVENT') {
         insideEvent = true;
+        uid = null;
         summary = '';
         dtStartDate = null;
         dtEndDate = null;
@@ -490,6 +521,11 @@ function getAppliedAdditionalEntriesForDay(
       }
 
       if (!insideEvent) continue;
+
+      if (line.startsWith('UID')) {
+        uid = unescapeIcsValue(line.split(':').slice(1).join(':')) || null;
+        continue;
+      }
 
       if (line.startsWith('SUMMARY')) {
         summary = line.split(':').slice(1).join(':');
@@ -509,9 +545,7 @@ function getAppliedAdditionalEntriesForDay(
       if (line === 'END:VEVENT') {
         if (dtStartDate) {
           const normalizedEndExclusive =
-            dtEndDate && dtEndDate.getTime() !== dtStartDate.getTime()
-              ? dtEndDate
-              : addDays(dtStartDate, 1);
+            dtEndDate && dtEndDate.getTime() !== dtStartDate.getTime() ? dtEndDate : addDays(dtStartDate, 1);
 
           const hasMatch =
             targetDate.getTime() >= dtStartDate.getTime() &&
@@ -519,9 +553,18 @@ function getAppliedAdditionalEntriesForDay(
 
           if (hasMatch) {
             matches.push({
+              entryId: buildAdditionalEntryId(
+                calendar.id,
+                uid,
+                dtStartDate,
+                normalizedEndExclusive,
+                unescapeIcsValue(summary) || calendar.fileName,
+              ),
               calendarId: calendar.id,
               fileName: calendar.fileName,
               summary: unescapeIcsValue(summary) || calendar.fileName,
+              startIso: formatIso(dtStartDate),
+              endIsoExclusive: formatIso(normalizedEndExclusive),
             });
           }
         }
@@ -540,6 +583,7 @@ function buildIcsFromPlan(
   inlineDrafts: InlineIcalDraftState = {},
   inlineVisibility: InlineIcalVisibilityState = {},
   additionalCalendars: LocalAdditionalCalendar[] = [],
+  additionalEntryVisibility: AdditionalEntryVisibilityState = {},
 ): string {
   const stamp = dtstampUtc();
   const uidBase = `tdw-${stamp}-${Math.random().toString(16).slice(2)}`;
@@ -617,6 +661,8 @@ function buildIcsFromPlan(
 
     let insideEvent = false;
     let eventLines: string[] = [];
+    let uid: string | null = null;
+    let summary = '';
     let dtStartDate: Date | null = null;
     let dtEndDate: Date | null = null;
 
@@ -624,6 +670,8 @@ function buildIcsFromPlan(
       if (line === 'BEGIN:VEVENT') {
         insideEvent = true;
         eventLines = ['BEGIN:VEVENT'];
+        uid = null;
+        summary = '';
         dtStartDate = null;
         dtEndDate = null;
         continue;
@@ -632,6 +680,16 @@ function buildIcsFromPlan(
       if (!insideEvent) continue;
 
       eventLines.push(line);
+
+      if (line.startsWith('UID')) {
+        uid = unescapeIcsValue(line.split(':').slice(1).join(':')) || null;
+        continue;
+      }
+
+      if (line.startsWith('SUMMARY')) {
+        summary = line.split(':').slice(1).join(':');
+        continue;
+      }
 
       if (line.startsWith('DTSTART')) {
         dtStartDate = readIcsDateAsLocalDay(line.split(':').slice(1).join(':'));
@@ -646,9 +704,7 @@ function buildIcsFromPlan(
       if (line === 'END:VEVENT') {
         if (dtStartDate) {
           const normalizedEndExclusive =
-            dtEndDate && dtEndDate.getTime() !== dtStartDate.getTime()
-              ? dtEndDate
-              : addDays(dtStartDate, 1);
+            dtEndDate && dtEndDate.getTime() !== dtStartDate.getTime() ? dtEndDate : addDays(dtStartDate, 1);
 
           let shouldInclude = false;
 
@@ -666,7 +722,17 @@ function buildIcsFromPlan(
               normalizedEndExclusive.getTime() > rangeStartDate.getTime();
           }
 
-          if (shouldInclude) {
+          const entryId = buildAdditionalEntryId(
+            calendar.id,
+            uid,
+            dtStartDate,
+            normalizedEndExclusive,
+            unescapeIcsValue(summary) || calendar.fileName,
+          );
+
+          const isVisibleInExport = additionalEntryVisibility[entryId] ?? true;
+
+          if (shouldInclude && isVisibleInExport) {
             const transparentEventLines = ensureTransparentEvent(eventLines);
             lines.push(...transparentEventLines);
           }
@@ -674,6 +740,8 @@ function buildIcsFromPlan(
 
         insideEvent = false;
         eventLines = [];
+        uid = null;
+        summary = '';
         dtStartDate = null;
         dtEndDate = null;
       }
@@ -704,6 +772,7 @@ export default function QuotesPage() {
 
   const [inlineIcalDrafts, setInlineIcalDrafts] = useState<InlineIcalDraftState>({});
   const [inlineIcalVisibility, setInlineIcalVisibility] = useState<InlineIcalVisibilityState>({});
+  const [additionalEntryVisibility, setAdditionalEntryVisibility] = useState<AdditionalEntryVisibilityState>({});
   const [editorStateLoaded, setEditorStateLoaded] = useState(false);
 
   const [additionalCalendars, setAdditionalCalendars] = useState<LocalAdditionalCalendar[]>([]);
@@ -711,6 +780,9 @@ export default function QuotesPage() {
 
   const notesBlockRef = useRef<HTMLDivElement | null>(null);
   const pendingNotesScrollRef = useRef(false);
+  const editorTopRef = useRef<HTMLDivElement | null>(null);
+  const additionalCalendarRef = useRef<HTMLDivElement | null>(null);
+  const pendingEditorScrollRef = useRef<'open' | 'close' | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -723,6 +795,7 @@ export default function QuotesPage() {
       const storedVisibility = readLocalJson<InlineIcalVisibilityState>(LS_EDITOR2_VISIBILITY, {});
       const storedAdditionalCalendars = readStoredAdditionalCalendars();
       const storedAdditionalCalendarNotice = readStoredAdditionalCalendarNotice();
+      const storedAdditionalEntryVisibility = readStoredAdditionalEntryVisibility();
 
       if (!alive) return;
 
@@ -730,6 +803,7 @@ export default function QuotesPage() {
       setCurrentUserPlan(plan);
       setInlineIcalDrafts(storedDrafts);
       setInlineIcalVisibility(storedVisibility);
+      setAdditionalEntryVisibility(storedAdditionalEntryVisibility);
       setAdditionalCalendars(storedAdditionalCalendars);
       setAdditionalCalendarNotice(storedAdditionalCalendarNotice);
       setEditorStateLoaded(true);
@@ -771,6 +845,43 @@ export default function QuotesPage() {
   }, [showEmbeddedNotes]);
 
   useEffect(() => {
+    const pendingScroll = pendingEditorScrollRef.current;
+    if (!pendingScroll) return;
+
+    if (pendingScroll === 'open') {
+      if (!isEditMode) return;
+
+      const node = additionalCalendarRef.current;
+      if (!node) return;
+
+      pendingEditorScrollRef.current = null;
+
+      window.setTimeout(() => {
+        node.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 120);
+
+      return;
+    }
+
+    if (isEditMode) return;
+
+    const node = editorTopRef.current;
+    if (!node) return;
+
+    pendingEditorScrollRef.current = null;
+
+    window.setTimeout(() => {
+      node.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 120);
+  }, [isEditMode]);
+
+  useEffect(() => {
     if (!editorStateLoaded) return;
     localStorage.setItem(LS_EDITOR2_DRAFTS, JSON.stringify(inlineIcalDrafts));
   }, [inlineIcalDrafts, editorStateLoaded]);
@@ -779,6 +890,11 @@ export default function QuotesPage() {
     if (!editorStateLoaded) return;
     localStorage.setItem(LS_EDITOR2_VISIBILITY, JSON.stringify(inlineIcalVisibility));
   }, [inlineIcalVisibility, editorStateLoaded]);
+
+  useEffect(() => {
+    if (!editorStateLoaded) return;
+    persistAdditionalEntryVisibility(additionalEntryVisibility);
+  }, [additionalEntryVisibility, editorStateLoaded]);
 
   const selectedThemes = useMemo(() => {
     const ids = setup?.themeIds;
@@ -790,10 +906,7 @@ export default function QuotesPage() {
     return ids.map((id) => map.get(id)).filter(Boolean) as EditionRow[];
   }, [setup]);
 
-  const selectedWeeksRange = useMemo(
-    () => getSelectedWeeksRange(setup, selectedThemes),
-    [setup, selectedThemes],
-  );
+  const selectedWeeksRange = useMemo(() => getSelectedWeeksRange(setup, selectedThemes), [setup, selectedThemes]);
 
   useEffect(() => {
     if (!editorStateLoaded) return;
@@ -805,8 +918,7 @@ export default function QuotesPage() {
       if (calendar.applyMode !== 'selected-range') return calendar;
 
       const hasChangedRange =
-        calendar.rangeStart !== selectedWeeksRange.startIso ||
-        calendar.rangeEnd !== selectedWeeksRange.endIso;
+        calendar.rangeStart !== selectedWeeksRange.startIso || calendar.rangeEnd !== selectedWeeksRange.endIso;
 
       if (!hasChangedRange) return calendar;
 
@@ -856,7 +968,7 @@ export default function QuotesPage() {
   }, [setup?.startMonday, clampedIndex]);
 
   const weekdayDateText = useMemo(() => {
-    if (!weekMondayDate) return (index: number) => '';
+    if (!weekMondayDate) return (_index: number) => '';
     return (index: number) => formatDE(addDays(weekMondayDate, index));
   }, [weekMondayDate]);
 
@@ -957,6 +1069,13 @@ export default function QuotesPage() {
     }));
   }
 
+  function toggleAdditionalEntryVisibility(entryId: string) {
+    setAdditionalEntryVisibility((prev) => ({
+      ...prev,
+      [entryId]: !(prev[entryId] ?? true),
+    }));
+  }
+
   function resetCurrentDay() {
     if (!current) return;
     updateInlineIcalDraft(current.id, clampedIndex, currentDayConfig.key, currentDefaultText);
@@ -974,16 +1093,23 @@ export default function QuotesPage() {
     setImgFallbackToDemo(false);
   }
 
-  function toggleEditMode() {
+  function openEditMode() {
     if (currentUserPlan !== 'C') {
       setIcalNotice((prev) =>
-        prev === 'iCal ist in Variante C verfügbar.' ? null : 'iCal ist in Variante C verfügbar.',
+        prev === 'Teamkalender ist in Variante C verfügbar.' ? null : 'Teamkalender ist in Variante C verfügbar.',
       );
       return;
     }
 
     setIcalNotice(null);
-    setIsEditMode((prev) => !prev);
+    pendingEditorScrollRef.current = 'open';
+    setIsEditMode(true);
+  }
+
+  function closeEditMode() {
+    setIcalNotice(null);
+    pendingEditorScrollRef.current = 'close';
+    setIsEditMode(false);
   }
 
   function downloadTeamCalendar() {
@@ -993,6 +1119,7 @@ export default function QuotesPage() {
       inlineIcalDrafts,
       inlineIcalVisibility,
       additionalCalendars,
+      additionalEntryVisibility,
     );
     downloadTextFile('Teamkalender.ics', ics, 'text/calendar;charset=utf-8');
   }
@@ -1085,30 +1212,30 @@ export default function QuotesPage() {
   return (
     <RequireAuth>
       <BackgroundLayout activeThemeId={current?.id}>
-        <div className="mx-auto flex h-full max-w-6xl min-h-[100svh] px-10 py-3 lg:min-h-0">
+        <div className="mx-auto flex h-full min-h-[100svh] max-w-6xl px-10 py-3 lg:min-h-0">
           <div
             className={[
-              'flex min-h-[100dvh] w-full max-h-none flex-col overflow-visible rounded-none border-0 shadow-none backdrop-blur-md sm:min-h-0 sm:rounded-2xl sm:shadow-xl',
-              isEditMode
-                ? 'bg-white/95 sm:border-2 sm:border-[#8B1E2D] sm:ring-4 sm:ring-[#8B1E2D]/35'
-                : 'bg-white/98 sm:border-2 sm:border-[#4EA72E] sm:bg-white/85 sm:ring-2 sm:ring-[#4EA72E]/20',
+              'flex min-h-[100dvh] w-full max-h-none flex-col overflow-visible rounded-none border-[4px] bg-white shadow-none sm:min-h-0 sm:rounded-2xl sm:shadow-xl',
+              isEditMode ? 'border-[#8B1E2D]' : 'border-[#4EA72E]',
             ].join(' ')}
           >
             <div className="shrink-0 p-5 sm:p-7">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-semibold text-slate-900">
-                    Thema der Woche <span className="text-slate-600">(Edition 1)</span>
+                  <h1 className="text-2xl font-semibold tracking-wide text-slate-900">
+                    Thema der Woche <span className="text-slate-600">(Edition 1)</span>{' '}
+                    <span className={isEditMode ? 'font-semibold text-[#8B1E2D]' : 'font-semibold text-[#4EA72E]'}>
+                      {isEditMode ? 'Editor' : 'Zitate & Tagesimpulse'}
+                    </span>
                   </h1>
 
                   <div className="mt-2 text-base text-slate-900">
                     Aktuell:{' '}
-                    <span className="font-semibold text-[#F29420]">
+                    <span className="font-semibold text-slate-900">
                       {currentUserPlan ? `Variante ${currentUserPlan}` : 'wird geladen'}
                     </span>
                   </div>
                 </div>
-
                 <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
                   <div className="flex flex-wrap gap-2">
                     {currentUserPlan && currentUserPlan !== 'C' && (
@@ -1197,6 +1324,7 @@ export default function QuotesPage() {
               ) : null}
 
               <div
+                ref={editorTopRef}
                 className={[
                   'mt-4 flex flex-wrap items-center gap-2 rounded-2xl border p-3',
                   isEditMode ? 'border-[#8B1E2D]/30 bg-[#8B1E2D]/5' : 'border-slate-200 bg-white',
@@ -1275,9 +1403,9 @@ export default function QuotesPage() {
                       onClick={() => {
                         if (currentUserPlan !== 'C') {
                           setIcalNotice((prev) =>
-                            prev === 'iCal ist in Variante C verfügbar.'
+                            prev === 'Teamkalender ist in Variante C verfügbar.'
                               ? null
-                              : 'iCal ist in Variante C verfügbar.',
+                              : 'Teamkalender ist in Variante C verfügbar.',
                           );
                           return;
                         }
@@ -1300,16 +1428,14 @@ export default function QuotesPage() {
                       <span aria-hidden="true" className="text-base leading-none">
                         ⬇️
                       </span>
-                      {isEditMode
-                        ? 'Teamkalender herunterladen'
-                        : 'Teamkalender herunterladen (Standard)'}
+                      {isEditMode ? 'Teamkalender + herunterladen' : 'Teamkalender herunterladen (Standard)'}
                     </button>
 
                     <button
                       type="button"
-                      onClick={toggleEditMode}
+                      onClick={isEditMode ? closeEditMode : openEditMode}
                       className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#8B1E2D] bg-[#8B1E2D] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg"
-                      title="Bearbeitungsmodus umschalten"
+                      title={isEditMode ? 'Bearbeitungsmodus ausblenden' : 'Bearbeitungsmodus einblenden'}
                     >
                       <span aria-hidden="true" className="text-base leading-none">
                         ✏️
@@ -1406,7 +1532,7 @@ export default function QuotesPage() {
               className={
                 showEmbeddedNotes
                   ? 'px-5 pb-5 sm:px-7 sm:pb-7'
-                  : 'flex-1 min-h-0 overflow-auto px-5 pb-5 sm:px-7 sm:pb-7 lg:overflow-hidden'
+                  : 'min-h-0 flex-1 overflow-auto px-5 pb-5 sm:px-7 sm:pb-7 lg:overflow-hidden'
               }
             >
               {!current ? (
@@ -1439,15 +1565,18 @@ export default function QuotesPage() {
 
                         {isEditMode ? (
                           <div className="order-3 p-4 lg:order-none lg:p-5">
-                            <div className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm">
+                            <div
+                              ref={additionalCalendarRef}
+                              className="rounded-2xl border border-[#8B1E2D] bg-white p-5 shadow-sm"
+                            >
                               <div className="text-sm font-semibold uppercase tracking-wide text-[#8B1E2D]">
                                 Zusatzkalender
                               </div>
 
                               <div className="mt-3 text-sm leading-relaxed text-slate-700">
-                                Hier kannst du lokal heruntergeladene Zusatzkalender im ICS-Format
-                                einlesen und gezielt steuern, ob sie gar nicht, vollständig oder nur
-                                für die ausgewählten Wochen übernommen werden.
+                                Hier kannst du lokal heruntergeladene Zusatzkalender im ICS-Format einlesen und
+                                gezielt steuern, ob sie gar nicht, vollständig oder nur für die ausgewählten Wochen
+                                übernommen werden.
                               </div>
 
                               {selectedWeeksRange ? (
@@ -1505,25 +1634,19 @@ export default function QuotesPage() {
                                         key={calendar.id}
                                         className="rounded-2xl border border-[#8B1E2D]/20 bg-white px-4 py-4 shadow-sm"
                                       >
-                                        <div className="text-base font-semibold text-slate-900">
-                                          {calendar.fileName}
-                                        </div>
+                                        <div className="text-base font-semibold text-slate-900">{calendar.fileName}</div>
 
                                         <div className="mt-2 text-sm leading-relaxed text-slate-600">
                                           Status:{' '}
                                           <span className="font-semibold text-slate-900">
-                                            {isNone
-                                              ? 'nicht übernommen'
-                                              : formatAdditionalCalendarStatus(calendar)}
+                                            {isNone ? 'nicht übernommen' : formatAdditionalCalendarStatus(calendar)}
                                           </span>
                                         </div>
 
                                         <div className="mt-4 grid gap-2 sm:grid-cols-2">
                                           <button
                                             type="button"
-                                            onClick={() =>
-                                              applyAdditionalCalendarMode(calendar.id, 'full')
-                                            }
+                                            onClick={() => applyAdditionalCalendarMode(calendar.id, 'full')}
                                             className={[
                                               'inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
                                               isFull
@@ -1536,12 +1659,7 @@ export default function QuotesPage() {
 
                                           <button
                                             type="button"
-                                            onClick={() =>
-                                              applyAdditionalCalendarMode(
-                                                calendar.id,
-                                                'selected-range',
-                                              )
-                                            }
+                                            onClick={() => applyAdditionalCalendarMode(calendar.id, 'selected-range')}
                                             className={[
                                               'inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
                                               isSelectedRange
@@ -1554,9 +1672,7 @@ export default function QuotesPage() {
 
                                           <button
                                             type="button"
-                                            onClick={() =>
-                                              applyAdditionalCalendarMode(calendar.id, 'none')
-                                            }
+                                            onClick={() => applyAdditionalCalendarMode(calendar.id, 'none')}
                                             className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-slate-400 hover:bg-slate-100 hover:shadow-lg"
                                           >
                                             Übernahme aufheben
@@ -1585,10 +1701,9 @@ export default function QuotesPage() {
                       </div>
 
                       <div
-                        className={[
-                          'order-2 lg:w-1/2 lg:overflow-auto',
-                          isEditMode ? 'bg-[#8B1E2D]/5' : '',
-                        ].join(' ')}
+                        className={['order-2 lg:w-1/2 lg:overflow-auto', isEditMode ? 'bg-[#8B1E2D]/5' : ''].join(
+                          ' ',
+                        )}
                       >
                         <div className="p-5 lg:p-6">
                           <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -1602,8 +1717,8 @@ export default function QuotesPage() {
                             <div className="mt-4 rounded-2xl border border-[#8B1E2D] bg-[#8B1E2D]/10 px-4 py-3 text-sm text-slate-900">
                               <div className="font-semibold text-[#8B1E2D]">Bearbeitungsmodus</div>
                               <div className="mt-1">
-                                Hier kannst du den Teamkalender anpassen und Zusatzkalender wahlweise
-                                vollständig oder nur für die ausgewählten Wochen übernehmen.
+                                Hier kannst du den Teamkalender anpassen. Zusatzkalender bleiben dabei eigenständige
+                                Einträge und werden nicht mit dem Tagesimpuls zusammengeführt.
                               </div>
                             </div>
                           ) : null}
@@ -1677,7 +1792,7 @@ export default function QuotesPage() {
                                               toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
                                             }
                                             className={[
-                                              'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                              'mr-2 inline-flex h-7 w-7 shrink-0 cursor-pointer self-center items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
                                               isVisibleInExport
                                                 ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
                                                 : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
@@ -1754,7 +1869,7 @@ export default function QuotesPage() {
                                               toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
                                             }
                                             className={[
-                                              'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                              'mr-2 inline-flex h-7 w-7 shrink-0 cursor-pointer self-center items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
                                               isVisibleInExport
                                                 ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
                                                 : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
@@ -2028,12 +2143,73 @@ export default function QuotesPage() {
                               isEditMode ? 'border-[#8B1E2D] bg-white' : 'border-[#4EA72E] bg-slate-50',
                             ].join(' ')}
                           >
-                            <div>
-                              <div className="text-lg font-semibold text-slate-900">{currentDayConfig.label}</div>
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                              <div>
+                                <div className="text-lg font-semibold text-slate-900">{currentDayConfig.label}</div>
 
-                              <div className="mt-2 text-sm text-slate-600">
-                                {weekdayDateText(currentDayConfig.index)}
+                                <div className="mt-2 text-sm text-slate-600">
+                                  {weekdayDateText(currentDayConfig.index)}
+                                </div>
                               </div>
+
+                              {currentAdditionalEntries.length > 0 ? (
+                                <div className="w-full lg:max-w-[62%]">
+                                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                    Zusatztermine an diesem Tag
+                                  </div>
+
+                                  <div className="mt-2 space-y-2">
+                                    {currentAdditionalEntries.map((entry, index) => {
+                                      const isVisibleEntry = additionalEntryVisibility[entry.entryId] ?? true;
+
+                                      return (
+                                        <div
+                                          key={`${entry.entryId}-${index}`}
+                                          className={[
+                                            'rounded-xl border px-3 py-3 shadow-sm transition duration-200',
+                                            isEditMode
+                                              ? isVisibleEntry
+                                                ? 'border-[#8B1E2D]/20 bg-[#8B1E2D]/5'
+                                                : 'border-slate-200 bg-slate-50 opacity-75'
+                                              : 'border-slate-200 bg-white',
+                                          ].join(' ')}
+                                        >
+                                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                            <div className="min-w-0">
+                                              <div className="text-sm font-medium leading-relaxed text-slate-900">
+                                                {entry.summary}
+                                              </div>
+                                              <div className="mt-1 text-xs text-slate-500">
+                                                {entry.fileName}
+                                              </div>
+                                            </div>
+
+                                            {isEditMode ? (
+                                              <button
+                                                type="button"
+                                                onClick={() => toggleAdditionalEntryVisibility(entry.entryId)}
+                                                className={[
+                                                  'inline-flex min-h-[40px] shrink-0 cursor-pointer items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg',
+                                                  isVisibleEntry
+                                                    ? 'border-[#8B1E2D] bg-[#8B1E2D] text-white hover:border-[#741827] hover:bg-[#741827]'
+                                                    : 'border-[#8B1E2D] bg-white text-[#8B1E2D] hover:border-[#741827] hover:bg-[#8B1E2D]/5',
+                                                ].join(' ')}
+                                                title={
+                                                  isVisibleEntry
+                                                    ? 'Zusatztermin wird exportiert – zum Ausblenden klicken'
+                                                    : 'Zusatztermin wird nicht exportiert – zum Einblenden klicken'
+                                                }
+                                              >
+                                                {isVisibleEntry ? 'wird angezeigt' : 'nicht anzeigen'}
+                                              </button>
+                                            ) : null}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ) : null}
                             </div>
 
                             {isEditMode ? (
@@ -2071,9 +2247,7 @@ export default function QuotesPage() {
                                           key={calendar.id}
                                           className="rounded-xl border border-[#8B1E2D]/10 bg-[#8B1E2D]/5 px-3 py-2 text-sm leading-relaxed text-slate-700"
                                         >
-                                          <div className="font-medium text-slate-900">
-                                            {calendar.fileName}
-                                          </div>
+                                          <div className="font-medium text-slate-900">{calendar.fileName}</div>
                                           <div className="mt-1 text-xs text-slate-500">
                                             {formatAdditionalCalendarStatus(calendar)}
                                           </div>
@@ -2086,34 +2260,6 @@ export default function QuotesPage() {
                                     </div>
                                   )}
                                 </div>
-
-                                {currentAdditionalEntries.length > 0 ? (
-                                  <div className="mt-4 rounded-xl border border-[#8B1E2D]/20 bg-white/90 px-3 py-3">
-                                    <div className="text-sm font-semibold text-slate-900">
-                                      Tagesbezogene Zusatzhinweise
-                                    </div>
-
-                                    <div className="mt-2 space-y-2">
-                                      {currentAdditionalEntries.map((entry, index) => (
-                                        <div
-                                          key={`${entry.calendarId}-${entry.summary}-${index}`}
-                                          className="rounded-xl border border-[#8B1E2D]/10 bg-[#8B1E2D]/5 px-3 py-2 text-sm leading-relaxed text-slate-700"
-                                        >
-                                          <div className="font-medium text-slate-900">
-                                            {entry.summary}
-                                          </div>
-                                          <div className="mt-1 text-xs text-slate-500">
-                                            {entry.fileName}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="mt-4 rounded-xl border border-dashed border-[#8B1E2D]/20 bg-white/70 px-3 py-3 text-xs leading-relaxed text-slate-500">
-                                    Für diesen Tag liegen aktuell keine Zusatzhinweise aus übernommenen Zusatzkalendern vor.
-                                  </div>
-                                )}
 
                                 <div className="mt-3 flex flex-col gap-2 rounded-xl border border-[#8B1E2D]/20 bg-white/80 px-3 py-3 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
                                   <div>
@@ -2140,9 +2286,7 @@ export default function QuotesPage() {
                               </div>
                             ) : (
                               <div className="mt-2 space-y-3">
-                                <div className="text-lg leading-relaxed text-slate-900">
-                                  {currentDisplayText}
-                                </div>
+                                <div className="text-lg leading-relaxed text-slate-900">{currentDisplayText}</div>
 
                                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                                   <div className="text-sm font-semibold text-slate-900">
@@ -2156,9 +2300,7 @@ export default function QuotesPage() {
                                           key={calendar.id}
                                           className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700"
                                         >
-                                          <div className="font-medium text-slate-900">
-                                            {calendar.fileName}
-                                          </div>
+                                          <div className="font-medium text-slate-900">{calendar.fileName}</div>
                                           <div className="mt-1 text-xs text-slate-500">
                                             {formatAdditionalCalendarStatus(calendar)}
                                           </div>
@@ -2171,33 +2313,25 @@ export default function QuotesPage() {
                                     </div>
                                   )}
                                 </div>
-
-                                {currentAdditionalEntries.length > 0 ? (
-                                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                                    <div className="text-sm font-semibold text-slate-900">
-                                      Tagesbezogene Zusatzhinweise
-                                    </div>
-
-                                    <div className="mt-2 space-y-2">
-                                      {currentAdditionalEntries.map((entry, index) => (
-                                        <div
-                                          key={`${entry.calendarId}-${entry.summary}-${index}`}
-                                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700"
-                                        >
-                                          <div className="font-medium text-slate-900">
-                                            {entry.summary}
-                                          </div>
-                                          <div className="mt-1 text-xs text-slate-500">
-                                            {entry.fileName}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ) : null}
                               </div>
                             )}
                           </div>
+
+                          {isEditMode ? (
+                            <div className="mt-4 flex justify-end">
+                              <button
+                                type="button"
+                                onClick={closeEditMode}
+                                className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-[#8B1E2D] bg-[#8B1E2D] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg"
+                                title="Bearbeitungsmodus ausblenden"
+                              >
+                                <span aria-hidden="true" className="text-base leading-none">
+                                  ✏️
+                                </span>
+                                Editor ausblenden
+                              </button>
+                            </div>
+                          ) : null}
 
                           <div className="h-6" />
                         </div>

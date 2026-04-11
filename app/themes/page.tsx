@@ -360,19 +360,20 @@ export default function ThemesPage() {
     <RequireAuth>
       <BackgroundLayout>
         <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl px-2 py-2 sm:px-4 sm:py-3 lg:px-6">
-          <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-orange-300 bg-white/85 shadow-xl ring-2 ring-orange-200 backdrop-blur-md">
+          <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border-[4px] border-[#F29420] bg-white shadow-xl">
             <div className="shrink-0 p-4 sm:p-6 lg:p-7">
               <header>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
-                    <h1 className="text-2xl font-semibold text-slate-900">
-                      Thema der Woche <span className="text-slate-600">(Edition 1)</span>
+                    <h1 className="text-2xl font-semibold tracking-wide text-slate-900">
+                      Thema der Woche <span className="text-slate-600">(Edition 1)</span>{' '}
+                      <span className="font-semibold text-[#F29420]">Themenauswahl</span>
                     </h1>
 
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       <div className="text-base text-slate-900">
                         Aktuell:{' '}
-                        <span className="font-semibold text-[#F29420]">
+                        <span className="font-semibold text-slate-900">
                           {currentUserPlan ? `Variante ${currentUserPlan}` : 'wird geladen'}
                         </span>
                       </div>

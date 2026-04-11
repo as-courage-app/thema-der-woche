@@ -250,58 +250,94 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     ),
   },
   {
-    title: 'iCal aktivieren (Themenauswahl)',
+    title: 'Teamkalender (Standard) (Themenauswahl)',
     body: (
       <>
-        <span className="inline-flex min-h-[32px] items-center rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm">
-          <span className="mr-3 inline-flex h-5 w-5 items-center justify-center rounded bg-blue-700 text-white">
-            ✓
-          </span>
-
-          <span className="flex flex-col leading-tight">
-            <span className="font-medium text-slate-900">iCal aktivieren</span>
-            <span className="text-xs text-slate-500">
-              Download später bei „Zitate &amp; Tagesimpulse“
-            </span>
-          </span>
+        <span className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#4EA72E] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+          <span aria-hidden="true">⬇️</span>
+          <span>Teamkalender herunterladen (Standard)</span>
         </span>
 
         <p className="mt-2">
-          Diese Funktion ist nur in{' '}
-          <span className="font-semibold text-slate-900">Variante C</span>{' '}
-          verfügbar und gehört zur Kalendernutzung. Die Datumsangaben werden
-          direkt aus deiner Festlegung mit Anzahl der Wochen und dem Startmontag
-          übernommen. Damit können ausgewählte Themen und Impulse als
-          Kalenderdaten vorbereitet oder übernommen werden. Sie können so
-          unbegrenzt viele Menschen über die Wochenthemen und Impulsfragen in
-          Kenntnis setzen.
-          <br />
-          <br />
-          Der Download ist auf der Seite{' '}
-          <span className="font-semibold text-slate-900">
-            Zitate &amp; Tagesimpulse
-          </span>{' '}
-          möglich.
+          Der Teamkalender ist der zentrale Standardkalender der App. Er basiert auf deiner Themenauswahl, der festgelegten Anzahl an Wochen und dem gewählten Startdatum. So werden Themen, Zitate und Tagesimpulse für den ausgewählten Zeitraum als Kalender vorbereitet.
+        </p>
+
+        <p className="mt-2">
+          <span className="font-semibold text-slate-900">Standard</span> bedeutet:
+          Dieser Teamkalender ist noch im Originalzustand und wurde noch nicht bearbeitet oder ergänzt.
         </p>
       </>
     ),
   },
+
   {
-    title: 'iCal downloaden (Zitate & Tagesimpulse)',
+    title: 'Teamkalender + herunterladen',
     body: (
       <>
-        <span className="inline-flex min-h-[32px] items-center rounded-xl bg-slate-900 px-3 py-1 text-sm font-semibold text-white shadow-sm">
-          iCal herunterladen
+        <span className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-[#A61E2D] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+          <span aria-hidden="true">⬇️</span>
+          <span>Teamkalender + herunterladen</span>
         </span>
 
         <p className="mt-2">
-          Hier kannst du eine Kalenderdatei in <span className="font-semibold text-slate-900"> Variante C</span>{' '} herunterladen. Diese kannst du anschließend
-          in einen passenden digitalen Kalender importieren. Dieser Button ist nur anklickbar,
-          wenn er vorher auf der Seite <span className="font-semibold text-slate-900">Themenauswahl</span>{' '} aktiviert wurde.
+          Dieser Button lädt den <span className="font-semibold text-slate-900">Teamkalender +</span> herunter.
+        </p>
+
+        <p className="mt-2">
+          <span className="font-semibold text-slate-900">Teamkalender +</span> bedeutet:
+          Der ursprüngliche Standard-Teamkalender wurde im Editor bearbeitet und/oder durch Zusatztermine ergänzt.
+        </p>
+
+      </>
+    ),
+  },
+
+  {
+    title: 'Editor (Teamkalender) einblenden oder ausblenden',
+    body: (
+      <>
+        <span className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-[#A61E2D] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+          <span aria-hidden="true">✏️</span>
+          <span>Editor einblenden oder ausblenden</span>
+        </span>
+
+        <p className="mt-2">
+          Mit diesem Button blendest du den <span className="font-semibold text-slate-900">Editor für den Zusatzkalender</span>{' '}
+          ein oder aus. Hier kannst du Änderungen am Standard-Teamkalender vornehmen und Zusatzkalender einbinden.
         </p>
       </>
     ),
   },
+
+  {
+    title: 'Zusatzkalender',
+    body: (
+      <>
+        <p className="font-semibold text-slate-900">Zusatzkalender</p>
+
+        <p className="mt-2">
+          Zusatzkalender ergänzen den Teamkalender um weitere Termine, zum Beispiel
+          Ferien, Feiertage oder andere zusätzliche Einträge.
+        </p>
+
+        <p className="mt-2">
+          Eingelesen werden derzeit Kalender im <span className="font-semibold text-slate-900">ICS-/iCal-Format (.ics)</span>.
+          Diese Dateien müssen vorher aus dem Internet heruntergeladen und lokal auf
+          diesem Gerät gespeichert werden.
+        </p>
+
+        <p className="mt-2">
+          Zusatztermine bleiben eigenständige Kalendereinträge und werden nicht mit
+          Zitaten oder Tagesimpulsen vermischt.
+        </p>
+
+        <p className="mt-2">
+          Im Editor kannst du Zusatzkalender einblenden, prüfen und bei Bedarf einzelne Ereignisse oder alle Termine übernehmen.
+        </p>
+      </>
+    ),
+  },
+
   {
     title: 'Modus (Themenauswahl)',
     body: (
@@ -591,7 +627,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
   },
 ];
 
-export default function InfoButton({ className = '' }: InfoButtonProps) {
+export default function InfoButtonFull({ className = '' }: InfoButtonProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -601,17 +637,41 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
     );
   }, []);
 
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
   const filteredExampleItems = infoItems.filter(
     (item) =>
       item.title === 'Anwendungsbeispiele' &&
-      item.title.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      item.title.toLowerCase().includes(normalizedSearchTerm)
   );
 
   const filteredFunctionItems = infoItems.filter(
     (item) =>
       item.title !== 'Anwendungsbeispiele' &&
-      item.title.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      item.title.toLowerCase().includes(normalizedSearchTerm)
   );
+
+  const showFarblogik =
+    normalizedSearchTerm === '' ||
+    [
+      'farblogik',
+      'farbe',
+      'farben',
+      'orange',
+      'grün',
+      'gruen',
+      'rot',
+      'orientierung',
+      'themenauswahl',
+      'anzahl wochen',
+      'startdatum',
+      'hauptseite',
+      'themen',
+      'zitate',
+      'tagesimpulse',
+      'editor',
+      'zusatzkalender',
+    ].some((entry) => entry.includes(normalizedSearchTerm));
 
   useEffect(() => {
     if (!open) return;
@@ -651,8 +711,8 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
           top: 'calc(env(safe-area-inset-top, 0px) + 5.5rem)',
           right: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
         }}
-        aria-label="Info öffnen"
-        title="Info"
+        aria-label="Info Vollversion öffnen"
+        title="Info Vollversion"
       >
         ℹ️
       </button>
@@ -677,10 +737,10 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-5">
               <div>
                 <h2 id="info-dialog-title" className="text-xl font-semibold text-slate-900">
-                  Info
+                  Info Vollversion
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Hier findest du kurze Erklärungen zu den wichtigsten Funktionen.
+                  Hier findest du kurze Erklärungen zu den wichtigsten Funktionen sowie eine Infosuche.
                 </p>
               </div>
 
@@ -696,7 +756,7 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
             </div>
 
             <div className="max-h-[75vh] overflow-y-auto p-5">
-              <div className="rounded-xl bg-[#F29420] p-4 text-sm leading-6 text-slate-900">
+              <div className="rounded-xl border-2 border-[#F29420] bg-white p-4 text-sm leading-6 text-slate-900">
                 <p className="text-lg font-semibold text-slate-900">Kurzer Hinweis</p>
                 <p className="mt-2">
                   Tippe oder klicke auf einen Begriff, um die passende Erklärung zu öffnen.
@@ -704,20 +764,6 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
                   auf der die Funktion verfügbar ist. Die dargestellten beschrifteten Button dienen zur Orientierung
                   und haben hier keine weitere Funktion.
                 </p>
-              </div>
-
-              <div className="mt-4">
-                <label htmlFor="info-search" className="block text-sm font-medium text-slate-800">
-                  Infosuche
-                </label>
-                <input
-                  id="info-search"
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Begriff eingeben, zum Beispiel Notizen oder iCal"
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-                />
               </div>
 
               <>
@@ -734,11 +780,64 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
                   </div>
                 ))}
 
-                <div className="mt-5 rounded-xl bg-[#F29420] p-4 text-sm leading-6 text-slate-900">
+                {showFarblogik ? (
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                    <p className="text-lg font-semibold text-slate-900">Farblogik</p>
+                    <p className="mt-2 leading-6">
+                      Die App nutzt drei Leitfarben zur besseren Orientierung.
+                    </p>
+
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#F29420] text-sm font-semibold text-slate-900 shadow-sm">
+                          Orange
+                        </span>
+                        <p className="pt-2 leading-6">
+                          steht für Orientierung, Themenauswahl, Anzahl Wochen und Startdatum.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#4EA72E] text-sm font-semibold text-white shadow-sm">
+                          Grün
+                        </span>
+                        <p className="pt-2 leading-6">
+                          kennzeichnet die Hauptseite mit Themen, Zitaten und Tagesimpulsen.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#990000] text-sm font-semibold text-white shadow-sm">
+                          Rot
+                        </span>
+                        <p className="pt-2 leading-6">
+                          steht für den Editor des Zusatzkalenders.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-5 rounded-xl border-2 border-[#F29420] bg-white p-4 text-sm leading-6 text-slate-900">
                   <p className="text-lg font-semibold text-slate-900">Funktionen der App</p>
+
+                  <div className="mt-4">
+                    <label htmlFor="info-search" className="block text-lg font-semibold text-slate-900">
+                      Infosuche
+                    </label>
+                    <input
+                      id="info-search"
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Begriff eingeben, zum Beispiel Notizen oder Teamkalender"
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-4 space-y-3">
+
                   {filteredFunctionItems.map((item) => (
                     <details
                       key={item.title}
@@ -760,7 +859,7 @@ export default function InfoButton({ className = '' }: InfoButtonProps) {
                   type="button"
                   onClick={() => setOpen(false)}
                   className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-[#F29420] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E4891E] hover:shadow-lg"
-                  aria-label="Info schließen"
+                  aria-label="Info Vollversion schließen"
                   title="Schließen"
                 >
                   <span aria-hidden="true" className="flex items-center">
