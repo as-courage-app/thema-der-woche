@@ -1620,6 +1620,161 @@ export default function QuotesPage() {
                           </div>
 
                           <div className="mt-4 space-y-2">
+                            <div className="hidden space-y-2 md:block">
+                              <div className="grid grid-cols-5 gap-2">
+                                {DISPLAY_DAYS.slice(0, 5).map((d) => {
+                                  const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
+                                  const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
+                                  const isActiveDay = dayIndex === d.index;
+
+                                  return (
+                                    <div
+                                      key={d.key}
+                                      className={[
+                                        'w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        isEditMode
+                                          ? isActiveDay
+                                            ? 'border-[#8B1E2D]'
+                                            : isVisibleInExport
+                                              ? 'border-[#8B1E2D]/40'
+                                              : 'border-slate-200'
+                                          : isActiveDay
+                                            ? 'border-[#4EA72E]'
+                                            : 'border-slate-200',
+                                      ].join(' ')}
+                                    >
+                                      <div
+                                        className={[
+                                          'flex min-h-[56px] items-stretch',
+                                          isEditMode
+                                            ? isActiveDay
+                                              ? 'bg-[#8B1E2D] text-white'
+                                              : isVisibleInExport
+                                                ? 'bg-[#8B1E2D]/8 text-[#8B1E2D]'
+                                                : 'bg-white text-slate-700'
+                                            : isActiveDay
+                                              ? 'bg-[#4EA72E] text-white'
+                                              : 'bg-white text-slate-700',
+                                        ].join(' ')}
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setActiveDay((prev) => ({
+                                              ...prev,
+                                              [current.id]: d.index,
+                                            }))
+                                          }
+                                          className="flex min-h-[56px] flex-1 cursor-pointer items-center px-4 py-2 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]"
+                                        >
+                                          <span className="font-medium">{d.key}</span>
+                                        </button>
+
+                                        {isEditMode ? (
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            }
+                                            className={[
+                                              'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                              isVisibleInExport
+                                                ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                                : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                            ].join(' ')}
+                                            title={
+                                              isVisibleInExport
+                                                ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                                : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                            }
+                                            aria-pressed={isVisibleInExport}
+                                          >
+                                            ✓
+                                          </button>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="grid max-w-[40%] grid-cols-2 gap-2">
+                                {DISPLAY_DAYS.slice(5).map((d) => {
+                                  const draftKey = buildInlineIcalDraftKey(current.id, clampedIndex, d.key);
+                                  const isVisibleInExport = inlineIcalVisibility[draftKey] ?? true;
+                                  const isActiveDay = dayIndex === d.index;
+
+                                  return (
+                                    <div
+                                      key={d.key}
+                                      className={[
+                                        'w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        isEditMode
+                                          ? isActiveDay
+                                            ? 'border-[#8B1E2D]'
+                                            : isVisibleInExport
+                                              ? 'border-[#8B1E2D]/40'
+                                              : 'border-slate-200'
+                                          : isActiveDay
+                                            ? 'border-[#4EA72E]'
+                                            : 'border-slate-200',
+                                      ].join(' ')}
+                                    >
+                                      <div
+                                        className={[
+                                          'flex min-h-[56px] items-stretch',
+                                          isEditMode
+                                            ? isActiveDay
+                                              ? 'bg-[#8B1E2D] text-white'
+                                              : isVisibleInExport
+                                                ? 'bg-[#8B1E2D]/8 text-[#8B1E2D]'
+                                                : 'bg-white text-slate-700'
+                                            : isActiveDay
+                                              ? 'bg-[#4EA72E] text-white'
+                                              : 'bg-white text-slate-700',
+                                        ].join(' ')}
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setActiveDay((prev) => ({
+                                              ...prev,
+                                              [current.id]: d.index,
+                                            }))
+                                          }
+                                          className="flex min-h-[56px] flex-1 cursor-pointer items-center px-4 py-2 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]"
+                                        >
+                                          <span className="font-medium">{d.key}</span>
+                                        </button>
+
+                                        {isEditMode ? (
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            }
+                                            className={[
+                                              'mr-2 self-center inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                              isVisibleInExport
+                                                ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                                : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                            ].join(' ')}
+                                            title={
+                                              isVisibleInExport
+                                                ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                                : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                            }
+                                            aria-pressed={isVisibleInExport}
+                                          >
+                                            ✓
+                                          </button>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
 
                             <div className="space-y-2 md:hidden">
                               <div className="grid grid-cols-3 gap-2">
@@ -1632,7 +1787,7 @@ export default function QuotesPage() {
                                     <div
                                       key={d.key}
                                       className={[
-                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        'w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
                                         isEditMode
                                           ? isActiveDay
                                             ? 'border-[#8B1E2D]'
@@ -1644,16 +1799,9 @@ export default function QuotesPage() {
                                             : 'border-slate-200',
                                       ].join(' ')}
                                     >
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setActiveDay((prev) => ({
-                                            ...prev,
-                                            [current.id]: d.index,
-                                          }))
-                                        }
+                                      <div
                                         className={[
-                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          'flex min-h-[76px] flex-col',
                                           isEditMode
                                             ? isActiveDay
                                               ? 'bg-[#8B1E2D] text-white'
@@ -1665,31 +1813,46 @@ export default function QuotesPage() {
                                               : 'bg-white text-slate-700',
                                         ].join(' ')}
                                       >
-                                        <span className="font-medium">{d.key}</span>
-                                      </button>
+                                        <div className="flex min-h-[30px] items-center justify-end px-2 pt-2">
+                                          {isEditMode ? (
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                              }
+                                              className={[
+                                                'inline-flex h-6 min-w-[24px] cursor-pointer items-center justify-center rounded-md border px-1 text-[10px] font-bold leading-none shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                                isVisibleInExport
+                                                  ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                                  : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                              ].join(' ')}
+                                              title={
+                                                isVisibleInExport
+                                                  ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                                  : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                              }
+                                              aria-pressed={isVisibleInExport}
+                                            >
+                                              ✓
+                                            </button>
+                                          ) : (
+                                            <div className="h-6 w-6" aria-hidden="true" />
+                                          )}
+                                        </div>
 
-                                      {isEditMode ? (
                                         <button
                                           type="button"
                                           onClick={() =>
-                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            setActiveDay((prev) => ({
+                                              ...prev,
+                                              [current.id]: d.index,
+                                            }))
                                           }
-                                          className={[
-                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
-                                            isVisibleInExport
-                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
-                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
-                                          ].join(' ')}
-                                          title={
-                                            isVisibleInExport
-                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
-                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
-                                          }
-                                          aria-pressed={isVisibleInExport}
+                                          className="flex flex-1 cursor-pointer items-center justify-center px-2 pb-3 text-center transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]"
                                         >
-                                          ✓
+                                          <span className="text-base font-semibold leading-none">{d.key}</span>
                                         </button>
-                                      ) : null}
+                                      </div>
                                     </div>
                                   );
                                 })}
@@ -1705,7 +1868,7 @@ export default function QuotesPage() {
                                     <div
                                       key={d.key}
                                       className={[
-                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        'w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
                                         isEditMode
                                           ? isActiveDay
                                             ? 'border-[#8B1E2D]'
@@ -1717,16 +1880,9 @@ export default function QuotesPage() {
                                             : 'border-slate-200',
                                       ].join(' ')}
                                     >
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setActiveDay((prev) => ({
-                                            ...prev,
-                                            [current.id]: d.index,
-                                          }))
-                                        }
+                                      <div
                                         className={[
-                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          'flex min-h-[76px] flex-col',
                                           isEditMode
                                             ? isActiveDay
                                               ? 'bg-[#8B1E2D] text-white'
@@ -1738,31 +1894,46 @@ export default function QuotesPage() {
                                               : 'bg-white text-slate-700',
                                         ].join(' ')}
                                       >
-                                        <span className="font-medium">{d.key}</span>
-                                      </button>
+                                        <div className="flex min-h-[30px] items-center justify-end px-2 pt-2">
+                                          {isEditMode ? (
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                              }
+                                              className={[
+                                                'inline-flex h-6 min-w-[24px] cursor-pointer items-center justify-center rounded-md border px-1 text-[10px] font-bold leading-none shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                                isVisibleInExport
+                                                  ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                                  : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                              ].join(' ')}
+                                              title={
+                                                isVisibleInExport
+                                                  ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                                  : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                              }
+                                              aria-pressed={isVisibleInExport}
+                                            >
+                                              ✓
+                                            </button>
+                                          ) : (
+                                            <div className="h-6 w-6" aria-hidden="true" />
+                                          )}
+                                        </div>
 
-                                      {isEditMode ? (
                                         <button
                                           type="button"
                                           onClick={() =>
-                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            setActiveDay((prev) => ({
+                                              ...prev,
+                                              [current.id]: d.index,
+                                            }))
                                           }
-                                          className={[
-                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
-                                            isVisibleInExport
-                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
-                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
-                                          ].join(' ')}
-                                          title={
-                                            isVisibleInExport
-                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
-                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
-                                          }
-                                          aria-pressed={isVisibleInExport}
+                                          className="flex flex-1 cursor-pointer items-center justify-center px-2 pb-3 text-center transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]"
                                         >
-                                          ✓
+                                          <span className="text-base font-semibold leading-none">{d.key}</span>
                                         </button>
-                                      ) : null}
+                                      </div>
                                     </div>
                                   );
                                 })}
@@ -1778,7 +1949,7 @@ export default function QuotesPage() {
                                     <div
                                       key={d.key}
                                       className={[
-                                        'relative w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
+                                        'w-full overflow-hidden rounded-2xl border text-sm shadow-sm',
                                         isEditMode
                                           ? isActiveDay
                                             ? 'border-[#8B1E2D]'
@@ -1790,16 +1961,9 @@ export default function QuotesPage() {
                                             : 'border-slate-200',
                                       ].join(' ')}
                                     >
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setActiveDay((prev) => ({
-                                            ...prev,
-                                            [current.id]: d.index,
-                                          }))
-                                        }
+                                      <div
                                         className={[
-                                          'flex min-h-[56px] w-full cursor-pointer items-center px-4 py-2 pr-12 text-left transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]',
+                                          'flex min-h-[76px] flex-col',
                                           isEditMode
                                             ? isActiveDay
                                               ? 'bg-[#8B1E2D] text-white'
@@ -1811,31 +1975,46 @@ export default function QuotesPage() {
                                               : 'bg-white text-slate-700',
                                         ].join(' ')}
                                       >
-                                        <span className="font-medium">{d.key}</span>
-                                      </button>
+                                        <div className="flex min-h-[30px] items-center justify-end px-2 pt-2">
+                                          {isEditMode ? (
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                              }
+                                              className={[
+                                                'inline-flex h-6 min-w-[24px] cursor-pointer items-center justify-center rounded-md border px-1 text-[10px] font-bold leading-none shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
+                                                isVisibleInExport
+                                                  ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
+                                                  : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
+                                              ].join(' ')}
+                                              title={
+                                                isVisibleInExport
+                                                  ? 'Im Export ausgewählt – zum Ausblenden klicken'
+                                                  : 'Nicht im Export ausgewählt – zum Einblenden klicken'
+                                              }
+                                              aria-pressed={isVisibleInExport}
+                                            >
+                                              ✓
+                                            </button>
+                                          ) : (
+                                            <div className="h-6 w-6" aria-hidden="true" />
+                                          )}
+                                        </div>
 
-                                      {isEditMode ? (
                                         <button
                                           type="button"
                                           onClick={() =>
-                                            toggleInlineIcalVisibility(current.id, clampedIndex, d.key)
+                                            setActiveDay((prev) => ({
+                                              ...prev,
+                                              [current.id]: d.index,
+                                            }))
                                           }
-                                          className={[
-                                            'absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border text-[11px] font-bold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.04]',
-                                            isVisibleInExport
-                                              ? 'border-[#741827] bg-[#8B1E2D] text-white hover:bg-[#741827]'
-                                              : 'border-slate-300 bg-white text-transparent hover:border-[#8B1E2D]/40 hover:bg-[#8B1E2D]/8',
-                                          ].join(' ')}
-                                          title={
-                                            isVisibleInExport
-                                              ? 'Im Export ausgewählt – zum Ausblenden klicken'
-                                              : 'Nicht im Export ausgewählt – zum Einblenden klicken'
-                                          }
-                                          aria-pressed={isVisibleInExport}
+                                          className="flex flex-1 cursor-pointer items-center justify-center px-2 pb-3 text-center transition duration-200 hover:-translate-y-0.5 hover:scale-[1.01]"
                                         >
-                                          ✓
+                                          <span className="text-base font-semibold leading-none">{d.key}</span>
                                         </button>
-                                      ) : null}
+                                      </div>
                                     </div>
                                   );
                                 })}
