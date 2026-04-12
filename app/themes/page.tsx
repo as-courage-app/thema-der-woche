@@ -521,10 +521,10 @@ export default function ThemesPage() {
                         setError(null);
                       }}
                       className={[
-                        'rounded-lg border px-3 py-2 text-sm transition',
+                        'rounded-lg px-3 py-2 text-sm transition shadow-sm',
                         mode === 'manual'
-                          ? 'border-[#F29420] bg-[#F29420] text-white'
-                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
+                          ? 'border-2 border-[#F29420] bg-[#FFF3E8] font-semibold text-slate-900'
+                          : 'border border-slate-300 bg-white text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#F29420] hover:bg-[#FFF3E8] hover:shadow-xl cursor-pointer',
                       ].join(' ')}
                     >
                       Manuell
@@ -537,10 +537,10 @@ export default function ThemesPage() {
                         setError(null);
                       }}
                       className={[
-                        'rounded-lg border px-3 py-2 text-sm transition',
+                        'rounded-lg px-3 py-2 text-sm transition shadow-sm',
                         mode === 'random'
-                          ? 'border-[#F29420] bg-[#F29420] text-white'
-                          : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50',
+                          ? 'border-2 border-[#F29420] bg-[#FFF3E8] font-semibold text-slate-900'
+                          : 'border border-slate-300 bg-white text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#F29420] hover:bg-[#FFF3E8] hover:shadow-xl cursor-pointer',
                       ].join(' ')}
                     >
                       Zufall
@@ -554,7 +554,12 @@ export default function ThemesPage() {
                   <button
                     type="button"
                     onClick={pickRandomThemes}
-                    className="inline-flex h-[48px] cursor-pointer items-center rounded-xl border border-[#F29420] bg-[#F29420] px-4 py-0 text-sm text-white shadow-sm transition hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#E4891E] hover:shadow-xl"
+                    className={[
+                      'inline-flex h-[48px] cursor-pointer items-center rounded-xl px-4 py-0 text-sm shadow-sm transition',
+                      mode === 'random'
+                        ? 'border-2 border-[#F29420] bg-[#FFF3E8] font-semibold text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#FCE7D1] hover:shadow-xl'
+                        : 'border border-slate-300 bg-white text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#F29420] hover:bg-[#FFF3E8] hover:shadow-xl',
+                    ].join(' ')}
                   >
                     Zufallsauswahl erzeugen
                   </button>

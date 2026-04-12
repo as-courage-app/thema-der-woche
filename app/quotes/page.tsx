@@ -1335,12 +1335,12 @@ export default function QuotesPage() {
                   onClick={goPrev}
                   disabled={!canPrev}
                   className={[
-                    'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
+                    'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition duration-200',
                     canPrev
                       ? isEditMode
                         ? 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg'
-                        : 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
-                      : 'cursor-not-allowed border-slate-200 bg-white text-slate-400',
+                        : 'cursor-pointer border-[#4EA72E] bg-[#F6FBF4] text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3F8A25] hover:bg-[#EEF8EA] hover:shadow-lg'
+                      : 'cursor-not-allowed border-slate-300 bg-white text-slate-400 shadow-sm',
                   ].join(' ')}
                 >
                   zurück
@@ -1351,12 +1351,12 @@ export default function QuotesPage() {
                   onClick={goNext}
                   disabled={!canNext}
                   className={[
-                    'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-medium shadow-sm transition duration-200',
+                    'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition duration-200',
                     canNext
                       ? isEditMode
                         ? 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg'
-                        : 'cursor-pointer border-[#4EA72E] bg-[#4EA72E] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3f8a25] hover:bg-[#3f8a25] hover:shadow-lg'
-                      : 'cursor-not-allowed border-slate-200 bg-white text-slate-400',
+                        : 'cursor-pointer border-[#4EA72E] bg-[#F6FBF4] text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3F8A25] hover:bg-[#EEF8EA] hover:shadow-lg'
+                      : 'cursor-not-allowed border-slate-300 bg-white text-slate-400 shadow-sm',
                   ].join(' ')}
                 >
                   weiter
@@ -1414,10 +1414,10 @@ export default function QuotesPage() {
                         downloadTeamCalendar();
                       }}
                       className={[
-                        'inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg',
+                        'inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg',
                         isEditMode
-                          ? 'border-[#8B1E2D] bg-[#8B1E2D] hover:border-[#741827] hover:bg-[#741827]'
-                          : 'border-[#4EA72E] bg-[#4EA72E] hover:border-[#3F8A25] hover:bg-[#3F8A25]',
+                          ? 'border-[#8B1E2D] bg-[#8B1E2D] text-white hover:border-[#741827] hover:bg-[#741827]'
+                          : 'border-[#4EA72E] bg-[#F6FBF4] text-slate-900 hover:border-[#3F8A25] hover:bg-[#EEF8EA]',
                       ].join(' ')}
                       title={
                         isEditMode
@@ -1591,7 +1591,7 @@ export default function QuotesPage() {
 
                               <div className="mt-4">
                                 <label className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl border border-[#8B1E2D] bg-[#8B1E2D] px-4 py-2 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg">
-                                  ICS-Kalender auswählen
+                                  Zusatzkalender auswählen
                                   <input
                                     type="file"
                                     accept=".ics,text/calendar"

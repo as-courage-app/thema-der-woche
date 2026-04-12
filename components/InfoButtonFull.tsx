@@ -253,7 +253,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     title: 'Teamkalender (Standard) (Themenauswahl)',
     body: (
       <>
-        <span className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#4EA72E] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+        <span className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#4EA72E] bg-[#F6FBF4] px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm">
           <span aria-hidden="true">⬇️</span>
           <span>Teamkalender herunterladen (Standard)</span>
         </span>
@@ -271,7 +271,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
   },
 
   {
-    title: 'Teamkalender + herunterladen',
+    title: 'Teamkalender + herunterladen (Editor)',
     body: (
       <>
         <span className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-[#A61E2D] px-4 py-2 text-sm font-semibold text-white shadow-sm">
@@ -313,7 +313,10 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     title: 'Zusatzkalender',
     body: (
       <>
-        <p className="font-semibold text-slate-900">Zusatzkalender</p>
+
+        <span className="mt-2 inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-[#A61E2D] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+          <span>Zusatzkalender auswählen</span>
+        </span>
 
         <p className="mt-2">
           Zusatzkalender ergänzen den Teamkalender um weitere Termine, zum Beispiel
@@ -321,7 +324,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
         </p>
 
         <p className="mt-2">
-          Eingelesen werden derzeit Kalender im <span className="font-semibold text-slate-900">ICS-/iCal-Format (.ics)</span>.
+          Eingelesen werden derzeit <span className="font-semibold text-slate-900">Zusatzkalender im ICS-/iCal-Format (.ics)</span>.
           Diese Dateien müssen vorher aus dem Internet heruntergeladen und lokal auf
           diesem Gerät gespeichert werden.
         </p>
@@ -548,17 +551,18 @@ const RAW_INFO_ITEMS: InfoItem[] = [
       <>
         <div className="space-y-3">
           <div>
-            <span className="inline-flex items-center rounded-lg bg-slate-900 px-3 py-1 text-sm font-semibold text-white">
+            <span className="inline-flex items-center rounded-lg bg-[#4EA72E] px-3 py-1 text-sm font-semibold text-white">
               Weiter
             </span>
             <p className="mt-1">
-              Mit dem Weiter-Button auf der Seite <span className="font-semibold text-slate-900">Themenauswahl</span>{' '}
-              springst du auf die Seite <span className="font-semibold text-slate-900">Zitate &amp; Tagesimpulse</span>.
+              Mit dem grünen Weiter-Button auf der Seite <span className="font-semibold text-slate-900">Themenauswahl</span>{' '}
+              springst du auf die Seite <span className="font-semibold text-slate-900"><br />
+                Zitate &amp; Tagesimpulse</span>.
             </p>
           </div>
 
           <div>
-            <span className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-900">
+            <span className="inline-flex items-center rounded-xl border border-[#4EA72E] bg-[#F6FBF4] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
               Weiter
             </span>
             <p className="mt-1">
@@ -571,7 +575,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     ),
   },
   {
-    title: 'zum Upgrade (auf jeder Seite)',
+    title: 'zum Upgrade (mehrere Seiten)',
     body: (
       <>
         <span className="inline-flex min-h-[32px] items-center rounded-xl bg-[#F29420] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
@@ -590,11 +594,11 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     body: (
       <>
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex min-h-[32px] items-center rounded-xl bg-slate-900 px-3 py-1 text-sm font-semibold text-white shadow-sm">
+          <span className="inline-flex min-h-[32px] items-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
             Zufall
           </span>
 
-          <span className="inline-flex min-h-[32px] items-center rounded-xl bg-slate-900 px-3 py-1 text-sm font-semibold text-white shadow-sm">
+          <span className="inline-flex min-h-[32px] items-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
             Zufallauswahl erzeugen
           </span>
         </div>
@@ -602,7 +606,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
         <p className="mt-2">
           Mit <span className="font-semibold text-slate-900">Zufall</span>{' '}
           deaktivierst du <span className="font-semibold text-slate-900">manuell</span>{' '}
-          und aktivierst die Zufallauswahl. Die Zufallsauswahl erfolgt entsprechend
+          und aktivierst die Zufallsauswahl. Die Zufallsauswahl erfolgt entsprechend
           der gewählten Anzahl Wochen durch Klicken auf den Button{' '}
           <span className="font-semibold text-slate-900">Zufallauswahl erzeugen</span>.
         </p>
@@ -610,7 +614,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     ),
   },
   {
-    title: 'zurück',
+    title: 'zurück (mehrere Seiten)',
     body: (
       <>
         <span className="inline-flex min-h-[32px] items-center rounded-xl border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
@@ -630,6 +634,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
 export default function InfoButtonFull({ className = '' }: InfoButtonProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFarblogikOpen, setIsFarblogikOpen] = useState(false);
 
   const infoItems = useMemo(() => {
     return [...RAW_INFO_ITEMS].sort((a, b) =>
@@ -781,41 +786,46 @@ export default function InfoButtonFull({ className = '' }: InfoButtonProps) {
                 ))}
 
                 {showFarblogik ? (
-                  <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-                    <p className="text-lg font-semibold text-slate-900">Farblogik</p>
-                    <p className="mt-2 leading-6">
-                      Die App nutzt drei Leitfarben zur besseren Orientierung.
-                    </p>
+                  <details className="mt-4 rounded-xl border border-slate-200 bg-white">
+                    <summary className="cursor-pointer rounded-xl px-4 py-3 font-semibold text-slate-900">
+                      Farblogik
+                    </summary>
 
-                    <div className="mt-4 space-y-3">
-                      <div className="flex items-start gap-3">
-                        <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#F29420] text-sm font-semibold text-slate-900 shadow-sm">
-                          Orange
-                        </span>
-                        <p className="pt-2 leading-6">
-                          steht für Orientierung, Themenauswahl, Anzahl Wochen und Startdatum.
-                        </p>
-                      </div>
+                    <div className="px-4 pb-4 text-sm text-slate-700">
+                      <p className="leading-6">
+                        Die App nutzt drei Leitfarben zur besseren Orientierung.
+                      </p>
 
-                      <div className="flex items-start gap-3">
-                        <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#4EA72E] text-sm font-semibold text-white shadow-sm">
-                          Grün
-                        </span>
-                        <p className="pt-2 leading-6">
-                          kennzeichnet die Hauptseite mit Themen, Zitaten und Tagesimpulsen.
-                        </p>
-                      </div>
+                      <div className="mt-4 space-y-3">
+                        <div className="flex items-start gap-3">
+                          <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#F29420] text-sm font-semibold text-slate-900 shadow-sm">
+                            Orange
+                          </span>
+                          <p className="pt-2 leading-6">
+                            steht für Orientierung, Themenauswahl, Anzahl Wochen und Startdatum.
+                          </p>
+                        </div>
 
-                      <div className="flex items-start gap-3">
-                        <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#990000] text-sm font-semibold text-white shadow-sm">
-                          Rot
-                        </span>
-                        <p className="pt-2 leading-6">
-                          steht für den Editor des Zusatzkalenders.
-                        </p>
+                        <div className="flex items-start gap-3">
+                          <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#4EA72E] text-sm font-semibold text-white shadow-sm">
+                            Grün
+                          </span>
+                          <p className="pt-2 leading-6">
+                            kennzeichnet die Hauptseite mit Themen, Zitaten und Tagesimpulsen.
+                          </p>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <span className="inline-flex h-11 w-24 shrink-0 items-center justify-center rounded-xl bg-[#990000] text-sm font-semibold text-white shadow-sm">
+                            Rot
+                          </span>
+                          <p className="pt-2 leading-6">
+                            steht für den Editor des Zusatzkalenders.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </details>
                 ) : null}
 
                 <div className="mt-5 rounded-xl border-2 border-[#F29420] bg-white p-4 text-sm leading-6 text-slate-900">
