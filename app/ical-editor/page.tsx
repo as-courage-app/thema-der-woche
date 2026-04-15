@@ -869,7 +869,8 @@ export default function ICalEditorPage() {
                                     <div className="flex flex-wrap gap-2">
                                         <Link
                                             href="/account"
-                                            className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl bg-[#F29420] px-4 py-2 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-xl"
+                                            className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#FDE6CF] hover:shadow-xl"
+                                            title="Zum Upgrade"
                                         >
                                             zum upgrade
                                         </Link>

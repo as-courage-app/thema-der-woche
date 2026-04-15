@@ -381,7 +381,7 @@ export default function ThemesPage() {
                       {currentUserPlan !== 'C' && (
                         <Link
                           href="/account"
-                          className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[#F29420] px-4 py-2 text-sm font-medium text-slate-900 shadow-md transition hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#E4891E] hover:shadow-xl cursor-pointer"
+                          className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#FDE6CF] hover:shadow-xl"
                           title="Zum Upgrade"
                         >
                           zum upgrade

@@ -578,7 +578,7 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     title: 'zum Upgrade (mehrere Seiten)',
     body: (
       <>
-        <span className="inline-flex min-h-[32px] items-center rounded-xl bg-[#F29420] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
+        <span className="inline-flex min-h-[32px] items-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
           zum Upgrade
         </span>
 
