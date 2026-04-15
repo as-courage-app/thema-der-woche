@@ -1575,8 +1575,7 @@ export default function QuotesPage() {
 
                               <div className="mt-3 text-sm leading-relaxed text-slate-700">
                                 Hier kannst du lokal heruntergeladene Zusatzkalender im ICS-Format einlesen und
-                                gezielt steuern, ob sie gar nicht, vollständig oder nur für die ausgewählten Wochen
-                                übernommen werden.
+                                gezielt steuern, welche Termine und Ereignisse du für den ausgewählten Zeitraum übernehmen möchtest.
                               </div>
 
                               {selectedWeeksRange ? (
@@ -1712,16 +1711,6 @@ export default function QuotesPage() {
                               {dateRangeText ? <span className="font-medium">{dateRangeText}</span> : null}
                             </div>
                           </div>
-
-                          {isEditMode ? (
-                            <div className="mt-4 rounded-2xl border border-[#8B1E2D] bg-[#8B1E2D]/10 px-4 py-3 text-sm text-slate-900">
-                              <div className="font-semibold text-[#8B1E2D]">Bearbeitungsmodus</div>
-                              <div className="mt-1">
-                                Hier kannst du den Teamkalender anpassen. Zusatzkalender bleiben dabei eigenständige
-                                Einträge und werden nicht mit dem Tagesimpuls zusammengeführt.
-                              </div>
-                            </div>
-                          ) : null}
 
                           <div
                             className="sticky top-0 z-10 mt-4 rounded-xl border-2 p-4 shadow-sm"
@@ -2136,6 +2125,16 @@ export default function QuotesPage() {
                               </div>
                             </div>
                           </div>
+
+                          {isEditMode ? (
+                            <div className="mt-4 rounded-2xl border border-[#8B1E2D] bg-[#8B1E2D]/10 px-4 py-3 text-sm text-slate-900">
+                              <div className="font-semibold text-[#8B1E2D]">Bearbeitungsmodus</div>
+                              <div className="mt-1">
+                                Hier kannst du den Teamkalender anpassen und Termine und Ereignisse 
+                                aus anderen Zusatzkalendern hinzufügen. 
+                              </div>
+                            </div>
+                          ) : null}
 
                           <div
                             className={[
