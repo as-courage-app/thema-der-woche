@@ -1723,6 +1723,40 @@ export default function QuotesPage() {
                             <div className="mt-2 text-lg leading-relaxed text-slate-900">„{current.quote}“</div>
                           </div>
 
+                          <div className="mt-4 grid grid-cols-2 gap-2 lg:hidden">
+                            <button
+                              type="button"
+                              onClick={goPrev}
+                              disabled={!canPrev}
+                              className={[
+                                'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition duration-200',
+                                canPrev
+                                  ? isEditMode
+                                    ? 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg'
+                                    : 'cursor-pointer border-[#4EA72E] bg-[#F6FBF4] text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3F8A25] hover:bg-[#EEF8EA] hover:shadow-lg'
+                                  : 'cursor-not-allowed border-slate-300 bg-white text-slate-400 shadow-sm',
+                              ].join(' ')}
+                            >
+                              zurück
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={goNext}
+                              disabled={!canNext}
+                              className={[
+                                'min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition duration-200',
+                                canNext
+                                  ? isEditMode
+                                    ? 'cursor-pointer border-[#8B1E2D] bg-[#8B1E2D] text-white hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#741827] hover:bg-[#741827] hover:shadow-lg'
+                                    : 'cursor-pointer border-[#4EA72E] bg-[#F6FBF4] text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#3F8A25] hover:bg-[#EEF8EA] hover:shadow-lg'
+                                  : 'cursor-not-allowed border-slate-300 bg-white text-slate-400 shadow-sm',
+                              ].join(' ')}
+                            >
+                              weiter
+                            </button>
+                          </div>
+
                           <div className="mt-4 space-y-2">
                             <div className="hidden space-y-2 md:block">
                               <div className="grid grid-cols-5 gap-2">
