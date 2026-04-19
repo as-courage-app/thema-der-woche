@@ -345,15 +345,15 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     title: 'Modus (Themenauswahl)',
     body: (
       <>
-        <div className="w-full max-w-sm rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
           <p className="text-sm font-medium text-slate-700">Modus</p>
 
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <span className="inline-flex min-h-[38px] items-center justify-center rounded-xl bg-[#0F1B44] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+            <span className="inline-flex min-h-[48px] items-center justify-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm">
               Manuell
             </span>
 
-            <span className="inline-flex min-h-[38px] items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm">
+            <span className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm">
               Zufall
             </span>
           </div>
@@ -361,7 +361,8 @@ const RAW_INFO_ITEMS: InfoItem[] = [
 
         <p className="mt-2">
           Hier entscheidest du, ob du deine Themen
-          <span className="font-semibold text-slate-900">manuell</span>{' '} oder per
+          <span className="font-semibold text-slate-900"> manuell</span>{' '}
+          oder per
           <span className="font-semibold text-slate-900"> Zufall</span>{' '}
           auswählen möchtest. In der{' '}
           <span className="font-semibold text-slate-900">kostenlosen Version</span>{' '}
@@ -590,25 +591,26 @@ const RAW_INFO_ITEMS: InfoItem[] = [
     ),
   },
   {
-    title: 'Zufall und Zufallauswahl erzeugen (Themenauswahl)',
+    title: 'Zufall (Themenauswahl)',
     body: (
       <>
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex min-h-[32px] items-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
             Zufall
           </span>
-
-          <span className="inline-flex min-h-[32px] items-center rounded-xl border-2 border-[#F29420] bg-[#FFF3E8] px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
-            Zufallauswahl erzeugen
-          </span>
         </div>
 
         <p className="mt-2">
           Mit <span className="font-semibold text-slate-900">Zufall</span>{' '}
-          deaktivierst du <span className="font-semibold text-slate-900">manuell</span>{' '}
-          und aktivierst die Zufallsauswahl. Die Zufallsauswahl erfolgt entsprechend
-          der gewählten Anzahl Wochen durch Klicken auf den Button{' '}
-          <span className="font-semibold text-slate-900">Zufallauswahl erzeugen</span>.
+          wird die passende Anzahl an Themen sofort automatisch ausgelost.
+          Die Auswahl kannst du mit den Pfeiltasten in der Reihenfolge anpassen.
+        </p>
+
+        <p className="mt-2">
+          Über <span className="font-semibold text-slate-900">Auswahl aufheben</span>{' '}
+          kannst du die Auswahl zurücksetzen. Danach kannst du mit einem erneuten Klick auf{' '}
+          <span className="font-semibold text-slate-900">Zufall</span>{' '}
+          direkt neu auslosen.
         </p>
       </>
     ),

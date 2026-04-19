@@ -259,6 +259,26 @@ export default function ThemesPage() {
   const selectionComplete = weeksCount > 0 && selectedThemes.length >= weeksCount;
   const showThemesList = !selectionComplete;
 
+  function createRandomSelection(targetCount: number): string[] {
+    const pool = sortedThemes.map((t) => t.id);
+    const n = Math.min(Math.max(1, targetCount), pool.length);
+    const copy = [...pool];
+
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+
+    return copy.slice(0, n);
+  }
+
+  function applyRandomSelection(targetCount: number) {
+    setError(null);
+    const next = createRandomSelection(targetCount);
+    setSelectedThemes(next);
+    writeLS(LS.selection, next);
+  }
+
   function toggleTheme(id: string) {
     setError(null);
     setSelectedThemes((prev) => {
@@ -278,23 +298,6 @@ export default function ThemesPage() {
     setError(null);
     setUsedThemes([]);
     writeLS(LS.usedThemes, []);
-  }
-
-  function pickRandomThemes() {
-    setError(null);
-
-    const pool = sortedThemes.map((t) => t.id);
-    const n = Math.min(weeksCount, pool.length);
-    const copy = [...pool];
-
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-
-    const next = copy.slice(0, n);
-    setSelectedThemes(next);
-    writeLS(LS.selection, next);
   }
 
   function validate(): boolean {
@@ -420,8 +423,14 @@ export default function ThemesPage() {
                       onClick={() => {
                         const next = Math.max(1, weeksCount - 1);
                         setWeeksCount(next);
-                        setSelectedThemes((prev) => prev.slice(0, next));
                         setError(null);
+
+                        if (mode === 'random') {
+                          applyRandomSelection(next);
+                          return;
+                        }
+
+                        setSelectedThemes((prev) => prev.slice(0, next));
                       }}
                       disabled={weeksCount <= 1}
                       className={[
@@ -446,8 +455,14 @@ export default function ThemesPage() {
 
                         if (raw === '') {
                           setWeeksCount(1);
-                          setSelectedThemes((prev) => prev.slice(0, 1));
                           setError(null);
+
+                          if (mode === 'random') {
+                            applyRandomSelection(1);
+                            return;
+                          }
+
+                          setSelectedThemes((prev) => prev.slice(0, 1));
                           return;
                         }
 
@@ -455,8 +470,14 @@ export default function ThemesPage() {
                         const next = Number.isFinite(n) ? Math.min(upperWeeks, Math.max(1, n)) : 1;
 
                         setWeeksCount(next);
-                        setSelectedThemes((prev) => prev.slice(0, next));
                         setError(null);
+
+                        if (mode === 'random') {
+                          applyRandomSelection(next);
+                          return;
+                        }
+
+                        setSelectedThemes((prev) => prev.slice(0, next));
                       }}
                       className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-center text-sm outline-none focus:border-slate-400"
                     />
@@ -466,8 +487,14 @@ export default function ThemesPage() {
                       onClick={() => {
                         const next = Math.min(upperWeeks, weeksCount + 1);
                         setWeeksCount(next);
-                        setSelectedThemes((prev) => prev.slice(0, next));
                         setError(null);
+
+                        if (mode === 'random') {
+                          applyRandomSelection(next);
+                          return;
+                        }
+
+                        setSelectedThemes((prev) => prev.slice(0, next));
                       }}
                       disabled={weeksCount >= upperWeeks}
                       className={[
@@ -534,7 +561,7 @@ export default function ThemesPage() {
                       type="button"
                       onClick={() => {
                         setMode('random');
-                        setError(null);
+                        applyRandomSelection(weeksCount);
                       }}
                       className={[
                         'rounded-lg px-3 py-2 text-sm transition shadow-sm',
@@ -550,21 +577,6 @@ export default function ThemesPage() {
               </div>
 
               <div className="mt-4 mb-4 flex flex-wrap items-center gap-2">
-                {mode === 'random' && (
-                  <button
-                    type="button"
-                    onClick={pickRandomThemes}
-                    className={[
-                      'inline-flex h-[48px] cursor-pointer items-center rounded-xl px-4 py-0 text-sm shadow-sm transition',
-                      mode === 'random'
-                        ? 'border-2 border-[#F29420] bg-[#FFF3E8] font-semibold text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#E4891E] hover:bg-[#FCE7D1] hover:shadow-xl'
-                        : 'border border-slate-300 bg-white text-slate-900 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-[#F29420] hover:bg-[#FFF3E8] hover:shadow-xl',
-                    ].join(' ')}
-                  >
-                    Zufallsauswahl erzeugen
-                  </button>
-                )}
-
                 <button
                   type="button"
                   onClick={clearSelection}
@@ -608,7 +620,7 @@ export default function ThemesPage() {
                     <p>
                       Hier wählst du deine <span className="font-semibold text-slate-900">Themen</span> aus. Sobald die gewünschte{' '}
                       <span className="font-semibold text-slate-900">Anzahl</span> erreicht ist, wird die Themenliste automatisch
-                      ausgeblendet. So erscheint <span className="font-semibold text-slate-900">„Deine Auswahl“</span> direkt im Blick.
+                      ausgeblendet. So erscheint <span className="font-semibold text-slate-900">„Deine Auswahl“</span> direkt im Blick. Du kannst die Themen im Modus "Manuell" auswählen oder "Zufall" auswählen.
                     </p>
 
                     <p className="mt-3">
