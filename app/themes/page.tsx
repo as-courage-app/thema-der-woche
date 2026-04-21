@@ -20,6 +20,7 @@ type Mode = 'manual' | 'random';
 type EditionRow = {
   id: string;
   title?: string;
+  sortAfterId?: string;
   quote: string;
   questions: string[];
 };
@@ -168,7 +169,26 @@ export default function ThemesPage() {
   }, []);
 
   const sortedThemes = useMemo(() => {
-    return [...THEMES].sort((x, y) => sortDE(displayTitle(x), displayTitle(y)));
+    const alphabetic = [...THEMES].sort((x, y) => sortDE(displayTitle(x), displayTitle(y)));
+    const next = [...alphabetic];
+
+    for (const theme of alphabetic) {
+      if (!theme.sortAfterId) continue;
+
+      const fromIndex = next.findIndex((item) => item.id === theme.id);
+      const targetIndex = next.findIndex((item) => item.id === theme.sortAfterId);
+
+      if (fromIndex === -1 || targetIndex === -1) continue;
+      if (fromIndex === targetIndex + 1) continue;
+
+      const [moved] = next.splice(fromIndex, 1);
+      const insertIndex = next.findIndex((item) => item.id === theme.sortAfterId);
+
+      if (insertIndex === -1) continue;
+      next.splice(insertIndex + 1, 0, moved);
+    }
+
+    return next;
   }, []);
 
   useEffect(() => {

@@ -278,6 +278,7 @@
   {
     "id": "ed1-24-ma-gespraeche-1",
     "title": "MA-Gespräche 1",
+    "sortAfterId": "ed1-23-macht-1",
     "quote": "Gute MA-Gespräche \nsind Dialoge und \nkeine Monologe.",
     "questions": [
       "Was ist dir im MA-Gespräch besonders wichtig?",
