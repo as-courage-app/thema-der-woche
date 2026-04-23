@@ -28,7 +28,7 @@ export default function LogoutButton({ className = '' }: Props) {
   }
 
   const buttonClasses = [
-    'fixed z-[70] flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-black text-white shadow-md ring-1 ring-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl hover:ring-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-60',
+    'fixed right-4 top-36 z-[70] flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-black text-white shadow-md ring-1 ring-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl hover:ring-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-60 sm:top-44',
     className,
   ].join(' ');
 
@@ -39,10 +39,7 @@ export default function LogoutButton({ className = '' }: Props) {
         onClick={handleLogout}
         disabled={isBusy}
         className={buttonClasses}
-        style={{
-          top: 'calc(env(safe-area-inset-top, 0px) + 9rem)',
-          right: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
-        }}
+
         aria-label="Abmelden"
         title="Abmelden"
       >

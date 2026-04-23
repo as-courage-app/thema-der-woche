@@ -699,7 +699,7 @@ export default function InfoButtonFull({ className = '' }: InfoButtonProps) {
   }, [open]);
 
   const buttonClasses = [
-    'fixed z-[70] flex h-11 w-11 items-center justify-center rounded-xl text-2xl leading-none shadow-md transition focus:outline-none focus-visible:ring-2',
+    'fixed right-4 top-[5.5rem] z-[70] flex h-11 w-11 items-center justify-center rounded-xl text-2xl leading-none shadow-md transition focus:outline-none focus-visible:ring-2 sm:top-[7.5rem]',
     className ||
     'cursor-pointer bg-white/90 text-slate-900 ring-1 ring-slate-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:ring-slate-400 focus-visible:ring-slate-900',
   ].join(' ');
@@ -714,10 +714,7 @@ export default function InfoButtonFull({ className = '' }: InfoButtonProps) {
           setOpen(true);
         }}
         className={buttonClasses}
-        style={{
-          top: 'calc(env(safe-area-inset-top, 0px) + 5.5rem)',
-          right: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
-        }}
+
         aria-label="Info Vollversion öffnen"
         title="Info Vollversion"
       >

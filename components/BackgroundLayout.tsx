@@ -81,12 +81,21 @@ export default function BackgroundLayout({
           />
         </div>
 
-        <div className="mt-2 flex flex-col items-end gap-4 pointer-events-auto">
+        <div className="mt-2 flex flex-col items-end gap-4 pointer-events-auto sm:mt-2">
           <InfoButtonFull className="cursor-pointer rounded-xl bg-[#F29420] text-white w-11 h-11 flex items-center justify-center text-2xl leading-none shadow-md ring-1 ring-orange-200 transition hover:-translate-y-0.5 hover:bg-[#E4891E] hover:shadow-xl hover:ring-orange-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F29420]" />
 
           {showLogout && hasSession ? (
             <LogoutButton />
           ) : null}
+
+          <a
+            href="/impressum"
+            className="cursor-pointer rounded-md bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200/90 backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md hover:ring-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F29420] sm:rounded-none sm:bg-transparent sm:px-0 sm:py-0 sm:text-[12px] sm:font-medium sm:text-white sm:underline sm:underline-offset-2 sm:shadow-none sm:ring-0 sm:backdrop-blur-0 sm:hover:bg-transparent sm:hover:text-white/90 sm:hover:shadow-none sm:hover:ring-0"
+            title="Impressum öffnen"
+            aria-label="Impressum öffnen"
+          >
+            Impressum
+          </a>
         </div>
       </div>
 
