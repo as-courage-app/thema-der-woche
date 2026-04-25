@@ -16,6 +16,457 @@ type InfoItem = {
 
 const RAW_INFO_ITEMS: InfoItem[] = [
   {
+    title: 'Alle Themen',
+    summary: (
+      <>
+        Alle 41 Themen der Edition 1 als übersichtliche Liste mit laufender
+        Nummer – geeignet für den Ausdruck im DIN-A4-Querformat.
+      </>
+    ),
+    body: (
+      <>
+        <style jsx global>{`
+          @media print {
+            @page {
+              size: A4 landscape;
+              margin: 10mm;
+            }
+
+            html,
+            body {
+              width: 297mm !important;
+              height: 210mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+              background: white !important;
+            }
+
+            body * {
+              visibility: hidden !important;
+            }
+
+            .print-all-themes,
+            .print-all-themes * {
+              visibility: visible !important;
+            }
+
+            .print-all-themes {
+              position: fixed !important;
+              inset: 0 !important;
+              width: auto !important;
+              height: auto !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
+              border: none !important;
+              box-shadow: none !important;
+              background: white !important;
+              color: #0f172a !important;
+            }
+
+            .print-all-themes .grid {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+              gap: 6px 18px !important;
+            }
+
+            .print-all-themes h2 {
+              font-size: 22pt !important;
+              line-height: 1.1 !important;
+            }
+
+            .print-all-themes p {
+              margin-top: 2px !important;
+              margin-bottom: 2px !important;
+            }
+
+            .print-all-themes .rounded-xl {
+              padding-top: 5px !important;
+              padding-bottom: 5px !important;
+            }
+
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}</style>
+
+        <div className="print-all-themes rounded-2xl border border-orange-200 bg-white p-5 text-slate-900 shadow-sm">
+          <div className="mb-5 flex flex-col gap-2 border-b border-orange-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-[#F29420]">
+                Thema der Woche
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-slate-900">
+                Alle Themen
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Edition 1 · 41 Wochenthemen in alphabetischer Reihenfolge
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const themes = [
+                  'Anerkennung 1',
+                  'Belastung',
+                  'Diskriminierung',
+                  'Ehrlichkeit',
+                  'Entscheidungsfindung',
+                  'Erfolg',
+                  'Feedback',
+                  'Fehlerkultur',
+                  'Flexibilität 1',
+                  'Fluktuation',
+                  'Führung 1',
+                  'Gerechtigkeit',
+                  'Gleichberechtigung',
+                  'Grenzen',
+                  'Humor',
+                  'Kennzahlen 1',
+                  'Klarheit',
+                  'Kommunikation 1',
+                  'Konflikte 1',
+                  'Kreativität',
+                  'Kritik 1',
+                  'Lernen 1',
+                  'Macht 1',
+                  'MA-Gespräche 1',
+                  'Motivation',
+                  'Nachhaltigkeit',
+                  'Pausen',
+                  'Prioritäten',
+                  'Qualität 1',
+                  'Regeln 1',
+                  'Selbstführung',
+                  'Selbstwirksamkeit',
+                  'Sinn',
+                  'Stress 1',
+                  'Transparenz',
+                  'Veränderung',
+                  'Verantwortung 1',
+                  'Verbesserungen 1',
+                  'Vision',
+                  'Wertschätzung 1',
+                  'Zusammenarbeit',
+                ];
+
+                const themeRows = themes
+                  .map((theme, index) => {
+                    const isFreeTheme = index < 4;
+
+                    return `
+                      <div class="theme-row${isFreeTheme ? ' theme-row-free' : ''}">
+                        <span class="theme-number">${index + 1}.</span>
+                        <span class="theme-content">
+                          <span class="theme-title">${theme}</span>
+                          ${isFreeTheme
+                        ? '<span class="free-badge">kostenlos</span>'
+                        : ''
+                      }
+                        </span>
+                      </div>
+                    `;
+                  })
+                  .join('');
+
+                const printWindow = window.open(
+                  '',
+                  '_blank',
+                  'width=1200,height=800',
+                );
+
+                if (!printWindow) {
+                  return;
+                }
+
+                printWindow.document.write(`
+                  <!doctype html>
+                  <html lang="de">
+                    <head>
+                      <meta charset="utf-8" />
+                      <title>Alle Themen · Thema der Woche</title>
+                      <style>
+                        @page {
+                          size: A4 landscape;
+                          margin: 8mm;
+                        }
+
+                        * {
+                          box-sizing: border-box;
+                        }
+
+                        html,
+                        body {
+                          margin: 0;
+                          padding: 0;
+                          font-family: Arial, sans-serif;
+                          color: #0f172a;
+                          background: white;
+                        }
+
+                        body {
+                          print-color-adjust: exact;
+                          -webkit-print-color-adjust: exact;
+                        }
+
+                        .page {
+                          width: 100%;
+                          max-width: 281mm;
+                          margin: 0 auto;
+                          padding: 0;
+                        }
+
+                        .header {
+                          display: flex;
+                          align-items: flex-start;
+                          justify-content: space-between;
+                          gap: 10mm;
+                          border-bottom: 1.5px solid #F29420;
+                          padding-bottom: 4mm;
+                          margin-bottom: 4mm;
+                        }
+
+                        .header-text {
+                          min-width: 0;
+                        }
+
+                        .logo {
+                          width: 54mm;
+                          max-height: 22mm;
+                          object-fit: contain;
+                          object-position: right top;
+                        }
+
+                        .brand {
+                          font-size: 10pt;
+                          font-weight: 700;
+                          color: #F29420;
+                          letter-spacing: 0.04em;
+                          text-transform: uppercase;
+                          margin: 0 0 1mm 0;
+                        }
+
+                        h1 {
+                          font-size: 21pt;
+                          line-height: 1.05;
+                          margin: 0;
+                        }
+
+                        .subtitle {
+                          margin: 1mm 0 0 0;
+                          font-size: 10pt;
+                          color: #475569;
+                        }
+
+                        .theme-grid {
+                          display: grid;
+                          grid-template-columns: repeat(4, 1fr);
+                          gap: 2.2mm 4mm;
+                        }
+
+                        .theme-row {
+                          display: flex;
+                          align-items: center;
+                          gap: 2mm;
+                          border: 1px solid #e2e8f0;
+                          border-radius: 4mm;
+                          background: #f8fafc;
+                          padding: 1.55mm 2.2mm;
+                          font-size: 15px;
+                          line-height: 1.2;
+                          break-inside: avoid;
+                          page-break-inside: avoid;
+                        }
+
+                        .theme-row-free {
+                          border-color: #fdba74;
+                          background: #fff7ed;
+                        }
+
+                        .theme-number {
+                          width: 7mm;
+                          flex: 0 0 7mm;
+                          text-align: right;
+                          font-weight: 700;
+                          color: #F29420;
+                        }
+
+                        .theme-content {
+                          display: flex;
+                          align-items: center;
+                          gap: 6px;
+                          min-width: 0;
+                          flex-wrap: wrap;
+                        }
+
+                        .theme-title {
+                          font-weight: 600;
+                        }
+
+                        .free-badge {
+                          display: inline-block;
+                          border: 1px solid #fdba74;
+                          border-radius: 999px;
+                          background: #F29420;
+                          color: white;
+                          font-size: 10px;
+                          font-weight: 700;
+                          line-height: 1;
+                          padding: 3px 7px;
+                          letter-spacing: 0.01em;
+                          text-transform: uppercase;
+                        }
+
+                        .footer {
+                          margin-top: 4mm;
+                          border-top: 1px solid #fed7aa;
+                          padding-top: 2mm;
+                          font-size: 8.5pt;
+                          color: #64748b;
+                        }
+                      </style>
+                    </head>
+
+                    <body>
+                      <main class="page">
+                        <header class="header">
+                          <div class="header-text">
+                            <p class="brand">Thema der Woche</p>
+                            <h1>Alle Themen</h1>
+                            <p class="subtitle">Edition 1 · 41 Wochenthemen in alphabetischer Reihenfolge</p>
+                          </div>
+
+                          <img
+                            id="as-courage-logo"
+                            class="logo"
+                            src="${window.location.origin}/Logo%20as-courage%20transparent.png"
+                            alt="as-courage · Andreas Sedlag"
+                          />
+                        </header>
+
+                        <section class="theme-grid">
+                          ${themeRows}
+                        </section>
+
+                        <footer class="footer">
+                          Übersicht für Planung, Auswahl und Ausdruck. In der kostenlosen Version sind die ersten vier Themen freigegeben. · as-courage
+                        </footer>
+                      </main>
+
+                      <script>
+                        window.onload = function () {
+                          const logo = document.getElementById('as-courage-logo');
+
+                          const printPage = function () {
+                            window.focus();
+                            window.print();
+                          };
+
+                          if (logo && !logo.complete) {
+                            logo.onload = printPage;
+                            logo.onerror = printPage;
+                          } else {
+                            printPage();
+                          }
+                        };
+                      </script>
+                    </body>
+                  </html>
+                `);
+
+                printWindow.document.close();
+              }}
+              className="no-print cursor-pointer rounded-xl bg-[#F29420] px-4 py-2 text-sm font-semibold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-[#E4891E] hover:shadow-md"
+            >
+              Liste drucken
+            </button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              'Anerkennung 1',
+              'Belastung',
+              'Diskriminierung',
+              'Ehrlichkeit',
+              'Entscheidungsfindung',
+              'Erfolg',
+              'Feedback',
+              'Fehlerkultur',
+              'Flexibilität 1',
+              'Fluktuation',
+              'Führung 1',
+              'Gerechtigkeit',
+              'Gleichberechtigung',
+              'Grenzen',
+              'Humor',
+              'Kennzahlen 1',
+              'Klarheit',
+              'Kommunikation 1',
+              'Konflikte 1',
+              'Kreativität',
+              'Kritik 1',
+              'Lernen 1',
+              'Macht 1',
+              'MA-Gespräche 1',
+              'Motivation',
+              'Nachhaltigkeit',
+              'Pausen',
+              'Prioritäten',
+              'Qualität 1',
+              'Regeln 1',
+              'Selbstführung',
+              'Selbstwirksamkeit',
+              'Sinn',
+              'Stress 1',
+              'Transparenz',
+              'Veränderung',
+              'Verantwortung 1',
+              'Verbesserungen 1',
+              'Vision',
+              'Wertschätzung 1',
+              'Zusammenarbeit',
+            ].map((theme, index) => (
+              <div
+                key={theme}
+                className={`rounded-2xl border px-4 py-3 shadow-sm ${index < 4
+                    ? 'border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50'
+                    : 'border-slate-200 bg-slate-50'
+                  }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex min-w-[2.2rem] justify-center rounded-full bg-white px-2 py-1 text-sm font-semibold tabular-nums text-[#F29420] ring-1 ring-slate-200">
+                    {index + 1}.
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg font-semibold leading-6 text-slate-900">
+                      {theme}
+                    </p>
+
+                    {index < 4 ? (
+                      <div className="mt-2">
+                        <span className="inline-flex rounded-full bg-[#F29420] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+                          kostenlos nutzbar
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-5 border-t border-orange-100 pt-3 text-sm text-slate-600">
+            Hinweis: Diese Übersicht kann als Orientierung für Planung,
+            Auswahl und Ausdruck genutzt werden. In der kostenlosen Version sind nur die ersten 4 Themen zur vollen Nutzung freigegeben.
+          </p>
+        </div>
+      </>
+    ),
+  },
+  {
     title: 'Änderung der Reihenfolge (Themenauswahl)',
     body: (
       <>
